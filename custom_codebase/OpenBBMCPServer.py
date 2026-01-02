@@ -360,23 +360,22 @@ if mcp:
             current_price=current_price,
             current_date=current_date,
             portfolio_state=portfolio_state,
-            market_cap_bil=market_cap_bil
+            market_cap_bil=market_cap_bil,
         )
 
+    def _register_tool_module(register_func, module_name: str) -> None:
+        """Register a tool module with consistent error handling."""
+        if not register_func:
+            return
+        try:
+            register_func(mcp)
+            print(f"✅ Registered {module_name}")
+        except Exception as e:  # noqa: BLE001 - surface registration issues in logs
+            print(f"⚠️  Failed to register {module_name}: {e}")
+
     # Register fundamental and technical analysis tools
-    if register_fundamental_tools:
-        try:
-            register_fundamental_tools(mcp)
-            print("✅ Registered fundamental analysis tools")
-        except Exception as e:
-            print(f"⚠️  Failed to register fundamental tools: {e}")
-    
-    if register_technical_tools:
-        try:
-            register_technical_tools(mcp)
-            print("✅ Registered technical analysis tools")
-        except Exception as e:
-            print(f"⚠️  Failed to register technical tools: {e}")
+    _register_tool_module(register_fundamental_tools, "fundamental analysis tools")
+    _register_tool_module(register_technical_tools, "technical analysis tools")
 
 
 if __name__ == "__main__":

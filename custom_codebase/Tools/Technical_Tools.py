@@ -6,12 +6,12 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 from openbb import obb
 
-# Import the conversion helper from utils module
+# Import helpers from utils module
 import sys
 import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
-from utils import _convert_openbb_result
+from utils import openbb_tool_wrapper
 
 
 def _fetch_price_data(symbol: str, start_date: str, end_date: str):
@@ -31,6 +31,7 @@ def register_technical_tools(mcp):
     """Register all technical indicator tools with MCP server"""
     
     @mcp.tool(name="calculate_rsi")
+    @openbb_tool_wrapper("calculate_rsi")
     def calculate_rsi(
         symbol: str,
         start_date: str,
@@ -51,24 +52,18 @@ def register_technical_tools(mcp):
         Returns:
             Dict with RSI data
         """
-        try:
-            # Fetch price data first
-            price_data = _fetch_price_data(symbol, start_date, end_date)
-            
-            # Calculate RSI on the price data
-            result = obb.technical.rsi(
-                data=price_data,
-                target=target,
-                length=length
-            )
-            return {
-                "tool_name": "calculate_rsi",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "calculate_rsi", "error": str(e)}
+        # Fetch price data first
+        price_data = _fetch_price_data(symbol, start_date, end_date)
+
+        # Calculate RSI on the price data
+        return obb.technical.rsi(
+            data=price_data,
+            target=target,
+            length=length,
+        )
     
     @mcp.tool(name="calculate_macd")
+    @openbb_tool_wrapper("calculate_macd")
     def calculate_macd(
         symbol: str,
         start_date: str,
@@ -93,26 +88,20 @@ def register_technical_tools(mcp):
         Returns:
             Dict with MACD data
         """
-        try:
-            # Fetch price data first
-            price_data = _fetch_price_data(symbol, start_date, end_date)
-            
-            # Calculate MACD on the price data
-            result = obb.technical.macd(
-                data=price_data,
-                target=target,
-                fast=fast,
-                slow=slow,
-                signal=signal
-            )
-            return {
-                "tool_name": "calculate_macd",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "calculate_macd", "error": str(e)}
+        # Fetch price data first
+        price_data = _fetch_price_data(symbol, start_date, end_date)
+
+        # Calculate MACD on the price data
+        return obb.technical.macd(
+            data=price_data,
+            target=target,
+            fast=fast,
+            slow=slow,
+            signal=signal,
+        )
     
     @mcp.tool(name="calculate_bbands")
+    @openbb_tool_wrapper("calculate_bbands")
     def calculate_bbands(
         symbol: str,
         start_date: str,
@@ -135,25 +124,19 @@ def register_technical_tools(mcp):
         Returns:
             Dict with Bollinger Bands data
         """
-        try:
-            # Fetch price data first
-            price_data = _fetch_price_data(symbol, start_date, end_date)
-            
-            # Calculate Bollinger Bands on the price data
-            result = obb.technical.bbands(
-                data=price_data,
-                target=target,
-                length=length,
-                std=std
-            )
-            return {
-                "tool_name": "calculate_bbands",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "calculate_bbands", "error": str(e)}
+        # Fetch price data first
+        price_data = _fetch_price_data(symbol, start_date, end_date)
+
+        # Calculate Bollinger Bands on the price data
+        return obb.technical.bbands(
+            data=price_data,
+            target=target,
+            length=length,
+            std=std,
+        )
     
     @mcp.tool(name="calculate_atr")
+    @openbb_tool_wrapper("calculate_atr")
     def calculate_atr(
         symbol: str,
         start_date: str,
@@ -172,23 +155,17 @@ def register_technical_tools(mcp):
         Returns:
             Dict with ATR data
         """
-        try:
-            # Fetch price data first
-            price_data = _fetch_price_data(symbol, start_date, end_date)
-            
-            # Calculate ATR on the price data
-            result = obb.technical.atr(
-                data=price_data,
-                length=length
-            )
-            return {
-                "tool_name": "calculate_atr",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "calculate_atr", "error": str(e)}
+        # Fetch price data first
+        price_data = _fetch_price_data(symbol, start_date, end_date)
+
+        # Calculate ATR on the price data
+        return obb.technical.atr(
+            data=price_data,
+            length=length,
+        )
     
     @mcp.tool(name="calculate_obv")
+    @openbb_tool_wrapper("calculate_obv")
     def calculate_obv(
         symbol: str,
         start_date: str,
@@ -205,22 +182,14 @@ def register_technical_tools(mcp):
         Returns:
             Dict with OBV data
         """
-        try:
-            # Fetch price data first
-            price_data = _fetch_price_data(symbol, start_date, end_date)
-            
-            # Calculate OBV on the price data
-            result = obb.technical.obv(
-                data=price_data
-            )
-            return {
-                "tool_name": "calculate_obv",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "calculate_obv", "error": str(e)}
+        # Fetch price data first
+        price_data = _fetch_price_data(symbol, start_date, end_date)
+
+        # Calculate OBV on the price data
+        return obb.technical.obv(data=price_data)
     
     @mcp.tool(name="calculate_adx")
+    @openbb_tool_wrapper("calculate_adx")
     def calculate_adx(
         symbol: str,
         start_date: str,
@@ -239,23 +208,17 @@ def register_technical_tools(mcp):
         Returns:
             Dict with ADX data
         """
-        try:
-            # Fetch price data first
-            price_data = _fetch_price_data(symbol, start_date, end_date)
-            
-            # Calculate ADX on the price data
-            result = obb.technical.adx(
-                data=price_data,
-                length=length
-            )
-            return {
-                "tool_name": "calculate_adx",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "calculate_adx", "error": str(e)}
+        # Fetch price data first
+        price_data = _fetch_price_data(symbol, start_date, end_date)
+
+        # Calculate ADX on the price data
+        return obb.technical.adx(
+            data=price_data,
+            length=length,
+        )
     
     @mcp.tool(name="calculate_ema")
+    @openbb_tool_wrapper("calculate_ema")
     def calculate_ema(
         symbol: str,
         start_date: str,
@@ -276,24 +239,18 @@ def register_technical_tools(mcp):
         Returns:
             Dict with EMA data
         """
-        try:
-            # Fetch price data first
-            price_data = _fetch_price_data(symbol, start_date, end_date)
-            
-            # Calculate EMA on the price data
-            result = obb.technical.ema(
-                data=price_data,
-                target=target,
-                length=length
-            )
-            return {
-                "tool_name": "calculate_ema",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "calculate_ema", "error": str(e)}
+        # Fetch price data first
+        price_data = _fetch_price_data(symbol, start_date, end_date)
+
+        # Calculate EMA on the price data
+        return obb.technical.ema(
+            data=price_data,
+            target=target,
+            length=length,
+        )
     
     @mcp.tool(name="calculate_cci")
+    @openbb_tool_wrapper("calculate_cci")
     def calculate_cci(
         symbol: str,
         start_date: str,
@@ -312,23 +269,17 @@ def register_technical_tools(mcp):
         Returns:
             Dict with CCI data
         """
-        try:
-            # Fetch price data first
-            price_data = _fetch_price_data(symbol, start_date, end_date)
-            
-            # Calculate CCI on the price data
-            result = obb.technical.cci(
-                data=price_data,
-                length=length
-            )
-            return {
-                "tool_name": "calculate_cci",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "calculate_cci", "error": str(e)}
+        # Fetch price data first
+        price_data = _fetch_price_data(symbol, start_date, end_date)
+
+        # Calculate CCI on the price data
+        return obb.technical.cci(
+            data=price_data,
+            length=length,
+        )
     
     @mcp.tool(name="get_price_history")
+    @openbb_tool_wrapper("get_price_history")
     def get_price_history(
         symbol: str,
         start_date: str,
@@ -345,20 +296,14 @@ def register_technical_tools(mcp):
         Returns:
             Dict with price history data
         """
-        try:
-            result = obb.equity.price.historical(
-                symbol=symbol,
-                start_date=start_date,
-                end_date=end_date
-            )
-            return {
-                "tool_name": "get_price_history",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "get_price_history", "error": str(e)}
+        return obb.equity.price.historical(
+            symbol=symbol,
+            start_date=start_date,
+            end_date=end_date,
+        )
     
     @mcp.tool(name="get_current_price")
+    @openbb_tool_wrapper("get_current_price")
     def get_current_price(
         symbol: str,
         current_date: Optional[str] = None
@@ -373,22 +318,13 @@ def register_technical_tools(mcp):
         Returns:
             Dict with current price data
         """
-        try:
-            if current_date:
-                # Get price for specific date
-                result = obb.equity.price.historical(
-                    symbol=symbol,
-                    start_date=current_date,
-                    end_date=current_date
-                )
-            else:
-                # Get most recent price
-                result = obb.equity.price.quote(symbol=symbol)
-            
-            return {
-                "tool_name": "get_current_price",
-                "data": _convert_openbb_result(result)
-            }
-        except Exception as e:
-            return {"tool_name": "get_current_price", "error": str(e)}
+        if current_date:
+            # Get price for specific date
+            return obb.equity.price.historical(
+                symbol=symbol,
+                start_date=current_date,
+                end_date=current_date,
+            )
+        # Get most recent price
+        return obb.equity.price.quote(symbol=symbol)
 
