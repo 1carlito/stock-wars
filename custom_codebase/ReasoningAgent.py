@@ -343,6 +343,13 @@ class ReasoningAgent:
                             timeout=timeout
                         )
                         
+                        # Add the model response once before all tool results
+                        messages.append({
+                            "role": "assistant",
+                            "content": response_text,
+                        })
+                        user_tool_messages: List[str] = []
+
                         # Process results and add to conversation
                         for i, (tool_call, tool_result) in enumerate(zip(tool_calls, tool_results_batch)):
                             if isinstance(tool_result, Exception):
@@ -360,35 +367,42 @@ class ReasoningAgent:
                             # Add trimmed tool result to conversation (bounded size)
                             tool_result_str = json.dumps(trimmed_result, indent=2)
                             result_size = len(tool_result_str)
-                            max_chars = 4000
+                            max_chars = 2000  # tighter cap per tool to keep prompts small
                             if result_size > max_chars:
                                 print(f"  📊 Tool '{tool_call['name']}' result: {result_size} chars (will truncate for prompt)")
                                 tool_result_str = tool_result_str[:max_chars] + f"\n... truncated tool '{tool_call['name']}' output to {max_chars} chars ..."
                             else:
                                 print(f"  📊 Tool '{tool_call['name']}' result: {result_size} chars")
-                            
-                            messages.append({
-                                "role": "assistant",
-                                "content": response_text
-                            })
+
+                            user_tool_messages.append(
+                                f"Tool '{tool_call['name']}' result:\n{tool_result_str}"
+                            )
+
+                        # Send a single aggregated user message containing all tool results
+                        if user_tool_messages:
                             messages.append({
                                 "role": "user",
-                                "content": f"Tool '{tool_call['name']}' result: {tool_result_str}"
+                                "content": "\n\n".join(user_tool_messages),
                             })
+
                     except asyncio.TimeoutError:
                         print(f"⚠️  Tool execution timed out after {timeout}s")
                         # Add timeout error for each tool
+                        messages.append({
+                            "role": "assistant",
+                            "content": response_text,
+                        })
+                        timeout_msgs: List[str] = []
                         for tool_call in tool_calls:
                             tool_result = {"error": "Tool execution timed out", "tool": tool_call['name'], "tool_name": tool_call['name']}
                             tool_results.append(tool_result)
-                            messages.append({
-                                "role": "assistant",
-                                "content": response_text
-                            })
-                            messages.append({
-                                "role": "user",
-                                "content": f"Tool '{tool_call['name']}' timed out after {timeout}s"
-                            })
+                            timeout_msgs.append(
+                                f"Tool '{tool_call['name']}' timed out after {timeout}s"
+                            )
+                        messages.append({
+                            "role": "user",
+                            "content": "\n".join(timeout_msgs),
+                        })
                     except Exception as e:
                         print(f"⚠️  Batch tool execution error: {e}")
                         # Fallback: add error message
@@ -396,8 +410,12 @@ class ReasoningAgent:
                             tool_result = {"error": str(e), "tool": tool_call['name'], "tool_name": tool_call['name']}
                             tool_results.append(tool_result)
                         messages.append({
+                            "role": "assistant",
+                            "content": response_text,
+                        })
+                        messages.append({
                             "role": "user",
-                            "content": f"Tool execution failed: {str(e)}"
+                            "content": f"Tool execution failed: {str(e)}",
                         })
                 
                 iteration += 1
@@ -406,6 +424,12 @@ class ReasoningAgent:
             decision_result = self._parse_response(response_text, symbol, current_date)
             decision_result['tool_calls_made'] = len(tool_results)
             decision_result['tool_results'] = tool_results
+            # Save raw prompt/messages that the LLM saw when making this decision
+            try:
+                self._save_raw_prompt(symbol, current_date, messages)
+            except Exception as e:
+                # Don't fail the whole run if logging the prompt fails
+                print(f"⚠️  Failed to save raw LLM prompt: {e}")
             self._save_decision(decision_result)
             
             # 5. Optionally execute trade if requested
@@ -653,6 +677,34 @@ Avoid lookahead bias: do not use data from after {current_date}.
         filename = f"{decision['symbol']}_{decision['date']}_decision.json"
         with open(os.path.join(self.decision_save_dir, filename), 'w') as f:
             json.dump(decision, f, indent=2)
+
+    def _save_raw_prompt(self, symbol: str, date: str, messages: List[Dict[str, Any]]) -> None:
+        """Append a copy of the raw data (messages) seen by the LLM when making a decision.
+
+        Saved alongside decisions, using a `.w` extension for easy identification.
+        Each run is appended with a separator so multiple decisions for the same
+        symbol/date can coexist in a single file.
+        """
+        os.makedirs(self.decision_save_dir, exist_ok=True)
+        filename = f"{symbol}_{date}_prompt.w"
+        path = os.path.join(self.decision_save_dir, filename)
+
+        total_chars = sum(len(str(msg.get("content", ""))) for msg in messages)
+        record = {
+            "symbol": symbol,
+            "date": date,
+            "total_messages": len(messages),
+            "total_chars": total_chars,
+            "messages": messages,
+        }
+
+        with open(path, "a") as f:
+            f.write("\n" + "=" * 80 + "\n")
+            f.write(f"RAW LLM PROMPT SNAPSHOT - {symbol} {date}\n")
+            f.write(f"Total messages: {len(messages)}, total chars: {total_chars}\n")
+            f.write("=" * 80 + "\n")
+            json.dump(record, f, indent=2)
+            f.write("\n")
 
     def _trim_tool_result(self, tool_result: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -912,6 +964,30 @@ Avoid lookahead bias: do not use data from after {current_date}.
                     # Ensure tool_name is always included
                     if isinstance(parsed_result, dict) and "tool_name" not in parsed_result:
                         parsed_result["tool_name"] = tool_name
+
+                    # Extra safety: strip out any records dated AFTER current_date to
+                    # prevent subtle lookahead if the data provider returns a later bar.
+                    if current_date_dt and isinstance(parsed_result, dict):
+                        data = parsed_result.get("data")
+                        if isinstance(data, list) and data:
+                            filtered = []
+                            for item in data:
+                                if not isinstance(item, dict):
+                                    filtered.append(item)
+                                    continue
+                                item_date = item.get("date")
+                                if not item_date:
+                                    filtered.append(item)
+                                    continue
+                                try:
+                                    item_dt = datetime.strptime(str(item_date), "%Y-%m-%d")
+                                except Exception:
+                                    filtered.append(item)
+                                    continue
+                                if item_dt <= current_date_dt:
+                                    filtered.append(item)
+                            parsed_result["data"] = filtered
+
                     return parsed_result
                 except json.JSONDecodeError:
                     return {"result": content_text, "tool_name": tool_name}
