@@ -4,6 +4,8 @@ Fundamental_Tools.py: Fundamental analysis tools using OpenBB SDK
 
 from typing import Dict, Any, Optional
 from openbb import obb
+from functools import lru_cache
+import sys
 
 # Import helpers from utils module
 import sys
@@ -12,6 +14,43 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
 from utils import _convert_openbb_result, format_tool_result, handle_premium_error, openbb_tool_wrapper
 
+# ============================================================================
+# CACHED UNDERLYING OPENBB CALLS
+# ============================================================================
+
+
+@lru_cache(maxsize=512)
+def _cached_income_statement(symbol: str, period: str, limit: int):
+    return obb.equity.fundamental.income(symbol=symbol, period=period, limit=limit)
+
+
+@lru_cache(maxsize=512)
+def _cached_balance_sheet(symbol: str, period: str, limit: int):
+    return obb.equity.fundamental.balance(symbol=symbol, period=period, limit=limit)
+
+
+@lru_cache(maxsize=512)
+def _cached_cash_flow(symbol: str, period: str, limit: int):
+    return obb.equity.fundamental.cash(symbol=symbol, period=period, limit=limit)
+
+
+@lru_cache(maxsize=512)
+def _cached_company_profile(symbol: str):
+    return obb.equity.profile(symbol=symbol)
+
+
+@lru_cache(maxsize=512)
+def _cached_analyst_estimates(symbol: str):
+    return obb.equity.estimates.consensus(symbol=symbol)
+
+
+@lru_cache(maxsize=512)
+def _cached_earnings_calendar(start_date: str, end_date: str, symbol: Optional[str]):
+    return obb.equity.calendar.earnings(
+        start_date=start_date,
+        end_date=end_date,
+        symbol=symbol,
+    )
 
 def register_fundamental_tools(mcp):
     """Register all fundamental analysis tools with MCP server"""
@@ -24,7 +63,7 @@ def register_fundamental_tools(mcp):
         limit: int = 5,
     ) -> Dict[str, Any]:
         """Get income statement data for a stock."""
-        return obb.equity.fundamental.income(symbol=symbol, period=period, limit=limit)
+        return _cached_income_statement(symbol, period, limit)
     
     @mcp.tool(name="get_balance_sheet")
     @openbb_tool_wrapper("get_balance_sheet")
@@ -34,7 +73,7 @@ def register_fundamental_tools(mcp):
         limit: int = 5,
     ) -> Dict[str, Any]:
         """Get balance sheet data for a stock."""
-        return obb.equity.fundamental.balance(symbol=symbol, period=period, limit=limit)
+        return _cached_balance_sheet(symbol, period, limit)
     
     @mcp.tool(name="get_cash_flow")
     @openbb_tool_wrapper("get_cash_flow")
@@ -44,13 +83,13 @@ def register_fundamental_tools(mcp):
         limit: int = 5,
     ) -> Dict[str, Any]:
         """Get cash flow statement data for a stock."""
-        return obb.equity.fundamental.cash(symbol=symbol, period=period, limit=limit)
+        return _cached_cash_flow(symbol, period, limit)
     
     @mcp.tool(name="get_company_profile")
     @openbb_tool_wrapper("get_company_profile")
     def get_company_profile(symbol: str) -> Dict[str, Any]:
         """Get company profile/overview for a stock."""
-        return obb.equity.profile(symbol=symbol)
+        return _cached_company_profile(symbol)
     
     @mcp.tool(name="get_earnings_calendar")
     def get_earnings_calendar(
@@ -72,12 +111,8 @@ def register_fundamental_tools(mcp):
             if current_date and current_date < end_date:
                 end_date = current_date
 
-            result = obb.equity.calendar.earnings(
-                start_date=start_date,
-                end_date=end_date,
-                symbol=symbol,
-            )
-
+            # Use cached underlying earnings call
+            result = _cached_earnings_calendar(start_date, end_date, symbol)
             data = _convert_openbb_result(result)
 
             # If symbol is provided, filter results to only that symbol
@@ -104,5 +139,5 @@ def register_fundamental_tools(mcp):
     @openbb_tool_wrapper("get_analyst_estimates")
     def get_analyst_estimates(symbol: str) -> Dict[str, Any]:
         """Get analyst estimates for a stock."""
-        return obb.equity.estimates.consensus(symbol=symbol)
+        return _cached_analyst_estimates(symbol)
 

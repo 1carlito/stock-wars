@@ -4,6 +4,7 @@ Technical_Tools.py: Technical indicator tools using OpenBB SDK
 
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
+from functools import lru_cache
 from openbb import obb
 
 # Import helpers from utils module
@@ -14,17 +15,27 @@ sys.path.insert(0, parent_dir)
 from utils import openbb_tool_wrapper
 
 
-def _fetch_price_data(symbol: str, start_date: str, end_date: str):
-    """Helper function to fetch price data for technical indicators"""
-    price_result = obb.equity.price.historical(
+@lru_cache(maxsize=512)
+def _cached_price_history(symbol: str, start_date: str, end_date: str):
+    """Cached wrapper around OpenBB price history to avoid duplicate requests.
+
+    Keyed by (symbol, start_date, end_date). This improves performance both:
+      - Within a single decision (multiple indicators reuse the same window)
+      - Across backtest days, when the exact same window is requested again.
+    """
+    return obb.equity.price.historical(
         symbol=symbol,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
     )
-    if hasattr(price_result, 'results') and price_result.results:
+
+
+def _fetch_price_data(symbol: str, start_date: str, end_date: str):
+    """Helper function to fetch price data for technical indicators (with caching)."""
+    price_result = _cached_price_history(symbol, start_date, end_date)
+    if hasattr(price_result, "results") and price_result.results:
         return price_result.results
-    else:
-        raise ValueError(f"No price data returned for {symbol} from {start_date} to {end_date}")
+    raise ValueError(f"No price data returned for {symbol} from {start_date} to {end_date}")
 
 
 def register_technical_tools(mcp):
@@ -287,20 +298,17 @@ def register_technical_tools(mcp):
     ) -> Dict[str, Any]:
         """
         Get historical price data for a stock.
-        
+
         Args:
             symbol: Stock ticker symbol
             start_date: Start date (YYYY-MM-DD)
             end_date: End date (YYYY-MM-DD)
-        
+
         Returns:
             Dict with price history data
         """
-        return obb.equity.price.historical(
-            symbol=symbol,
-            start_date=start_date,
-            end_date=end_date,
-        )
+        # Reuse the same cached underlying call used by technical indicators
+        return _cached_price_history(symbol, start_date, end_date)
     
     @mcp.tool(name="get_current_price")
     @openbb_tool_wrapper("get_current_price")

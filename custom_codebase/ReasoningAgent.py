@@ -508,14 +508,16 @@ class ReasoningAgent:
                             print(f"❌ Trade execution failed: {e}")
                             decision_result['trade_execution_error'] = str(e)
             
-            # Cleanup MCP session
-            await self._close_mcp_session()
+            # Note: MCP session is NOT closed here to allow caching across backtest days.
+            # The session will be closed by the caller (e.g., backtest script) when done.
             
             return decision_result
 
         except Exception as e:
             print(f"❌ Error for {symbol}: {e}")
-            await self._close_mcp_session()
+            # Only close session on critical errors that require restart
+            # For normal operation, keep session alive for caching across days
+            # await self._close_mcp_session()  # Commented out to preserve cache
             return self._create_error_decision(symbol, current_date, str(e))
 
     def _build_system_prompt(self, mcp_session=None) -> str:
@@ -563,7 +565,7 @@ You operate in TWO CLEAR STAGES:
 
 STAGE 1 - PLANNING (FIRST RESPONSE ONLY):
 - Carefully decide which tools you need and with what parameters.
-- For technical indicators, choose explicit, tight date ranges (typically 60–200 days).
+- For technical indicators: Use date ranges of 60-90 days for fetching price history. You can still use long indicator periods (e.g., 200-day EMA, 50-day EMA) - the period parameter is separate from the data range.
 - For fundamentals, request only as much history as you truly need (for example: period='annual', limit=3).
 - Output ONLY tool calls in this format (no decision yet):
   TOOL_CALL: tool_name(param1=value1, param2=value2)
