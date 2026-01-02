@@ -1,28 +1,16 @@
 {
   "symbol": "AAPL",
-  "date": "2025-12-15",
+  "date": "2025-12-16",
   "decision": "HOLD",
   "confidence": 0.65,
   "amount_usd": 0.0,
-  "reasoning": "Based on my analysis of AAPL as of December 15, 2025, I recommend holding the position. Here's my comprehensive assessment:\n\n**Technical Analysis:**\n- **Trend**: The stock is in a strong uptrend with price consistently above the 50-day EMA (around $234-235 vs. price in the $250s). ADX shows strong trend strength at 30+ levels, indicating a well-established uptrend.\n- **Momentum**: RSI is elevated (around 70-75) but not yet in extreme overbought territory. MACD remains positive with the MACD line above the signal line, though the histogram shows some weakening momentum. CCI is extremely negative (around -1400 to -1500), which is concerning but may be due to the calculation method.\n- **Volatility**: Bollinger Bands show the price is trading near the upper band, suggesting potential overbought conditions. ATR is around 4.6-5.2, indicating moderate volatility.\n- **Volume**: OBV shows accumulation with an upward trend, supporting the price movement.\n\n**Fundamental Analysis:**\n- Analyst consensus target is $298.80 with a high of $350, suggesting significant upside potential from current levels around $250-260.\n- Apple maintains its strong position in consumer electronics with diversified product portfolio and services revenue.\n\n**Risk Factors:**\n- The stock appears extended after a significant move from $237 to $256+ in late September.\n- Elevated RSI and proximity to upper Bollinger Band suggest potential for near-term consolidation.\n- The extremely negative CCI reading, while potentially a calculation artifact, warrants caution.\n\nGiven the strong uptrend but overbought technical conditions, I recommend holding rather than adding new positions. The stock may need to consolidate before continuing higher. A pullback to the 50-day EMA around $235 could present a better entry opportunity.",
-  "raw_response": "DECISION: HOLD\nCONFIDENCE: 0.65\nREASONING: \n\nBased on my analysis of AAPL as of December 15, 2025, I recommend holding the position. Here's my comprehensive assessment:\n\n**Technical Analysis:**\n- **Trend**: The stock is in a strong uptrend with price consistently above the 50-day EMA (around $234-235 vs. price in the $250s). ADX shows strong trend strength at 30+ levels, indicating a well-established uptrend.\n- **Momentum**: RSI is elevated (around 70-75) but not yet in extreme overbought territory. MACD remains positive with the MACD line above the signal line, though the histogram shows some weakening momentum. CCI is extremely negative (around -1400 to -1500), which is concerning but may be due to the calculation method.\n- **Volatility**: Bollinger Bands show the price is trading near the upper band, suggesting potential overbought conditions. ATR is around 4.6-5.2, indicating moderate volatility.\n- **Volume**: OBV shows accumulation with an upward trend, supporting the price movement.\n\n**Fundamental Analysis:**\n- Analyst consensus target is $298.80 with a high of $350, suggesting significant upside potential from current levels around $250-260.\n- Apple maintains its strong position in consumer electronics with diversified product portfolio and services revenue.\n\n**Risk Factors:**\n- The stock appears extended after a significant move from $237 to $256+ in late September.\n- Elevated RSI and proximity to upper Bollinger Band suggest potential for near-term consolidation.\n- The extremely negative CCI reading, while potentially a calculation artifact, warrants caution.\n\nGiven the strong uptrend but overbought technical conditions, I recommend holding rather than adding new positions. The stock may need to consolidate before continuing higher. A pullback to the 50-day EMA around $235 could present a better entry opportunity.",
-  "tool_calls_made": 12,
+  "reasoning": "Based on my comprehensive analysis of AAPL as of December 16, 2025:\n\n**Technical Analysis:**\n- **Trend**: The stock is in a strong uptrend with price trading well above the 50-day EMA (~$235-236), and ADX reading of 34+ indicates a strong directional trend.\n- **Momentum**: RSI is elevated around 68-72, approaching overbought territory but not yet extreme. MACD remains positive but shows signs of momentum slowing (MACD histogram declining). CCI readings are extremely negative, which is unusual given the uptrend and may indicate a potential reversal signal.\n- **Volatility**: Bollinger Bands show price trading near the upper band, suggesting potential overextension. ATR around 4.6-5.1 indicates moderate volatility.\n- **Volume**: OBV shows accumulation but with some distribution patterns, suggesting mixed sentiment.\n\n**Fundamental Analysis:**\n- Strong financial performance with FY2025 revenue of $416B (6.4% growth) and net income of $112B\n- Healthy balance sheet with $54.7B in cash/short-term investments\n- Robust cash flow generation with $111.5B operating cash flow\n- Analyst consensus target of $298.80 suggests ~16% upside from current levels\n\n**Risk Factors:**\n- Stock appears overbought technically with multiple indicators suggesting potential near-term consolidation\n- High valuation levels may limit near-term upside\n- CCI divergence from price action is concerning\n\nGiven the mixed signals (strong fundamentals but overbought technicals), I recommend HOLDING existing positions but waiting for a better entry point for new positions. The stock may need to consolidate before continuing its uptrend.",
+  "raw_response": "DECISION: HOLD\nCONFIDENCE: 0.65\nREASONING: \n\nBased on my comprehensive analysis of AAPL as of December 16, 2025:\n\n**Technical Analysis:**\n- **Trend**: The stock is in a strong uptrend with price trading well above the 50-day EMA (~$235-236), and ADX reading of 34+ indicates a strong directional trend.\n- **Momentum**: RSI is elevated around 68-72, approaching overbought territory but not yet extreme. MACD remains positive but shows signs of momentum slowing (MACD histogram declining). CCI readings are extremely negative, which is unusual given the uptrend and may indicate a potential reversal signal.\n- **Volatility**: Bollinger Bands show price trading near the upper band, suggesting potential overextension. ATR around 4.6-5.1 indicates moderate volatility.\n- **Volume**: OBV shows accumulation but with some distribution patterns, suggesting mixed sentiment.\n\n**Fundamental Analysis:**\n- Strong financial performance with FY2025 revenue of $416B (6.4% growth) and net income of $112B\n- Healthy balance sheet with $54.7B in cash/short-term investments\n- Robust cash flow generation with $111.5B operating cash flow\n- Analyst consensus target of $298.80 suggests ~16% upside from current levels\n\n**Risk Factors:**\n- Stock appears overbought technically with multiple indicators suggesting potential near-term consolidation\n- High valuation levels may limit near-term upside\n- CCI divergence from price action is concerning\n\nGiven the mixed signals (strong fundamentals but overbought technicals), I recommend HOLDING existing positions but waiting for a better entry point for new positions. The stock may need to consolidate before continuing its uptrend.",
+  "tool_calls_made": 15,
   "tool_results": [
     {
       "tool_name": "get_price_history",
       "data": [
-        {
-          "date": "2025-09-16",
-          "open": 237.14,
-          "high": 241.22,
-          "low": 236.32,
-          "close": 238.15,
-          "volume": 63421099,
-          "vwap": null,
-          "calls_volume": null,
-          "puts_volume": null,
-          "total_options_volume": null
-        },
         {
           "date": "2025-09-17",
           "open": 239.0,
@@ -778,6 +766,501 @@
           "calls_volume": null,
           "puts_volume": null,
           "total_options_volume": null
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
+        }
+      ]
+    },
+    {
+      "tool_name": "get_income_statement",
+      "data": [
+        {
+          "period_ending": "2025-09-27",
+          "fiscal_period": "FY",
+          "fiscal_year": 2025,
+          "filing_date": "2025-10-31",
+          "accepted_date": "2025-10-31T06:01:26",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "revenue": 416161000000,
+          "cost_of_revenue": 220960000000,
+          "gross_profit": 195201000000,
+          "general_and_admin_expense": 0,
+          "research_and_development_expense": 34550000000,
+          "selling_and_marketing_expense": 0,
+          "selling_general_and_admin_expense": 27601000000,
+          "other_expenses": 0,
+          "total_operating_expenses": 62151000000,
+          "cost_and_expenses": 283111000000,
+          "interest_income": 0,
+          "total_interest_expense": 0,
+          "net_interest_income": 0,
+          "depreciation_and_amortization": 11698000000,
+          "ebit": 132729000000,
+          "ebitda": 144427000000,
+          "total_operating_income": 133050000000,
+          "non_operating_income_excluding_interest": 321000000,
+          "net_income_from_continuing_operations": 112010000000,
+          "net_income_from_discontinued_operations": 0,
+          "total_other_income_expenses": -321000000,
+          "total_pre_tax_income": 132729000000,
+          "income_tax_expense": 20719000000,
+          "other_adjustments_to_net_income": 0,
+          "net_income_deductions": 0,
+          "consolidated_net_income": 112010000000,
+          "bottom_line_net_income": 112010000000,
+          "basic_earnings_per_share": 7.49,
+          "diluted_earnings_per_share": 7.46,
+          "weighted_average_basic_shares_outstanding": 14948500000,
+          "weighted_average_diluted_shares_outstanding": 15004697000
+        },
+        {
+          "period_ending": "2024-09-28",
+          "fiscal_period": "FY",
+          "fiscal_year": 2024,
+          "filing_date": "2024-11-01",
+          "accepted_date": "2024-11-01T06:01:36",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "revenue": 391035000000,
+          "cost_of_revenue": 210352000000,
+          "gross_profit": 180683000000,
+          "general_and_admin_expense": 0,
+          "research_and_development_expense": 31370000000,
+          "selling_and_marketing_expense": 0,
+          "selling_general_and_admin_expense": 26097000000,
+          "other_expenses": 0,
+          "total_operating_expenses": 57467000000,
+          "cost_and_expenses": 267819000000,
+          "interest_income": 0,
+          "total_interest_expense": 0,
+          "net_interest_income": 0,
+          "depreciation_and_amortization": 11445000000,
+          "ebit": 123216000000,
+          "ebitda": 134661000000,
+          "total_operating_income": 123216000000,
+          "non_operating_income_excluding_interest": 0,
+          "net_income_from_continuing_operations": 93736000000,
+          "net_income_from_discontinued_operations": 0,
+          "total_other_income_expenses": 269000000,
+          "total_pre_tax_income": 123485000000,
+          "income_tax_expense": 29749000000,
+          "other_adjustments_to_net_income": 0,
+          "net_income_deductions": 0,
+          "consolidated_net_income": 93736000000,
+          "bottom_line_net_income": 93736000000,
+          "basic_earnings_per_share": 6.11,
+          "diluted_earnings_per_share": 6.08,
+          "weighted_average_basic_shares_outstanding": 15343783000,
+          "weighted_average_diluted_shares_outstanding": 15408095000
+        },
+        {
+          "period_ending": "2023-09-30",
+          "fiscal_period": "FY",
+          "fiscal_year": 2023,
+          "filing_date": "2023-11-03",
+          "accepted_date": "2023-11-02T18:08:27",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "revenue": 383285000000,
+          "cost_of_revenue": 214137000000,
+          "gross_profit": 169148000000,
+          "general_and_admin_expense": 0,
+          "research_and_development_expense": 29915000000,
+          "selling_and_marketing_expense": 0,
+          "selling_general_and_admin_expense": 24932000000,
+          "other_expenses": 0,
+          "total_operating_expenses": 54847000000,
+          "cost_and_expenses": 268984000000,
+          "interest_income": 3750000000,
+          "total_interest_expense": 3933000000,
+          "net_interest_income": -183000000,
+          "depreciation_and_amortization": 11519000000,
+          "ebit": 114301000000,
+          "ebitda": 125820000000,
+          "total_operating_income": 114301000000,
+          "non_operating_income_excluding_interest": 0,
+          "net_income_from_continuing_operations": 96995000000,
+          "net_income_from_discontinued_operations": 0,
+          "total_other_income_expenses": -565000000,
+          "total_pre_tax_income": 113736000000,
+          "income_tax_expense": 16741000000,
+          "other_adjustments_to_net_income": 0,
+          "net_income_deductions": 0,
+          "consolidated_net_income": 96995000000,
+          "bottom_line_net_income": 96995000000,
+          "basic_earnings_per_share": 6.16,
+          "diluted_earnings_per_share": 6.13,
+          "weighted_average_basic_shares_outstanding": 15744231000,
+          "weighted_average_diluted_shares_outstanding": 15812547000
+        }
+      ]
+    },
+    {
+      "tool_name": "get_balance_sheet",
+      "data": [
+        {
+          "period_ending": "2025-09-27",
+          "fiscal_period": "FY",
+          "fiscal_year": 2025,
+          "filing_date": "2025-10-31",
+          "accepted_date": "2025-10-31T06:01:26",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "cash_and_cash_equivalents": 33539000000,
+          "short_term_investments": 21158000000,
+          "cash_and_short_term_investments": 54697000000,
+          "accounts_receivables": 39777000000,
+          "other_receivables": 33180000000,
+          "net_receivables": 72957000000,
+          "inventory": 5718000000,
+          "other_current_assets": 14585000000,
+          "total_current_assets": 147957000000,
+          "plant_property_equipment_net": 61039000000,
+          "goodwill": 0,
+          "intangible_assets": 0,
+          "goodwill_and_intangible_assets": 0,
+          "long_term_investments": 77723000000,
+          "tax_assets": 20777000000,
+          "other_non_current_assets": 51745000000,
+          "non_current_assets": 211284000000,
+          "other_assets": 0,
+          "total_assets": 359241000000,
+          "accounts_payable": 69860000000,
+          "prepaid_expenses": 0,
+          "accrued_expenses": 0,
+          "short_term_debt": 20329000000,
+          "tax_payables": 0,
+          "current_deferred_revenue": 9055000000,
+          "other_current_liabilities": 51254000000,
+          "other_payables": 13016000000,
+          "total_current_liabilities": 165631000000,
+          "total_payables": 82876000000,
+          "long_term_debt": 78328000000,
+          "deferred_revenue_non_current": 0,
+          "deferred_tax_liabilities_non_current": 0,
+          "other_non_current_liabilities": 29946000000,
+          "total_non_current_liabilities": 119877000000,
+          "capital_lease_obligations_current": 2117000000,
+          "capital_lease_obligations_non_current": 11603000000,
+          "capital_lease_obligations": 0,
+          "other_liabilities": 0,
+          "total_liabilities": 285508000000,
+          "preferred_stock": 0,
+          "common_stock": 93568000000,
+          "treasury_stock": 0,
+          "retained_earnings": -14264000000,
+          "additional_paid_in_capital": 0,
+          "accumulated_other_comprehensive_income": -5571000000,
+          "other_shareholders_equity": null,
+          "other_total_shareholders_equity": 0,
+          "total_common_equity": 73733000000,
+          "total_equity_non_controlling_interests": 73733000000,
+          "total_liabilities_and_shareholders_equity": null,
+          "minority_interest": 0,
+          "total_liabilities_and_total_equity": 359241000000,
+          "total_investments": 98881000000,
+          "total_debt": 112377000000,
+          "net_debt": 78838000000
+        },
+        {
+          "period_ending": "2024-09-28",
+          "fiscal_period": "FY",
+          "fiscal_year": 2024,
+          "filing_date": "2024-11-01",
+          "accepted_date": "2024-11-01T06:01:36",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "cash_and_cash_equivalents": 29943000000,
+          "short_term_investments": 35228000000,
+          "cash_and_short_term_investments": 65171000000,
+          "accounts_receivables": 33410000000,
+          "other_receivables": 32833000000,
+          "net_receivables": 66243000000,
+          "inventory": 7286000000,
+          "other_current_assets": 14287000000,
+          "total_current_assets": 152987000000,
+          "plant_property_equipment_net": 45680000000,
+          "goodwill": 0,
+          "intangible_assets": 0,
+          "goodwill_and_intangible_assets": 0,
+          "long_term_investments": 91479000000,
+          "tax_assets": 19499000000,
+          "other_non_current_assets": 55335000000,
+          "non_current_assets": 211993000000,
+          "other_assets": 0,
+          "total_assets": 364980000000,
+          "accounts_payable": 68960000000,
+          "prepaid_expenses": 0,
+          "accrued_expenses": 0,
+          "short_term_debt": 20879000000,
+          "tax_payables": 26601000000,
+          "current_deferred_revenue": 8249000000,
+          "other_current_liabilities": 50071000000,
+          "other_payables": 26601000000,
+          "total_current_liabilities": 176392000000,
+          "total_payables": 95561000000,
+          "long_term_debt": 85750000000,
+          "deferred_revenue_non_current": 0,
+          "deferred_tax_liabilities_non_current": 0,
+          "other_non_current_liabilities": 35090000000,
+          "total_non_current_liabilities": 131638000000,
+          "capital_lease_obligations_current": 1632000000,
+          "capital_lease_obligations_non_current": 10798000000,
+          "capital_lease_obligations": 12430000000,
+          "other_liabilities": 0,
+          "total_liabilities": 308030000000,
+          "preferred_stock": 0,
+          "common_stock": 83276000000,
+          "treasury_stock": 0,
+          "retained_earnings": -19154000000,
+          "additional_paid_in_capital": 0,
+          "accumulated_other_comprehensive_income": -7172000000,
+          "other_shareholders_equity": null,
+          "other_total_shareholders_equity": 0,
+          "total_common_equity": 56950000000,
+          "total_equity_non_controlling_interests": 56950000000,
+          "total_liabilities_and_shareholders_equity": null,
+          "minority_interest": 0,
+          "total_liabilities_and_total_equity": 364980000000,
+          "total_investments": 126707000000,
+          "total_debt": 119059000000,
+          "net_debt": 89116000000
+        },
+        {
+          "period_ending": "2023-09-30",
+          "fiscal_period": "FY",
+          "fiscal_year": 2023,
+          "filing_date": "2023-11-03",
+          "accepted_date": "2023-11-02T18:08:27",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "cash_and_cash_equivalents": 29965000000,
+          "short_term_investments": 31590000000,
+          "cash_and_short_term_investments": 61555000000,
+          "accounts_receivables": 29508000000,
+          "other_receivables": 31477000000,
+          "net_receivables": 60985000000,
+          "inventory": 6331000000,
+          "other_current_assets": 14695000000,
+          "total_current_assets": 143566000000,
+          "plant_property_equipment_net": 54376000000,
+          "goodwill": 0,
+          "intangible_assets": 0,
+          "goodwill_and_intangible_assets": 0,
+          "long_term_investments": 100544000000,
+          "tax_assets": 17852000000,
+          "other_non_current_assets": 36245000000,
+          "non_current_assets": 209017000000,
+          "other_assets": 0,
+          "total_assets": 352583000000,
+          "accounts_payable": 62611000000,
+          "prepaid_expenses": 0,
+          "accrued_expenses": 0,
+          "short_term_debt": 15807000000,
+          "tax_payables": 8819000000,
+          "current_deferred_revenue": 8061000000,
+          "other_current_liabilities": 48435000000,
+          "other_payables": 8819000000,
+          "total_current_liabilities": 145308000000,
+          "total_payables": 71430000000,
+          "long_term_debt": 95281000000,
+          "deferred_revenue_non_current": 0,
+          "deferred_tax_liabilities_non_current": 0,
+          "other_non_current_liabilities": 38581000000,
+          "total_non_current_liabilities": 145129000000,
+          "capital_lease_obligations_current": 1575000000,
+          "capital_lease_obligations_non_current": 11267000000,
+          "capital_lease_obligations": 12842000000,
+          "other_liabilities": 0,
+          "total_liabilities": 290437000000,
+          "preferred_stock": 0,
+          "common_stock": 73812000000,
+          "treasury_stock": 0,
+          "retained_earnings": -214000000,
+          "additional_paid_in_capital": 0,
+          "accumulated_other_comprehensive_income": -11452000000,
+          "other_shareholders_equity": null,
+          "other_total_shareholders_equity": 0,
+          "total_common_equity": 62146000000,
+          "total_equity_non_controlling_interests": 62146000000,
+          "total_liabilities_and_shareholders_equity": null,
+          "minority_interest": 0,
+          "total_liabilities_and_total_equity": 352583000000,
+          "total_investments": 132134000000,
+          "total_debt": 123930000000,
+          "net_debt": 93965000000
+        }
+      ]
+    },
+    {
+      "tool_name": "get_cash_flow",
+      "data": [
+        {
+          "period_ending": "2025-09-27",
+          "fiscal_period": "FY",
+          "fiscal_year": 2025,
+          "filing_date": "2025-10-31",
+          "accepted_date": "2025-10-31T06:01:26",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "net_income": 112010000000,
+          "depreciation_and_amortization": 11698000000,
+          "deferred_income_tax": 0,
+          "stock_based_compensation": 12863000000,
+          "change_in_working_capital": -25000000000,
+          "change_in_account_receivables": -6682000000,
+          "change_in_inventory": 1400000000,
+          "change_in_account_payable": 902000000,
+          "change_in_other_working_capital": -20620000000,
+          "change_in_other_non_cash_items": -89000000,
+          "net_cash_from_operating_activities": 111482000000,
+          "purchase_of_property_plant_and_equipment": -12715000000,
+          "acquisitions": 0,
+          "purchase_of_investment_securities": -24407000000,
+          "sale_and_maturity_of_investments": 53797000000,
+          "other_investing_activities": -1480000000,
+          "net_cash_from_investing_activities": 15195000000,
+          "repayment_of_debt": null,
+          "issuance_of_common_equity": 0,
+          "repurchase_of_common_equity": -90711000000,
+          "net_common_equity_issuance": -90711000000,
+          "net_preferred_equity_issuance": 0,
+          "net_equity_issuance": -90711000000,
+          "short_term_net_debt_issuance": -2032000000,
+          "long_term_net_debt_issuance": -6451000000,
+          "net_debt_issuance": -8483000000,
+          "common_dividends_paid": -15421000000,
+          "preferred_dividends_paid": 0,
+          "net_dividends_paid": -15421000000,
+          "other_financing_activities": -6071000000,
+          "net_cash_from_financing_activities": -120686000000,
+          "effect_of_exchange_rate_changes_on_cash": 0,
+          "net_change_in_cash_and_equivalents": 5991000000,
+          "cash_at_beginning_of_period": 29943000000,
+          "cash_at_end_of_period": 35934000000,
+          "operating_cash_flow": 111482000000,
+          "capital_expenditure": -12715000000,
+          "income_taxes_paid": 43369000000,
+          "interest_paid": 0,
+          "free_cash_flow": 98767000000
+        },
+        {
+          "period_ending": "2024-09-28",
+          "fiscal_period": "FY",
+          "fiscal_year": 2024,
+          "filing_date": "2024-11-01",
+          "accepted_date": "2024-11-01T06:01:36",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "net_income": 93736000000,
+          "depreciation_and_amortization": 11445000000,
+          "deferred_income_tax": 0,
+          "stock_based_compensation": 11688000000,
+          "change_in_working_capital": 3651000000,
+          "change_in_account_receivables": -5144000000,
+          "change_in_inventory": -1046000000,
+          "change_in_account_payable": 6020000000,
+          "change_in_other_working_capital": 3821000000,
+          "change_in_other_non_cash_items": -2266000000,
+          "net_cash_from_operating_activities": 118254000000,
+          "purchase_of_property_plant_and_equipment": -9447000000,
+          "acquisitions": 0,
+          "purchase_of_investment_securities": -48656000000,
+          "sale_and_maturity_of_investments": 62346000000,
+          "other_investing_activities": -1308000000,
+          "net_cash_from_investing_activities": 2935000000,
+          "repayment_of_debt": null,
+          "issuance_of_common_equity": 0,
+          "repurchase_of_common_equity": -94949000000,
+          "net_common_equity_issuance": -94949000000,
+          "net_preferred_equity_issuance": 0,
+          "net_equity_issuance": -94949000000,
+          "short_term_net_debt_issuance": 3960000000,
+          "long_term_net_debt_issuance": -9958000000,
+          "net_debt_issuance": -5998000000,
+          "common_dividends_paid": -15234000000,
+          "preferred_dividends_paid": 0,
+          "net_dividends_paid": -15234000000,
+          "other_financing_activities": -5802000000,
+          "net_cash_from_financing_activities": -121983000000,
+          "effect_of_exchange_rate_changes_on_cash": 0,
+          "net_change_in_cash_and_equivalents": -794000000,
+          "cash_at_beginning_of_period": 30737000000,
+          "cash_at_end_of_period": 29943000000,
+          "operating_cash_flow": 118254000000,
+          "capital_expenditure": -9447000000,
+          "income_taxes_paid": 26102000000,
+          "interest_paid": 0,
+          "free_cash_flow": 108807000000
+        },
+        {
+          "period_ending": "2023-09-30",
+          "fiscal_period": "FY",
+          "fiscal_year": 2023,
+          "filing_date": "2023-11-03",
+          "accepted_date": "2023-11-02T18:08:27",
+          "cik": "0000320193",
+          "symbol": "AAPL",
+          "reported_currency": "USD",
+          "net_income": 96995000000,
+          "depreciation_and_amortization": 11519000000,
+          "deferred_income_tax": 0,
+          "stock_based_compensation": 10833000000,
+          "change_in_working_capital": -6577000000,
+          "change_in_account_receivables": -417000000,
+          "change_in_inventory": -1618000000,
+          "change_in_account_payable": -1889000000,
+          "change_in_other_working_capital": -2653000000,
+          "change_in_other_non_cash_items": -2227000000,
+          "net_cash_from_operating_activities": 110543000000,
+          "purchase_of_property_plant_and_equipment": -10959000000,
+          "acquisitions": 0,
+          "purchase_of_investment_securities": -29513000000,
+          "sale_and_maturity_of_investments": 45514000000,
+          "other_investing_activities": -1337000000,
+          "net_cash_from_investing_activities": 3705000000,
+          "repayment_of_debt": null,
+          "issuance_of_common_equity": 0,
+          "repurchase_of_common_equity": -77550000000,
+          "net_common_equity_issuance": -77550000000,
+          "net_preferred_equity_issuance": 0,
+          "net_equity_issuance": -77550000000,
+          "short_term_net_debt_issuance": -3978000000,
+          "long_term_net_debt_issuance": -5923000000,
+          "net_debt_issuance": -9901000000,
+          "common_dividends_paid": -15025000000,
+          "preferred_dividends_paid": 0,
+          "net_dividends_paid": -15025000000,
+          "other_financing_activities": -6012000000,
+          "net_cash_from_financing_activities": -108488000000,
+          "effect_of_exchange_rate_changes_on_cash": 0,
+          "net_change_in_cash_and_equivalents": 5760000000,
+          "cash_at_beginning_of_period": 24977000000,
+          "cash_at_end_of_period": 30737000000,
+          "operating_cash_flow": 110543000000,
+          "capital_expenditure": -10959000000,
+          "income_taxes_paid": 18679000000,
+          "interest_paid": 3803000000,
+          "free_cash_flow": 99584000000
         }
       ]
     },
@@ -838,7 +1321,7 @@
       ]
     },
     {
-      "result": "Error executing tool get_earnings_calendar: 2 validation errors for get_earnings_calendarArguments\nstart_date\n  Field required [type=missing, input_value={'symbol': 'AAPL', 'limit...ent_date': '2025-12-15'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\nend_date\n  Field required [type=missing, input_value={'symbol': 'AAPL', 'limit...ent_date': '2025-12-15'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing",
+      "result": "Error executing tool get_earnings_calendar: 2 validation errors for get_earnings_calendarArguments\nstart_date\n  Field required [type=missing, input_value={'symbol': 'AAPL', 'limit...ent_date': '2025-12-16'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\nend_date\n  Field required [type=missing, input_value={'symbol': 'AAPL', 'limit...ent_date': '2025-12-16'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing",
       "tool_name": "get_earnings_calendar"
     },
     {
@@ -858,22 +1341,13 @@
       "tool_name": "calculate_rsi",
       "data": [
         {
-          "date": "2025-09-22",
-          "open": 248.33,
-          "high": 256.64,
-          "low": 248.12,
-          "close": 256.08,
-          "volume": 105517416,
-          "close_RSI_14": 74.6838409577
-        },
-        {
           "date": "2025-09-23",
           "open": 255.91,
           "high": 257.34,
           "low": 253.58,
           "close": 254.43,
           "volume": 60275187,
-          "close_RSI_14": 72.0200410815
+          "close_RSI_14": 72.3883876237
         },
         {
           "date": "2025-09-24",
@@ -882,7 +1356,7 @@
           "low": 251.04,
           "close": 252.31,
           "volume": 42303710,
-          "close_RSI_14": 68.632821122
+          "close_RSI_14": 68.9777609421
         },
         {
           "date": "2025-09-25",
@@ -891,7 +1365,7 @@
           "low": 251.71,
           "close": 256.87,
           "volume": 55202075,
-          "close_RSI_14": 71.7143731711
+          "close_RSI_14": 72.0303350174
         },
         {
           "date": "2025-09-26",
@@ -900,7 +1374,7 @@
           "low": 253.78,
           "close": 255.46,
           "volume": 46076258,
-          "close_RSI_14": 69.4426303563
+          "close_RSI_14": 69.7450243087
         },
         {
           "date": "2025-09-29",
@@ -909,7 +1383,7 @@
           "low": 253.01,
           "close": 254.43,
           "volume": 40127687,
-          "close_RSI_14": 67.7541665366
+          "close_RSI_14": 68.0466272863
         },
         {
           "date": "2025-09-30",
@@ -918,7 +1392,7 @@
           "low": 253.11,
           "close": 254.63,
           "volume": 37704259,
-          "close_RSI_14": 67.9172891265
+          "close_RSI_14": 68.2085151368
         },
         {
           "date": "2025-10-01",
@@ -927,7 +1401,7 @@
           "low": 254.93,
           "close": 255.45,
           "volume": 48713940,
-          "close_RSI_14": 68.6182380375
+          "close_RSI_14": 68.9041299228
         },
         {
           "date": "2025-10-02",
@@ -936,7 +1410,7 @@
           "low": 254.15,
           "close": 257.13,
           "volume": 42630239,
-          "close_RSI_14": 70.0614375191
+          "close_RSI_14": 70.3362019467
         },
         {
           "date": "2025-10-03",
@@ -945,7 +1419,7 @@
           "low": 253.95,
           "close": 258.02,
           "volume": 49155614,
-          "close_RSI_14": 70.8268538366
+          "close_RSI_14": 71.0956375447
         },
         {
           "date": "2025-10-06",
@@ -954,7 +1428,7 @@
           "low": 255.05,
           "close": 256.69,
           "volume": 44664118,
-          "close_RSI_14": 68.027872642
+          "close_RSI_14": 68.2823198367
         },
         {
           "date": "2025-10-07",
@@ -963,7 +1437,7 @@
           "low": 255.43,
           "close": 256.48,
           "volume": 31955776,
-          "close_RSI_14": 67.5737923427
+          "close_RSI_14": 67.8259425714
         },
         {
           "date": "2025-10-08",
@@ -972,7 +1446,7 @@
           "low": 256.11,
           "close": 258.06,
           "volume": 36496895,
-          "close_RSI_14": 69.2375467259
+          "close_RSI_14": 69.4788159596
         },
         {
           "date": "2025-10-09",
@@ -981,7 +1455,7 @@
           "low": 253.14,
           "close": 254.04,
           "volume": 38322012,
-          "close_RSI_14": 60.7034066534
+          "close_RSI_14": 60.9055850063
         },
         {
           "date": "2025-10-10",
@@ -990,7 +1464,7 @@
           "low": 244.0,
           "close": 245.27,
           "volume": 61999098,
-          "close_RSI_14": 47.0720414667
+          "close_RSI_14": 47.2172401706
         },
         {
           "date": "2025-10-13",
@@ -999,7 +1473,7 @@
           "low": 245.56,
           "close": 247.66,
           "volume": 38142942,
-          "close_RSI_14": 50.3445175792
+          "close_RSI_14": 50.4833308095
         },
         {
           "date": "2025-10-14",
@@ -1008,7 +1482,7 @@
           "low": 244.7,
           "close": 247.77,
           "volume": 35477986,
-          "close_RSI_14": 50.4962258019
+          "close_RSI_14": 50.6347347162
         },
         {
           "date": "2025-10-15",
@@ -1017,7 +1491,7 @@
           "low": 247.47,
           "close": 249.34,
           "volume": 33893611,
-          "close_RSI_14": 52.7166785797
+          "close_RSI_14": 52.8506493445
         },
         {
           "date": "2025-10-16",
@@ -1026,7 +1500,7 @@
           "low": 245.13,
           "close": 247.45,
           "volume": 39776974,
-          "close_RSI_14": 49.8196628723
+          "close_RSI_14": 49.9441956535
         },
         {
           "date": "2025-10-17",
@@ -1035,7 +1509,7 @@
           "low": 247.27,
           "close": 252.29,
           "volume": 49146961,
-          "close_RSI_14": 56.4238571037
+          "close_RSI_14": 56.5360883615
         },
         {
           "date": "2025-10-20",
@@ -1044,7 +1518,7 @@
           "low": 255.63,
           "close": 262.24,
           "volume": 90483029,
-          "close_RSI_14": 66.2559482108
+          "close_RSI_14": 66.3475686384
         },
         {
           "date": "2025-10-21",
@@ -1053,7 +1527,7 @@
           "low": 261.83,
           "close": 262.77,
           "volume": 46695948,
-          "close_RSI_14": 66.6871164935
+          "close_RSI_14": 66.7777701939
         },
         {
           "date": "2025-10-22",
@@ -1062,7 +1536,7 @@
           "low": 255.43,
           "close": 258.45,
           "volume": 45015254,
-          "close_RSI_14": 59.9617432987
+          "close_RSI_14": 60.040382484
         },
         {
           "date": "2025-10-23",
@@ -1071,7 +1545,7 @@
           "low": 258.01,
           "close": 259.58,
           "volume": 32754941,
-          "close_RSI_14": 61.0677638045
+          "close_RSI_14": 61.1446884102
         },
         {
           "date": "2025-10-24",
@@ -1080,7 +1554,7 @@
           "low": 259.18,
           "close": 262.82,
           "volume": 38253717,
-          "close_RSI_14": 64.1276099015
+          "close_RSI_14": 64.1996555001
         },
         {
           "date": "2025-10-27",
@@ -1089,7 +1563,7 @@
           "low": 264.65,
           "close": 268.81,
           "volume": 44888152,
-          "close_RSI_14": 68.9813799964
+          "close_RSI_14": 69.045277676
         },
         {
           "date": "2025-10-28",
@@ -1098,7 +1572,7 @@
           "low": 268.15,
           "close": 269.0,
           "volume": 41534759,
-          "close_RSI_14": 69.1240885932
+          "close_RSI_14": 69.1877391294
         },
         {
           "date": "2025-10-29",
@@ -1107,7 +1581,7 @@
           "low": 267.11,
           "close": 269.7,
           "volume": 51086742,
-          "close_RSI_14": 69.6775922186
+          "close_RSI_14": 69.7402800971
         },
         {
           "date": "2025-10-30",
@@ -1116,7 +1590,7 @@
           "low": 268.48,
           "close": 271.4,
           "volume": 69886534,
-          "close_RSI_14": 71.0355955986
+          "close_RSI_14": 71.0958940288
         },
         {
           "date": "2025-10-31",
@@ -1125,7 +1599,7 @@
           "low": 269.16,
           "close": 270.37,
           "volume": 86167123,
-          "close_RSI_14": 69.0187292826
+          "close_RSI_14": 69.0767106833
         },
         {
           "date": "2025-11-03",
@@ -1134,7 +1608,7 @@
           "low": 266.25,
           "close": 269.05,
           "volume": 50194583,
-          "close_RSI_14": 66.4161949506
+          "close_RSI_14": 66.471238758
         },
         {
           "date": "2025-11-04",
@@ -1143,7 +1617,7 @@
           "low": 267.61,
           "close": 270.04,
           "volume": 49274846,
-          "close_RSI_14": 67.4087985055
+          "close_RSI_14": 67.4624928036
         },
         {
           "date": "2025-11-05",
@@ -1152,7 +1626,7 @@
           "low": 266.93,
           "close": 270.14,
           "volume": 43683072,
-          "close_RSI_14": 67.5132468889
+          "close_RSI_14": 67.5667981999
         },
         {
           "date": "2025-11-06",
@@ -1161,7 +1635,7 @@
           "low": 267.89,
           "close": 269.77,
           "volume": 51204045,
-          "close_RSI_14": 66.6619795615
+          "close_RSI_14": 66.71462096
         },
         {
           "date": "2025-11-07",
@@ -1170,7 +1644,7 @@
           "low": 266.77,
           "close": 268.47,
           "volume": 48227365,
-          "close_RSI_14": 63.6264065838
+          "close_RSI_14": 63.6758520932
         },
         {
           "date": "2025-11-10",
@@ -1179,7 +1653,7 @@
           "low": 267.45,
           "close": 269.43,
           "volume": 41312412,
-          "close_RSI_14": 64.8976005989
+          "close_RSI_14": 64.9456401842
         },
         {
           "date": "2025-11-11",
@@ -1188,7 +1662,7 @@
           "low": 269.8,
           "close": 275.25,
           "volume": 46208318,
-          "close_RSI_14": 71.4189839497
+          "close_RSI_14": 71.459444053
         },
         {
           "date": "2025-11-12",
@@ -1197,7 +1671,7 @@
           "low": 271.7,
           "close": 273.47,
           "volume": 48397982,
-          "close_RSI_14": 67.3008079254
+          "close_RSI_14": 67.3381328578
         },
         {
           "date": "2025-11-13",
@@ -1206,7 +1680,7 @@
           "low": 272.09,
           "close": 272.95,
           "volume": 49602794,
-          "close_RSI_14": 66.1016630679
+          "close_RSI_14": 66.1380935481
         },
         {
           "date": "2025-11-14",
@@ -1215,7 +1689,7 @@
           "low": 269.6,
           "close": 272.41,
           "volume": 47431331,
-          "close_RSI_14": 64.8102354487
+          "close_RSI_14": 64.8457119527
         },
         {
           "date": "2025-11-17",
@@ -1224,7 +1698,7 @@
           "low": 265.73,
           "close": 267.46,
           "volume": 45018260,
-          "close_RSI_14": 54.3315682491
+          "close_RSI_14": 54.3596611797
         },
         {
           "date": "2025-11-18",
@@ -1233,7 +1707,7 @@
           "low": 265.32,
           "close": 267.44,
           "volume": 45677278,
-          "close_RSI_14": 54.2933721734
+          "close_RSI_14": 54.3214393527
         },
         {
           "date": "2025-11-19",
@@ -1242,7 +1716,7 @@
           "low": 265.5,
           "close": 268.56,
           "volume": 40424492,
-          "close_RSI_14": 56.1523965146
+          "close_RSI_14": 56.1796020153
         },
         {
           "date": "2025-11-20",
@@ -1251,7 +1725,7 @@
           "low": 265.92,
           "close": 266.25,
           "volume": 45823568,
-          "close_RSI_14": 51.4998521971
+          "close_RSI_14": 51.5241604166
         },
         {
           "date": "2025-11-21",
@@ -1260,7 +1734,7 @@
           "low": 265.67,
           "close": 271.49,
           "volume": 59030832,
-          "close_RSI_14": 59.6641279321
+          "close_RSI_14": 59.6852818968
         },
         {
           "date": "2025-11-24",
@@ -1269,7 +1743,7 @@
           "low": 270.9,
           "close": 275.92,
           "volume": 65585796,
-          "close_RSI_14": 65.0245077129
+          "close_RSI_14": 65.0433842575
         },
         {
           "date": "2025-11-25",
@@ -1278,7 +1752,7 @@
           "low": 275.25,
           "close": 276.97,
           "volume": 46914220,
-          "close_RSI_14": 66.1720023319
+          "close_RSI_14": 66.1903700854
         },
         {
           "date": "2025-11-26",
@@ -1287,7 +1761,7 @@
           "low": 276.63,
           "close": 277.55,
           "volume": 33431423,
-          "close_RSI_14": 66.8195803145
+          "close_RSI_14": 66.8376576265
         },
         {
           "date": "2025-11-28",
@@ -1296,7 +1770,7 @@
           "low": 275.99,
           "close": 278.85,
           "volume": 20135620,
-          "close_RSI_14": 68.2850597295
+          "close_RSI_14": 68.30247095
         },
         {
           "date": "2025-12-01",
@@ -1305,7 +1779,7 @@
           "low": 276.14,
           "close": 283.1,
           "volume": 46587722,
-          "close_RSI_14": 72.553039616
+          "close_RSI_14": 72.568441273
         },
         {
           "date": "2025-12-02",
@@ -1314,7 +1788,7 @@
           "low": 282.63,
           "close": 286.19,
           "volume": 53669532,
-          "close_RSI_14": 75.1694127986
+          "close_RSI_14": 75.1835312594
         },
         {
           "date": "2025-12-03",
@@ -1323,7 +1797,7 @@
           "low": 283.3,
           "close": 284.15,
           "volume": 43538687,
-          "close_RSI_14": 70.3982558365
+          "close_RSI_14": 70.4111620503
         },
         {
           "date": "2025-12-04",
@@ -1332,7 +1806,7 @@
           "low": 278.59,
           "close": 280.7,
           "volume": 43989056,
-          "close_RSI_14": 63.1035173861
+          "close_RSI_14": 63.1146530098
         },
         {
           "date": "2025-12-05",
@@ -1341,7 +1815,7 @@
           "low": 278.05,
           "close": 278.78,
           "volume": 47265845,
-          "close_RSI_14": 59.4137290467
+          "close_RSI_14": 59.424007227
         },
         {
           "date": "2025-12-08",
@@ -1350,7 +1824,7 @@
           "low": 276.15,
           "close": 277.89,
           "volume": 38211832,
-          "close_RSI_14": 57.7286783838
+          "close_RSI_14": 57.7385735115
         },
         {
           "date": "2025-12-09",
@@ -1359,7 +1833,7 @@
           "low": 276.92,
           "close": 277.18,
           "volume": 32193256,
-          "close_RSI_14": 56.3555354154
+          "close_RSI_14": 56.3651223471
         },
         {
           "date": "2025-12-10",
@@ -1368,7 +1842,7 @@
           "low": 276.44,
           "close": 278.78,
           "volume": 33038318,
-          "close_RSI_14": 58.7374517605
+          "close_RSI_14": 58.746634872
         },
         {
           "date": "2025-12-11",
@@ -1377,7 +1851,7 @@
           "low": 273.81,
           "close": 278.03,
           "volume": 33247986,
-          "close_RSI_14": 57.1626155539
+          "close_RSI_14": 57.1714756036
         },
         {
           "date": "2025-12-12",
@@ -1386,7 +1860,7 @@
           "low": 276.82,
           "close": 278.28,
           "volume": 39532887,
-          "close_RSI_14": 57.5709788782
+          "close_RSI_14": 57.5797741964
         },
         {
           "date": "2025-12-15",
@@ -1395,36 +1869,34 @@
           "low": 272.84,
           "close": 274.11,
           "volume": 50409078,
-          "close_RSI_14": 49.153881817
+          "close_RSI_14": 49.1610438848
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "close_RSI_14": 50.1030831052
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 127"
+      "truncated_note": "Trimmed data to last 60 items out of 138"
     },
     {
       "tool_name": "calculate_macd",
       "data": [
         {
-          "date": "2025-09-22",
-          "open": 248.33,
-          "high": 256.64,
-          "low": 248.12,
-          "close": 256.08,
-          "volume": 105517416,
-          "close_MACD_12_26_9": 5.6628549587,
-          "close_MACDh_12_26_9": 1.1261267551,
-          "close_MACDs_12_26_9": 4.5367282036
-        },
-        {
           "date": "2025-09-23",
           "open": 255.91,
           "high": 257.34,
           "low": 253.58,
           "close": 254.43,
           "volume": 60275187,
-          "close_MACD_12_26_9": 6.4123420484,
-          "close_MACDh_12_26_9": 1.5004910758,
-          "close_MACDs_12_26_9": 4.9118509726
+          "close_MACD_12_26_9": 6.3875480766,
+          "close_MACDh_12_26_9": 1.5119845159,
+          "close_MACDs_12_26_9": 4.8755635607
         },
         {
           "date": "2025-09-24",
@@ -1433,9 +1905,9 @@
           "low": 251.04,
           "close": 252.31,
           "volume": 42303710,
-          "close_MACD_12_26_9": 6.757355101,
-          "close_MACDh_12_26_9": 1.4764033027,
-          "close_MACDs_12_26_9": 5.2809517983
+          "close_MACD_12_26_9": 6.7343860456,
+          "close_MACDh_12_26_9": 1.4870579879,
+          "close_MACDs_12_26_9": 5.2473280576
         },
         {
           "date": "2025-09-25",
@@ -1444,9 +1916,9 @@
           "low": 251.71,
           "close": 256.87,
           "volume": 55202075,
-          "close_MACD_12_26_9": 7.3144182607,
-          "close_MACDh_12_26_9": 1.6267731699,
-          "close_MACDs_12_26_9": 5.6876450907
+          "close_MACD_12_26_9": 7.2931407387,
+          "close_MACDh_12_26_9": 1.6366501449,
+          "close_MACDs_12_26_9": 5.6564905939
         },
         {
           "date": "2025-09-26",
@@ -1455,9 +1927,9 @@
           "low": 253.78,
           "close": 255.46,
           "volume": 46076258,
-          "close_MACD_12_26_9": 7.5550299298,
-          "close_MACDh_12_26_9": 1.4939078713,
-          "close_MACDs_12_26_9": 6.0611220586
+          "close_MACD_12_26_9": 7.5353201622,
+          "close_MACDh_12_26_9": 1.5030636547,
+          "close_MACDs_12_26_9": 6.0322565075
         },
         {
           "date": "2025-09-29",
@@ -1466,9 +1938,9 @@
           "low": 253.01,
           "close": 254.43,
           "volume": 40127687,
-          "close_MACD_12_26_9": 7.5752808965,
-          "close_MACDh_12_26_9": 1.2113270703,
-          "close_MACDs_12_26_9": 6.3639538261
+          "close_MACD_12_26_9": 7.5570240392,
+          "close_MACDh_12_26_9": 1.2198140254,
+          "close_MACDs_12_26_9": 6.3372100139
         },
         {
           "date": "2025-09-30",
@@ -1477,9 +1949,9 @@
           "low": 253.11,
           "close": 254.63,
           "volume": 37704259,
-          "close_MACD_12_26_9": 7.520773467,
-          "close_MACDh_12_26_9": 0.9254557127,
-          "close_MACDs_12_26_9": 6.5953177543
+          "close_MACD_12_26_9": 7.5038629851,
+          "close_MACDh_12_26_9": 0.933322377,
+          "close_MACDs_12_26_9": 6.5705406081
         },
         {
           "date": "2025-10-01",
@@ -1488,9 +1960,9 @@
           "low": 254.93,
           "close": 255.45,
           "volume": 48713940,
-          "close_MACD_12_26_9": 7.4577745013,
-          "close_MACDh_12_26_9": 0.6899653975,
-          "close_MACDs_12_26_9": 6.7678091037
+          "close_MACD_12_26_9": 7.442111584,
+          "close_MACDh_12_26_9": 0.6972567807,
+          "close_MACDs_12_26_9": 6.7448548033
         },
         {
           "date": "2025-10-02",
@@ -1499,9 +1971,9 @@
           "low": 254.15,
           "close": 257.13,
           "volume": 42630239,
-          "close_MACD_12_26_9": 7.457444548,
-          "close_MACDh_12_26_9": 0.5517083554,
-          "close_MACDs_12_26_9": 6.9057361926
+          "close_MACD_12_26_9": 7.4429375621,
+          "close_MACDh_12_26_9": 0.5584662071,
+          "close_MACDs_12_26_9": 6.8844713551
         },
         {
           "date": "2025-10-03",
@@ -1510,9 +1982,9 @@
           "low": 253.95,
           "close": 258.02,
           "volume": 49155614,
-          "close_MACD_12_26_9": 7.4431980656,
-          "close_MACDh_12_26_9": 0.4299694984,
-          "close_MACDs_12_26_9": 7.0132285672
+          "close_MACD_12_26_9": 7.4297620457,
+          "close_MACDh_12_26_9": 0.4362325525,
+          "close_MACDs_12_26_9": 6.9935294932
         },
         {
           "date": "2025-10-06",
@@ -1521,9 +1993,9 @@
           "low": 255.05,
           "close": 256.69,
           "volume": 44664118,
-          "close_MACD_12_26_9": 7.2411166555,
-          "close_MACDh_12_26_9": 0.1823104707,
-          "close_MACDs_12_26_9": 7.0588061848
+          "close_MACD_12_26_9": 7.2286728287,
+          "close_MACDh_12_26_9": 0.1881146684,
+          "close_MACDs_12_26_9": 7.0405581603
         },
         {
           "date": "2025-10-07",
@@ -1532,9 +2004,9 @@
           "low": 255.43,
           "close": 256.48,
           "volume": 31955776,
-          "close_MACD_12_26_9": 6.9835187798,
-          "close_MACDh_12_26_9": -0.0602299241,
-          "close_MACDs_12_26_9": 7.0437487038
+          "close_MACD_12_26_9": 6.9719941221,
+          "close_MACDh_12_26_9": -0.0548512305,
+          "close_MACDs_12_26_9": 7.0268453527
         },
         {
           "date": "2025-10-08",
@@ -1543,9 +2015,9 @@
           "low": 256.11,
           "close": 258.06,
           "volume": 36496895,
-          "close_MACD_12_26_9": 6.8281527087,
-          "close_MACDh_12_26_9": -0.1724767961,
-          "close_MACDs_12_26_9": 7.0006295048
+          "close_MACD_12_26_9": 6.8174795329,
+          "close_MACDh_12_26_9": -0.1674926558,
+          "close_MACDs_12_26_9": 6.9849721887
         },
         {
           "date": "2025-10-09",
@@ -1554,9 +2026,9 @@
           "low": 253.14,
           "close": 254.04,
           "volume": 38322012,
-          "close_MACD_12_26_9": 6.3079296877,
-          "close_MACDh_12_26_9": -0.5541598537,
-          "close_MACDs_12_26_9": 6.8620895414
+          "close_MACD_12_26_9": 6.298045259,
+          "close_MACDh_12_26_9": -0.5495415438,
+          "close_MACDs_12_26_9": 6.8475868028
         },
         {
           "date": "2025-10-10",
@@ -1565,9 +2037,9 @@
           "low": 244.0,
           "close": 245.27,
           "volume": 61999098,
-          "close_MACD_12_26_9": 5.1288611705,
-          "close_MACDh_12_26_9": -1.3865826967,
-          "close_MACDs_12_26_9": 6.5154438672
+          "close_MACD_12_26_9": 5.1197073491,
+          "close_MACDh_12_26_9": -1.3823035629,
+          "close_MACDs_12_26_9": 6.502010912
         },
         {
           "date": "2025-10-13",
@@ -1576,9 +2048,9 @@
           "low": 245.56,
           "close": 247.66,
           "volume": 38142942,
-          "close_MACD_12_26_9": 4.3372962505,
-          "close_MACDh_12_26_9": -1.7425180934,
-          "close_MACDs_12_26_9": 6.0798143439
+          "close_MACD_12_26_9": 4.3288191593,
+          "close_MACDh_12_26_9": -1.7385534022,
+          "close_MACDs_12_26_9": 6.0673725615
         },
         {
           "date": "2025-10-14",
@@ -1587,9 +2059,9 @@
           "low": 244.7,
           "close": 247.77,
           "volume": 35477986,
-          "close_MACD_12_26_9": 3.6764713559,
-          "close_MACDh_12_26_9": -1.9226743903,
-          "close_MACDs_12_26_9": 5.5991457463
+          "close_MACD_12_26_9": 3.6686210715,
+          "close_MACDh_12_26_9": -1.919001192,
+          "close_MACDs_12_26_9": 5.5876222635
         },
         {
           "date": "2025-10-15",
@@ -1598,9 +2070,9 @@
           "low": 247.47,
           "close": 249.34,
           "volume": 33893611,
-          "close_MACD_12_26_9": 3.2420761097,
-          "close_MACDh_12_26_9": -1.8856557093,
-          "close_MACDs_12_26_9": 5.127731819
+          "close_MACD_12_26_9": 3.2348063751,
+          "close_MACDh_12_26_9": -1.8822527107,
+          "close_MACDs_12_26_9": 5.1170590858
         },
         {
           "date": "2025-10-16",
@@ -1609,9 +2081,9 @@
           "low": 245.13,
           "close": 247.45,
           "volume": 39776974,
-          "close_MACD_12_26_9": 2.7140219867,
-          "close_MACDh_12_26_9": -1.9309678658,
-          "close_MACDs_12_26_9": 4.6449898525
+          "close_MACD_12_26_9": 2.7072899449,
+          "close_MACDh_12_26_9": -1.9278153128,
+          "close_MACDs_12_26_9": 4.6351052576
         },
         {
           "date": "2025-10-17",
@@ -1620,9 +2092,9 @@
           "low": 247.27,
           "close": 252.29,
           "volume": 49146961,
-          "close_MACD_12_26_9": 2.6554722096,
-          "close_MACDh_12_26_9": -1.5916141143,
-          "close_MACDs_12_26_9": 4.2470863239
+          "close_MACD_12_26_9": 2.6492381554,
+          "close_MACDh_12_26_9": -1.5886936818,
+          "close_MACDs_12_26_9": 4.2379318372
         },
         {
           "date": "2025-10-20",
@@ -1631,9 +2103,9 @@
           "low": 255.63,
           "close": 262.24,
           "volume": 90483029,
-          "close_MACD_12_26_9": 3.3730702793,
-          "close_MACDh_12_26_9": -0.6992128357,
-          "close_MACDs_12_26_9": 4.072283115
+          "close_MACD_12_26_9": 3.3672974297,
+          "close_MACDh_12_26_9": -0.696507526,
+          "close_MACDs_12_26_9": 4.0638049557
         },
         {
           "date": "2025-10-21",
@@ -1642,9 +2114,9 @@
           "low": 261.83,
           "close": 262.77,
           "volume": 46695948,
-          "close_MACD_12_26_9": 3.9391306442,
-          "close_MACDh_12_26_9": -0.1065219767,
-          "close_MACDs_12_26_9": 4.0456526208
+          "close_MACD_12_26_9": 3.9337849247,
+          "close_MACDh_12_26_9": -0.1040160248,
+          "close_MACDs_12_26_9": 4.0378009495
         },
         {
           "date": "2025-10-22",
@@ -1653,9 +2125,9 @@
           "low": 255.43,
           "close": 258.45,
           "volume": 45015254,
-          "close_MACD_12_26_9": 3.9931194696,
-          "close_MACDh_12_26_9": -0.042026521,
-          "close_MACDs_12_26_9": 4.0351459906
+          "close_MACD_12_26_9": 3.9881693161,
+          "close_MACDh_12_26_9": -0.0397053067,
+          "close_MACDs_12_26_9": 4.0278746228
         },
         {
           "date": "2025-10-23",
@@ -1664,9 +2136,9 @@
           "low": 258.01,
           "close": 259.58,
           "volume": 32754941,
-          "close_MACD_12_26_9": 4.0800552221,
-          "close_MACDh_12_26_9": 0.0359273852,
-          "close_MACDs_12_26_9": 4.0441278369
+          "close_MACD_12_26_9": 4.075471397,
+          "close_MACDh_12_26_9": 0.0380774193,
+          "close_MACDs_12_26_9": 4.0373939777
         },
         {
           "date": "2025-10-24",
@@ -1675,9 +2147,9 @@
           "low": 259.18,
           "close": 262.82,
           "volume": 38253717,
-          "close_MACD_12_26_9": 4.3601324616,
-          "close_MACDh_12_26_9": 0.2528036998,
-          "close_MACDs_12_26_9": 4.1073287619
+          "close_MACD_12_26_9": 4.3558878832,
+          "close_MACDh_12_26_9": 0.2547951244,
+          "close_MACDs_12_26_9": 4.1010927588
         },
         {
           "date": "2025-10-27",
@@ -1686,9 +2158,9 @@
           "low": 264.65,
           "close": 268.81,
           "volume": 44888152,
-          "close_MACD_12_26_9": 5.0077128348,
-          "close_MACDh_12_26_9": 0.7203072584,
-          "close_MACDs_12_26_9": 4.2874055765
+          "close_MACD_12_26_9": 5.0037824193,
+          "close_MACDh_12_26_9": 0.7221517284,
+          "close_MACDs_12_26_9": 4.2816306909
         },
         {
           "date": "2025-10-28",
@@ -1697,9 +2169,9 @@
           "low": 268.15,
           "close": 269.0,
           "volume": 41534759,
-          "close_MACD_12_26_9": 5.4731651178,
-          "close_MACDh_12_26_9": 0.948607633,
-          "close_MACDs_12_26_9": 4.5245574847
+          "close_MACD_12_26_9": 5.4695256322,
+          "close_MACDh_12_26_9": 0.9503159531,
+          "close_MACDs_12_26_9": 4.5192096791
         },
         {
           "date": "2025-10-29",
@@ -1708,9 +2180,9 @@
           "low": 267.11,
           "close": 269.7,
           "volume": 51086742,
-          "close_MACD_12_26_9": 5.8313039136,
-          "close_MACDh_12_26_9": 1.0453971431,
-          "close_MACDs_12_26_9": 4.7859067705
+          "close_MACD_12_26_9": 5.8279338403,
+          "close_MACDh_12_26_9": 1.0469793289,
+          "close_MACDs_12_26_9": 4.7809545114
         },
         {
           "date": "2025-10-30",
@@ -1719,9 +2191,9 @@
           "low": 268.48,
           "close": 271.4,
           "volume": 69886534,
-          "close_MACD_12_26_9": 6.181055917,
-          "close_MACDh_12_26_9": 1.1161193172,
-          "close_MACDs_12_26_9": 5.0649365998
+          "close_MACD_12_26_9": 6.1779353271,
+          "close_MACDh_12_26_9": 1.1175846526,
+          "close_MACDs_12_26_9": 5.0603506745
         },
         {
           "date": "2025-10-31",
@@ -1730,9 +2202,9 @@
           "low": 269.16,
           "close": 270.37,
           "volume": 86167123,
-          "close_MACD_12_26_9": 6.302473516,
-          "close_MACDh_12_26_9": 0.990029533,
-          "close_MACDs_12_26_9": 5.312443983
+          "close_MACD_12_26_9": 6.2995839526,
+          "close_MACDh_12_26_9": 0.9913866225,
+          "close_MACDs_12_26_9": 5.3081973301
         },
         {
           "date": "2025-11-03",
@@ -1741,9 +2213,9 @@
           "low": 266.25,
           "close": 269.05,
           "volume": 50194583,
-          "close_MACD_12_26_9": 6.2204790592,
-          "close_MACDh_12_26_9": 0.726428061,
-          "close_MACDs_12_26_9": 5.4940509983
+          "close_MACD_12_26_9": 6.217803429,
+          "close_MACDh_12_26_9": 0.7276848791,
+          "close_MACDs_12_26_9": 5.4901185499
         },
         {
           "date": "2025-11-04",
@@ -1752,9 +2224,9 @@
           "low": 267.61,
           "close": 270.04,
           "volume": 49274846,
-          "close_MACD_12_26_9": 6.1643240967,
-          "close_MACDh_12_26_9": 0.5362184788,
-          "close_MACDs_12_26_9": 5.628105618
+          "close_MACD_12_26_9": 6.1618465694,
+          "close_MACDh_12_26_9": 0.5373824156,
+          "close_MACDs_12_26_9": 5.6244641538
         },
         {
           "date": "2025-11-05",
@@ -1763,9 +2235,9 @@
           "low": 266.93,
           "close": 270.14,
           "volume": 43683072,
-          "close_MACD_12_26_9": 6.0580565438,
-          "close_MACDh_12_26_9": 0.3439607407,
-          "close_MACDs_12_26_9": 5.7140958031
+          "close_MACD_12_26_9": 6.0557624593,
+          "close_MACDh_12_26_9": 0.3450386444,
+          "close_MACDs_12_26_9": 5.7107238149
         },
         {
           "date": "2025-11-06",
@@ -1774,9 +2246,9 @@
           "low": 267.89,
           "close": 269.77,
           "volume": 51204045,
-          "close_MACD_12_26_9": 5.8762451385,
-          "close_MACDh_12_26_9": 0.1297194683,
-          "close_MACDs_12_26_9": 5.7465256702
+          "close_MACD_12_26_9": 5.8741209204,
+          "close_MACDh_12_26_9": 0.1307176844,
+          "close_MACDs_12_26_9": 5.743403236
         },
         {
           "date": "2025-11-07",
@@ -1785,9 +2257,9 @@
           "low": 266.77,
           "close": 268.47,
           "volume": 48227365,
-          "close_MACD_12_26_9": 5.5631308451,
-          "close_MACDh_12_26_9": -0.1467158601,
-          "close_MACDs_12_26_9": 5.7098467052
+          "close_MACD_12_26_9": 5.5611639208,
+          "close_MACDh_12_26_9": -0.1457914521,
+          "close_MACDs_12_26_9": 5.706955373
         },
         {
           "date": "2025-11-10",
@@ -1796,9 +2268,9 @@
           "low": 267.45,
           "close": 269.43,
           "volume": 41312412,
-          "close_MACD_12_26_9": 5.3309970728,
-          "close_MACDh_12_26_9": -0.3030797059,
-          "close_MACDs_12_26_9": 5.6340767787
+          "close_MACD_12_26_9": 5.3291757995,
+          "close_MACDh_12_26_9": -0.3022236587,
+          "close_MACDs_12_26_9": 5.6313994583
         },
         {
           "date": "2025-11-11",
@@ -1807,9 +2279,9 @@
           "low": 269.8,
           "close": 275.25,
           "volume": 46208318,
-          "close_MACD_12_26_9": 5.5526472846,
-          "close_MACDh_12_26_9": -0.0651435953,
-          "close_MACDs_12_26_9": 5.6177908799
+          "close_MACD_12_26_9": 5.5509608806,
+          "close_MACDh_12_26_9": -0.0643508622,
+          "close_MACDs_12_26_9": 5.6153117427
         },
         {
           "date": "2025-11-12",
@@ -1818,9 +2290,9 @@
           "low": 271.7,
           "close": 273.47,
           "volume": 48397982,
-          "close_MACD_12_26_9": 5.5210325242,
-          "close_MACDh_12_26_9": -0.0774066846,
-          "close_MACDs_12_26_9": 5.5984392088
+          "close_MACD_12_26_9": 5.5194710053,
+          "close_MACDh_12_26_9": -0.07667259,
+          "close_MACDs_12_26_9": 5.5961435953
         },
         {
           "date": "2025-11-13",
@@ -1829,9 +2301,9 @@
           "low": 272.09,
           "close": 272.95,
           "volume": 49602794,
-          "close_MACD_12_26_9": 5.391863894,
-          "close_MACDh_12_26_9": -0.1652602518,
-          "close_MACDs_12_26_9": 5.5571241458
+          "close_MACD_12_26_9": 5.3904180146,
+          "close_MACDh_12_26_9": -0.1645804645,
+          "close_MACDs_12_26_9": 5.5549984791
         },
         {
           "date": "2025-11-14",
@@ -1840,9 +2312,9 @@
           "low": 269.6,
           "close": 272.41,
           "volume": 47431331,
-          "close_MACD_12_26_9": 5.1861407348,
-          "close_MACDh_12_26_9": -0.2967867288,
-          "close_MACDs_12_26_9": 5.4829274636
+          "close_MACD_12_26_9": 5.1848019334,
+          "close_MACDh_12_26_9": -0.2961572366,
+          "close_MACDs_12_26_9": 5.48095917
         },
         {
           "date": "2025-11-17",
@@ -1851,9 +2323,9 @@
           "low": 265.73,
           "close": 267.46,
           "volume": 45018260,
-          "close_MACD_12_26_9": 4.5709885076,
-          "close_MACDh_12_26_9": -0.7295511648,
-          "close_MACDs_12_26_9": 5.3005396724
+          "close_MACD_12_26_9": 4.5697488563,
+          "close_MACDh_12_26_9": -0.7289682509,
+          "close_MACDs_12_26_9": 5.2987171072
         },
         {
           "date": "2025-11-18",
@@ -1862,9 +2334,9 @@
           "low": 265.32,
           "close": 267.44,
           "volume": 45677278,
-          "close_MACD_12_26_9": 4.0353451558,
-          "close_MACDh_12_26_9": -1.0121556133,
-          "close_MACDs_12_26_9": 5.0475007691
+          "close_MACD_12_26_9": 4.0341973132,
+          "close_MACDh_12_26_9": -1.0116158352,
+          "close_MACDs_12_26_9": 5.0458131484
         },
         {
           "date": "2025-11-19",
@@ -1873,9 +2345,9 @@
           "low": 265.5,
           "close": 268.56,
           "volume": 40424492,
-          "close_MACD_12_26_9": 3.659039451,
-          "close_MACDh_12_26_9": -1.1107690545,
-          "close_MACDs_12_26_9": 4.7698085055
+          "close_MACD_12_26_9": 3.6579766192,
+          "close_MACDh_12_26_9": -1.1102692234,
+          "close_MACDs_12_26_9": 4.7682458426
         },
         {
           "date": "2025-11-20",
@@ -1884,9 +2356,9 @@
           "low": 265.92,
           "close": 266.25,
           "volume": 45823568,
-          "close_MACD_12_26_9": 3.1382410846,
-          "close_MACDh_12_26_9": -1.3052539367,
-          "close_MACDs_12_26_9": 4.4434950213
+          "close_MACD_12_26_9": 3.1372569686,
+          "close_MACDh_12_26_9": -1.3047910991,
+          "close_MACDs_12_26_9": 4.4420480678
         },
         {
           "date": "2025-11-21",
@@ -1895,9 +2367,9 @@
           "low": 265.67,
           "close": 271.49,
           "volume": 59030832,
-          "close_MACD_12_26_9": 3.1124504432,
-          "close_MACDh_12_26_9": -1.0648356624,
-          "close_MACDs_12_26_9": 4.1772861057
+          "close_MACD_12_26_9": 3.1115392143,
+          "close_MACDh_12_26_9": -1.0644070828,
+          "close_MACDs_12_26_9": 4.1759462971
         },
         {
           "date": "2025-11-24",
@@ -1906,9 +2378,9 @@
           "low": 270.9,
           "close": 275.92,
           "volume": 65585796,
-          "close_MACD_12_26_9": 3.410164893,
-          "close_MACDh_12_26_9": -0.6136969701,
-          "close_MACDs_12_26_9": 4.0238618631
+          "close_MACD_12_26_9": 3.4093211536,
+          "close_MACDh_12_26_9": -0.6133001148,
+          "close_MACDs_12_26_9": 4.0226212684
         },
         {
           "date": "2025-11-25",
@@ -1917,9 +2389,9 @@
           "low": 275.25,
           "close": 276.97,
           "volume": 46914220,
-          "close_MACD_12_26_9": 3.6883153605,
-          "close_MACDh_12_26_9": -0.2684372021,
-          "close_MACDs_12_26_9": 3.9567525626
+          "close_MACD_12_26_9": 3.6875341129,
+          "close_MACDh_12_26_9": -0.2680697244,
+          "close_MACDs_12_26_9": 3.9556038373
         },
         {
           "date": "2025-11-26",
@@ -1928,9 +2400,9 @@
           "low": 276.63,
           "close": 277.55,
           "volume": 33431423,
-          "close_MACD_12_26_9": 3.9104752384,
-          "close_MACDh_12_26_9": -0.0370218594,
-          "close_MACDs_12_26_9": 3.9474970978
+          "close_MACD_12_26_9": 3.9097518546,
+          "close_MACDh_12_26_9": -0.0366815861,
+          "close_MACDs_12_26_9": 3.9464334408
         },
         {
           "date": "2025-11-28",
@@ -1939,9 +2411,9 @@
           "low": 275.99,
           "close": 278.85,
           "volume": 20135620,
-          "close_MACD_12_26_9": 4.1436720061,
-          "close_MACDh_12_26_9": 0.1569399267,
-          "close_MACDs_12_26_9": 3.9867320794
+          "close_MACD_12_26_9": 4.1430022009,
+          "close_MACDh_12_26_9": 0.1572550081,
+          "close_MACDs_12_26_9": 3.9857471928
         },
         {
           "date": "2025-12-01",
@@ -1950,9 +2422,9 @@
           "low": 276.14,
           "close": 283.1,
           "volume": 46587722,
-          "close_MACD_12_26_9": 4.618186032,
-          "close_MACDh_12_26_9": 0.505163162,
-          "close_MACDs_12_26_9": 4.11302287
+          "close_MACD_12_26_9": 4.6175658375,
+          "close_MACDh_12_26_9": 0.5054549157,
+          "close_MACDs_12_26_9": 4.1121109217
         },
         {
           "date": "2025-12-02",
@@ -1961,9 +2433,9 @@
           "low": 282.63,
           "close": 286.19,
           "volume": 53669532,
-          "close_MACD_12_26_9": 5.1838231061,
-          "close_MACDh_12_26_9": 0.8566401889,
-          "close_MACDs_12_26_9": 4.3271829172
+          "close_MACD_12_26_9": 5.183248848,
+          "close_MACDh_12_26_9": 0.856910341,
+          "close_MACDs_12_26_9": 4.326338507
         },
         {
           "date": "2025-12-03",
@@ -1972,9 +2444,9 @@
           "low": 283.3,
           "close": 284.15,
           "volume": 43538687,
-          "close_MACD_12_26_9": 5.4051761059,
-          "close_MACDh_12_26_9": 0.862394551,
-          "close_MACDs_12_26_9": 4.5427815549
+          "close_MACD_12_26_9": 5.4046443822,
+          "close_MACDh_12_26_9": 0.8626447002,
+          "close_MACDs_12_26_9": 4.541999682
         },
         {
           "date": "2025-12-04",
@@ -1983,9 +2455,9 @@
           "low": 278.59,
           "close": 280.7,
           "volume": 43989056,
-          "close_MACD_12_26_9": 5.2417896972,
-          "close_MACDh_12_26_9": 0.5592065138,
-          "close_MACDs_12_26_9": 4.6825831834
+          "close_MACD_12_26_9": 5.2412973577,
+          "close_MACDh_12_26_9": 0.5594381405,
+          "close_MACDs_12_26_9": 4.6818592172
         },
         {
           "date": "2025-12-05",
@@ -1994,9 +2466,9 @@
           "low": 278.05,
           "close": 278.78,
           "volume": 47265845,
-          "close_MACD_12_26_9": 4.9008825143,
-          "close_MACDh_12_26_9": 0.1746394647,
-          "close_MACDs_12_26_9": 4.7262430495
+          "close_MACD_12_26_9": 4.9004266421,
+          "close_MACDh_12_26_9": 0.1748539399,
+          "close_MACDs_12_26_9": 4.7255727022
         },
         {
           "date": "2025-12-08",
@@ -2005,9 +2477,9 @@
           "low": 276.15,
           "close": 277.89,
           "volume": 38211832,
-          "close_MACD_12_26_9": 4.5069423281,
-          "close_MACDh_12_26_9": -0.1754405772,
-          "close_MACDs_12_26_9": 4.6823829053
+          "close_MACD_12_26_9": 4.5065202222,
+          "close_MACDh_12_26_9": -0.1752419839,
+          "close_MACDs_12_26_9": 4.6817622062
         },
         {
           "date": "2025-12-09",
@@ -2016,9 +2488,9 @@
           "low": 276.92,
           "close": 277.18,
           "volume": 32193256,
-          "close_MACD_12_26_9": 4.0903003893,
-          "close_MACDh_12_26_9": -0.4736660128,
-          "close_MACDs_12_26_9": 4.5639664021
+          "close_MACD_12_26_9": 4.0899095489,
+          "close_MACDh_12_26_9": -0.4734821258,
+          "close_MACDs_12_26_9": 4.5633916747
         },
         {
           "date": "2025-12-10",
@@ -2027,9 +2499,9 @@
           "low": 276.44,
           "close": 278.78,
           "volume": 33038318,
-          "close_MACD_12_26_9": 3.8448937377,
-          "close_MACDh_12_26_9": -0.5752581315,
-          "close_MACDs_12_26_9": 4.4201518692
+          "close_MACD_12_26_9": 3.844531847,
+          "close_MACDh_12_26_9": -0.5750878622,
+          "close_MACDs_12_26_9": 4.4196197092
         },
         {
           "date": "2025-12-11",
@@ -2038,9 +2510,9 @@
           "low": 273.81,
           "close": 278.03,
           "volume": 33247986,
-          "close_MACD_12_26_9": 3.5489780563,
-          "close_MACDh_12_26_9": -0.6969390503,
-          "close_MACDs_12_26_9": 4.2459171066
+          "close_MACD_12_26_9": 3.5486429712,
+          "close_MACDh_12_26_9": -0.6967813904,
+          "close_MACDs_12_26_9": 4.2454243616
         },
         {
           "date": "2025-12-12",
@@ -2049,9 +2521,9 @@
           "low": 276.82,
           "close": 278.28,
           "volume": 39532887,
-          "close_MACD_12_26_9": 3.2966341116,
-          "close_MACDh_12_26_9": -0.759426396,
-          "close_MACDs_12_26_9": 4.0560605076
+          "close_MACD_12_26_9": 3.2963238466,
+          "close_MACDh_12_26_9": -0.759280412,
+          "close_MACDs_12_26_9": 4.0556042586
         },
         {
           "date": "2025-12-15",
@@ -2060,577 +2532,28 @@
           "low": 272.84,
           "close": 274.11,
           "volume": 50409078,
-          "close_MACD_12_26_9": 2.7287106893,
-          "close_MACDh_12_26_9": -1.0618798547,
-          "close_MACDs_12_26_9": 3.7905905439
+          "close_MACD_12_26_9": 2.728423406,
+          "close_MACDh_12_26_9": -1.0617446821,
+          "close_MACDs_12_26_9": 3.790168088
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "close_MACD_12_26_9": 2.292280059,
+          "close_MACDh_12_26_9": -1.1983104232,
+          "close_MACDs_12_26_9": 3.4905904822
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 127"
-    },
-    {
-      "tool_name": "calculate_ema",
-      "data": [
-        {
-          "date": "2025-09-22",
-          "open": 248.33,
-          "high": 256.64,
-          "low": 248.12,
-          "close": 256.08,
-          "volume": 105517416,
-          "close_EMA_50": 225.7834869027
-        },
-        {
-          "date": "2025-09-23",
-          "open": 255.91,
-          "high": 257.34,
-          "low": 253.58,
-          "close": 254.43,
-          "volume": 60275187,
-          "close_EMA_50": 226.9068795732
-        },
-        {
-          "date": "2025-09-24",
-          "open": 255.25,
-          "high": 255.74,
-          "low": 251.04,
-          "close": 252.31,
-          "volume": 42303710,
-          "close_EMA_50": 227.9030803742
-        },
-        {
-          "date": "2025-09-25",
-          "open": 253.04,
-          "high": 257.17,
-          "low": 251.71,
-          "close": 256.87,
-          "volume": 55202075,
-          "close_EMA_50": 229.0390380066
-        },
-        {
-          "date": "2025-09-26",
-          "open": 254.19,
-          "high": 257.6,
-          "low": 253.78,
-          "close": 255.46,
-          "volume": 46076258,
-          "close_EMA_50": 230.0751541632
-        },
-        {
-          "date": "2025-09-29",
-          "open": 254.54,
-          "high": 255.0,
-          "low": 253.01,
-          "close": 254.43,
-          "volume": 40127687,
-          "close_EMA_50": 231.0302461568
-        },
-        {
-          "date": "2025-09-30",
-          "open": 254.77,
-          "high": 255.92,
-          "low": 253.11,
-          "close": 254.63,
-          "volume": 37704259,
-          "close_EMA_50": 231.9557266997
-        },
-        {
-          "date": "2025-10-01",
-          "open": 254.95,
-          "high": 258.79,
-          "low": 254.93,
-          "close": 255.45,
-          "volume": 48713940,
-          "close_EMA_50": 232.8770707507
-        },
-        {
-          "date": "2025-10-02",
-          "open": 256.55,
-          "high": 258.18,
-          "low": 254.15,
-          "close": 257.13,
-          "volume": 42630239,
-          "close_EMA_50": 233.8281660154
-        },
-        {
-          "date": "2025-10-03",
-          "open": 254.59,
-          "high": 259.24,
-          "low": 253.95,
-          "close": 258.02,
-          "volume": 49155614,
-          "close_EMA_50": 234.7768653873
-        },
-        {
-          "date": "2025-10-06",
-          "open": 257.98,
-          "high": 259.07,
-          "low": 255.05,
-          "close": 256.69,
-          "volume": 44664118,
-          "close_EMA_50": 235.6362039996
-        },
-        {
-          "date": "2025-10-07",
-          "open": 256.79,
-          "high": 257.4,
-          "low": 255.43,
-          "close": 256.48,
-          "volume": 31955776,
-          "close_EMA_50": 236.4536077643
-        },
-        {
-          "date": "2025-10-08",
-          "open": 256.52,
-          "high": 258.52,
-          "low": 256.11,
-          "close": 258.06,
-          "volume": 36496895,
-          "close_EMA_50": 237.3009172637
-        },
-        {
-          "date": "2025-10-09",
-          "open": 257.8,
-          "high": 258.0,
-          "low": 253.14,
-          "close": 254.04,
-          "volume": 38322012,
-          "close_EMA_50": 237.9573518808
-        },
-        {
-          "date": "2025-10-10",
-          "open": 255.04,
-          "high": 256.38,
-          "low": 244.0,
-          "close": 245.27,
-          "volume": 61999098,
-          "close_EMA_50": 238.2441223953
-        },
-        {
-          "date": "2025-10-13",
-          "open": 249.3,
-          "high": 249.69,
-          "low": 245.56,
-          "close": 247.66,
-          "volume": 38142942,
-          "close_EMA_50": 238.6133724975
-        },
-        {
-          "date": "2025-10-14",
-          "open": 246.53,
-          "high": 248.85,
-          "low": 244.7,
-          "close": 247.77,
-          "volume": 35477986,
-          "close_EMA_50": 238.9724559289
-        },
-        {
-          "date": "2025-10-15",
-          "open": 249.46,
-          "high": 251.82,
-          "low": 247.47,
-          "close": 249.34,
-          "volume": 33893611,
-          "close_EMA_50": 239.3790262847
-        },
-        {
-          "date": "2025-10-16",
-          "open": 248.35,
-          "high": 249.04,
-          "low": 245.13,
-          "close": 247.45,
-          "volume": 39776974,
-          "close_EMA_50": 239.6955350578
-        },
-        {
-          "date": "2025-10-17",
-          "open": 247.99,
-          "high": 253.38,
-          "low": 247.27,
-          "close": 252.29,
-          "volume": 49146961,
-          "close_EMA_50": 240.1894356438
-        },
-        {
-          "date": "2025-10-20",
-          "open": 255.81,
-          "high": 264.38,
-          "low": 255.63,
-          "close": 262.24,
-          "volume": 90483029,
-          "close_EMA_50": 241.0541636578
-        },
-        {
-          "date": "2025-10-21",
-          "open": 261.9,
-          "high": 265.29,
-          "low": 261.83,
-          "close": 262.77,
-          "volume": 46695948,
-          "close_EMA_50": 241.9057650829
-        },
-        {
-          "date": "2025-10-22",
-          "open": 262.65,
-          "high": 262.85,
-          "low": 255.43,
-          "close": 258.45,
-          "volume": 45015254,
-          "close_EMA_50": 242.5545586091
-        },
-        {
-          "date": "2025-10-23",
-          "open": 259.93,
-          "high": 260.62,
-          "low": 258.01,
-          "close": 259.58,
-          "volume": 32754941,
-          "close_EMA_50": 243.2222229774
-        },
-        {
-          "date": "2025-10-24",
-          "open": 261.16,
-          "high": 264.13,
-          "low": 259.18,
-          "close": 262.82,
-          "volume": 38253717,
-          "close_EMA_50": 243.9907632528
-        },
-        {
-          "date": "2025-10-27",
-          "open": 264.96,
-          "high": 269.12,
-          "low": 264.65,
-          "close": 268.81,
-          "volume": 44888152,
-          "close_EMA_50": 244.9640666546
-        },
-        {
-          "date": "2025-10-28",
-          "open": 269.1,
-          "high": 269.89,
-          "low": 268.15,
-          "close": 269.0,
-          "volume": 41534759,
-          "close_EMA_50": 245.906652276
-        },
-        {
-          "date": "2025-10-29",
-          "open": 269.31,
-          "high": 271.41,
-          "low": 267.11,
-          "close": 269.7,
-          "volume": 51086742,
-          "close_EMA_50": 246.8397247358
-        },
-        {
-          "date": "2025-10-30",
-          "open": 272.05,
-          "high": 274.14,
-          "low": 268.48,
-          "close": 271.4,
-          "volume": 69886534,
-          "close_EMA_50": 247.8028727853
-        },
-        {
-          "date": "2025-10-31",
-          "open": 277.06,
-          "high": 277.32,
-          "low": 269.16,
-          "close": 270.37,
-          "volume": 86167123,
-          "close_EMA_50": 248.6878581663
-        },
-        {
-          "date": "2025-11-03",
-          "open": 270.47,
-          "high": 270.85,
-          "low": 266.25,
-          "close": 269.05,
-          "volume": 50194583,
-          "close_EMA_50": 249.4863735323
-        },
-        {
-          "date": "2025-11-04",
-          "open": 268.33,
-          "high": 271.49,
-          "low": 267.61,
-          "close": 270.04,
-          "volume": 49274846,
-          "close_EMA_50": 250.2923980997
-        },
-        {
-          "date": "2025-11-05",
-          "open": 268.66,
-          "high": 271.7,
-          "low": 266.93,
-          "close": 270.14,
-          "volume": 43683072,
-          "close_EMA_50": 251.0707354291
-        },
-        {
-          "date": "2025-11-06",
-          "open": 268.01,
-          "high": 273.4,
-          "low": 267.89,
-          "close": 269.77,
-          "volume": 51204045,
-          "close_EMA_50": 251.8040399221
-        },
-        {
-          "date": "2025-11-07",
-          "open": 269.74,
-          "high": 272.29,
-          "low": 266.77,
-          "close": 268.47,
-          "volume": 48227365,
-          "close_EMA_50": 252.457606984
-        },
-        {
-          "date": "2025-11-10",
-          "open": 269.0,
-          "high": 273.73,
-          "low": 267.45,
-          "close": 269.43,
-          "volume": 41312412,
-          "close_EMA_50": 253.1231910238
-        },
-        {
-          "date": "2025-11-11",
-          "open": 269.86,
-          "high": 275.91,
-          "low": 269.8,
-          "close": 275.25,
-          "volume": 46208318,
-          "close_EMA_50": 253.9909090229
-        },
-        {
-          "date": "2025-11-12",
-          "open": 275.0,
-          "high": 275.73,
-          "low": 271.7,
-          "close": 273.47,
-          "volume": 48397982,
-          "close_EMA_50": 254.7547949436
-        },
-        {
-          "date": "2025-11-13",
-          "open": 274.11,
-          "high": 276.7,
-          "low": 272.09,
-          "close": 272.95,
-          "volume": 49602794,
-          "close_EMA_50": 255.4683323968
-        },
-        {
-          "date": "2025-11-14",
-          "open": 270.95,
-          "high": 275.96,
-          "low": 269.6,
-          "close": 272.41,
-          "volume": 47431331,
-          "close_EMA_50": 256.1327115184
-        },
-        {
-          "date": "2025-11-17",
-          "open": 268.94,
-          "high": 270.49,
-          "low": 265.73,
-          "close": 267.46,
-          "volume": 45018260,
-          "close_EMA_50": 256.5769189099
-        },
-        {
-          "date": "2025-11-18",
-          "open": 269.87,
-          "high": 270.71,
-          "low": 265.32,
-          "close": 267.44,
-          "volume": 45677278,
-          "close_EMA_50": 257.0029220899
-        },
-        {
-          "date": "2025-11-19",
-          "open": 265.64,
-          "high": 272.21,
-          "low": 265.5,
-          "close": 268.56,
-          "volume": 40424492,
-          "close_EMA_50": 257.4561408315
-        },
-        {
-          "date": "2025-11-20",
-          "open": 270.86,
-          "high": 275.43,
-          "low": 265.92,
-          "close": 266.25,
-          "volume": 45823568,
-          "close_EMA_50": 257.8009980538
-        },
-        {
-          "date": "2025-11-21",
-          "open": 265.95,
-          "high": 273.33,
-          "low": 265.67,
-          "close": 271.49,
-          "volume": 59030832,
-          "close_EMA_50": 258.3378216595
-        },
-        {
-          "date": "2025-11-24",
-          "open": 271.11,
-          "high": 277.0,
-          "low": 270.9,
-          "close": 275.92,
-          "volume": 65585796,
-          "close_EMA_50": 259.0273188493
-        },
-        {
-          "date": "2025-11-25",
-          "open": 275.27,
-          "high": 280.38,
-          "low": 275.25,
-          "close": 276.97,
-          "volume": 46914220,
-          "close_EMA_50": 259.7309534042
-        },
-        {
-          "date": "2025-11-26",
-          "open": 276.98,
-          "high": 279.53,
-          "low": 276.63,
-          "close": 277.55,
-          "volume": 33431423,
-          "close_EMA_50": 260.4297395453
-        },
-        {
-          "date": "2025-11-28",
-          "open": 277.33,
-          "high": 279.0,
-          "low": 275.99,
-          "close": 278.85,
-          "volume": 20135620,
-          "close_EMA_50": 261.1521027003
-        },
-        {
-          "date": "2025-12-01",
-          "open": 278.2,
-          "high": 283.42,
-          "low": 276.14,
-          "close": 283.1,
-          "volume": 46587722,
-          "close_EMA_50": 262.0128045552
-        },
-        {
-          "date": "2025-12-02",
-          "open": 282.99,
-          "high": 287.4,
-          "low": 282.63,
-          "close": 286.19,
-          "volume": 53669532,
-          "close_EMA_50": 262.9609298668
-        },
-        {
-          "date": "2025-12-03",
-          "open": 286.19,
-          "high": 288.62,
-          "low": 283.3,
-          "close": 284.15,
-          "volume": 43538687,
-          "close_EMA_50": 263.7918737936
-        },
-        {
-          "date": "2025-12-04",
-          "open": 284.1,
-          "high": 284.73,
-          "low": 278.59,
-          "close": 280.7,
-          "volume": 43989056,
-          "close_EMA_50": 264.4549375664
-        },
-        {
-          "date": "2025-12-05",
-          "open": 280.54,
-          "high": 281.14,
-          "low": 278.05,
-          "close": 278.78,
-          "volume": 47265845,
-          "close_EMA_50": 265.0167047206
-        },
-        {
-          "date": "2025-12-08",
-          "open": 278.02,
-          "high": 279.67,
-          "low": 276.15,
-          "close": 277.89,
-          "volume": 38211832,
-          "close_EMA_50": 265.5215398296
-        },
-        {
-          "date": "2025-12-09",
-          "open": 278.16,
-          "high": 280.03,
-          "low": 276.92,
-          "close": 277.18,
-          "volume": 32193256,
-          "close_EMA_50": 265.9787343461
-        },
-        {
-          "date": "2025-12-10",
-          "open": 277.75,
-          "high": 279.75,
-          "low": 276.44,
-          "close": 278.78,
-          "volume": 33038318,
-          "close_EMA_50": 266.4807447639
-        },
-        {
-          "date": "2025-12-11",
-          "open": 279.02,
-          "high": 279.59,
-          "low": 273.81,
-          "close": 278.03,
-          "volume": 33247986,
-          "close_EMA_50": 266.933656734
-        },
-        {
-          "date": "2025-12-12",
-          "open": 277.82,
-          "high": 279.22,
-          "low": 276.82,
-          "close": 278.28,
-          "volume": 39532887,
-          "close_EMA_50": 267.3786113718
-        },
-        {
-          "date": "2025-12-15",
-          "open": 279.94,
-          "high": 280.15,
-          "low": 272.84,
-          "close": 274.11,
-          "volume": 50409078,
-          "close_EMA_50": 267.6425873965
-        }
-      ],
-      "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 127"
+      "truncated_note": "Trimmed data to last 60 items out of 138"
     },
     {
       "tool_name": "calculate_bbands",
       "data": [
-        {
-          "date": "2025-09-22",
-          "open": 248.33,
-          "high": 256.64,
-          "low": 248.12,
-          "close": 256.08,
-          "volume": 105517416,
-          "close_BBL_20_2.0": 222.4152265948,
-          "close_BBM_20_2.0": 235.787,
-          "close_BBU_20_2.0": 249.1587734052,
-          "close_BBB_20_2.0": 11.34224822,
-          "close_BBP_20_2.0": 1.2587998759
-        },
         {
           "date": "2025-09-23",
           "open": 255.91,
@@ -2694,7 +2617,7 @@
           "close_BBM_20_2.0": 241.879,
           "close_BBU_20_2.0": 260.764314824,
           "close_BBB_20_2.0": 15.6155059546,
-          "close_BBP_20_2.0": 0.8322952282
+          "close_BBP_20_2.0": 0.8322952283
         },
         {
           "date": "2025-09-30",
@@ -2901,7 +2824,7 @@
           "close_BBL_20_2.0": 244.8546510265,
           "close_BBM_20_2.0": 254.218,
           "close_BBU_20_2.0": 263.5813489735,
-          "close_BBB_20_2.0": 7.3663933896,
+          "close_BBB_20_2.0": 7.3663933895,
           "close_BBP_20_2.0": 0.9566742105
         },
         {
@@ -3397,31 +3320,35 @@
           "close_BBU_20_2.0": 287.3526451306,
           "close_BBB_20_2.0": 7.9372504418,
           "close_BBP_20_2.0": 0.3963408893
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "close_BBL_20_2.0": 266.5188872713,
+          "close_BBM_20_2.0": 276.7415,
+          "close_BBU_20_2.0": 286.9641127287,
+          "close_BBB_20_2.0": 7.3878422489,
+          "close_BBP_20_2.0": 0.3957458305
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 127"
+      "truncated_note": "Trimmed data to last 60 items out of 138"
     },
     {
       "tool_name": "calculate_atr",
       "data": [
         {
-          "date": "2025-09-22",
-          "open": 248.33,
-          "high": 256.64,
-          "low": 248.12,
-          "close": 256.08,
-          "volume": 105517416,
-          "ATRr_14": 5.2645670546
-        },
-        {
           "date": "2025-09-23",
           "open": 255.91,
           "high": 257.34,
           "low": 253.58,
           "close": 254.43,
           "volume": 60275187,
-          "ATRr_14": 5.1570979793
+          "ATRr_14": 5.1600228223
         },
         {
           "date": "2025-09-24",
@@ -3430,7 +3357,7 @@
           "low": 251.04,
           "close": 252.31,
           "volume": 42303710,
-          "ATRr_14": 5.1244481236
+          "ATRr_14": 5.1271640493
         },
         {
           "date": "2025-09-25",
@@ -3439,7 +3366,7 @@
           "low": 251.71,
           "close": 256.87,
           "volume": 55202075,
-          "ATRr_14": 5.1484161148
+          "ATRr_14": 5.1509380458
         },
         {
           "date": "2025-09-26",
@@ -3448,7 +3375,7 @@
           "low": 253.78,
           "close": 255.46,
           "volume": 46076258,
-          "ATRr_14": 5.0535292495
+          "ATRr_14": 5.0558710425
         },
         {
           "date": "2025-09-29",
@@ -3457,7 +3384,7 @@
           "low": 253.01,
           "close": 254.43,
           "volume": 40127687,
-          "ATRr_14": 4.8675628745
+          "ATRr_14": 4.8697373966
         },
         {
           "date": "2025-09-30",
@@ -3466,7 +3393,7 @@
           "low": 253.11,
           "close": 254.63,
           "volume": 37704259,
-          "ATRr_14": 4.7205940978
+          "ATRr_14": 4.7226132968
         },
         {
           "date": "2025-10-01",
@@ -3475,7 +3402,7 @@
           "low": 254.93,
           "close": 255.45,
           "volume": 48713940,
-          "ATRr_14": 4.6805516622
+          "ATRr_14": 4.6824266328
         },
         {
           "date": "2025-10-02",
@@ -3484,7 +3411,7 @@
           "low": 254.15,
           "close": 257.13,
           "volume": 42630239,
-          "ATRr_14": 4.6340836863
+          "ATRr_14": 4.6358247304
         },
         {
           "date": "2025-10-03",
@@ -3493,7 +3420,7 @@
           "low": 253.95,
           "close": 258.02,
           "volume": 49155614,
-          "ATRr_14": 4.6809348516
+          "ATRr_14": 4.6825515354
         },
         {
           "date": "2025-10-06",
@@ -3502,7 +3429,7 @@
           "low": 255.05,
           "close": 256.69,
           "volume": 44664118,
-          "ATRr_14": 4.6337252193
+          "ATRr_14": 4.6352264257
         },
         {
           "date": "2025-10-07",
@@ -3511,7 +3438,7 @@
           "low": 255.43,
           "close": 256.48,
           "volume": 31955776,
-          "ATRr_14": 4.4434591322
+          "ATRr_14": 4.4448531096
         },
         {
           "date": "2025-10-08",
@@ -3520,7 +3447,7 @@
           "low": 256.11,
           "close": 258.06,
           "volume": 36496895,
-          "ATRr_14": 4.2982120514
+          "ATRr_14": 4.2995064589
         },
         {
           "date": "2025-10-09",
@@ -3529,7 +3456,7 @@
           "low": 253.14,
           "close": 254.04,
           "volume": 38322012,
-          "ATRr_14": 4.3426254763
+          "ATRr_14": 4.3438274261
         },
         {
           "date": "2025-10-10",
@@ -3538,7 +3465,7 @@
           "low": 244.0,
           "close": 245.27,
           "volume": 61999098,
-          "ATRr_14": 4.9167236565
+          "ATRr_14": 4.9178397528
         },
         {
           "date": "2025-10-13",
@@ -3547,7 +3474,7 @@
           "low": 245.56,
           "close": 247.66,
           "volume": 38142942,
-          "ATRr_14": 4.8812433954
+          "ATRr_14": 4.8822797705
         },
         {
           "date": "2025-10-14",
@@ -3556,7 +3483,7 @@
           "low": 244.7,
           "close": 247.77,
           "volume": 35477986,
-          "ATRr_14": 4.8290117243
+          "ATRr_14": 4.8299740726
         },
         {
           "date": "2025-10-15",
@@ -3565,7 +3492,7 @@
           "low": 247.47,
           "close": 249.34,
           "volume": 33893611,
-          "ATRr_14": 4.7947966011
+          "ATRr_14": 4.7956902103
         },
         {
           "date": "2025-10-16",
@@ -3574,7 +3501,7 @@
           "low": 245.13,
           "close": 247.45,
           "volume": 39776974,
-          "ATRr_14": 4.7530254153
+          "ATRr_14": 4.7538551953
         },
         {
           "date": "2025-10-17",
@@ -3583,7 +3510,7 @@
           "low": 247.27,
           "close": 252.29,
           "volume": 49146961,
-          "ATRr_14": 4.8499521714
+          "ATRr_14": 4.8507226813
         },
         {
           "date": "2025-10-20",
@@ -3592,7 +3519,7 @@
           "low": 255.63,
           "close": 262.24,
           "volume": 90483029,
-          "ATRr_14": 5.3670984448
+          "ATRr_14": 5.3678139184
         },
         {
           "date": "2025-10-21",
@@ -3601,7 +3528,7 @@
           "low": 261.83,
           "close": 262.77,
           "volume": 46695948,
-          "ATRr_14": 5.2308771273
+          "ATRr_14": 5.2315414956
         },
         {
           "date": "2025-10-22",
@@ -3610,7 +3537,7 @@
           "low": 255.43,
           "close": 258.45,
           "volume": 45015254,
-          "ATRr_14": 5.3872430468
+          "ATRr_14": 5.3878599602
         },
         {
           "date": "2025-10-23",
@@ -3619,7 +3546,7 @@
           "low": 258.01,
           "close": 259.58,
           "volume": 32754941,
-          "ATRr_14": 5.1888685435
+          "ATRr_14": 5.1894413916
         },
         {
           "date": "2025-10-24",
@@ -3628,7 +3555,7 @@
           "low": 259.18,
           "close": 262.82,
           "volume": 38253717,
-          "ATRr_14": 5.1718065047
+          "ATRr_14": 5.1723384351
         },
         {
           "date": "2025-10-27",
@@ -3637,7 +3564,7 @@
           "low": 264.65,
           "close": 268.81,
           "volume": 44888152,
-          "ATRr_14": 5.2523917543
+          "ATRr_14": 5.2528856897
         },
         {
           "date": "2025-10-28",
@@ -3646,7 +3573,7 @@
           "low": 268.15,
           "close": 269.0,
           "volume": 41534759,
-          "ATRr_14": 5.001506629
+          "ATRr_14": 5.0019652833
         },
         {
           "date": "2025-10-29",
@@ -3655,7 +3582,7 @@
           "low": 267.11,
           "close": 269.7,
           "volume": 51086742,
-          "ATRr_14": 4.9513990127
+          "ATRr_14": 4.9518249059
         },
         {
           "date": "2025-10-30",
@@ -3664,7 +3591,7 @@
           "low": 268.48,
           "close": 271.4,
           "volume": 69886534,
-          "ATRr_14": 5.0020133689
+          "ATRr_14": 5.0024088412
         },
         {
           "date": "2025-10-31",
@@ -3673,7 +3600,7 @@
           "low": 269.16,
           "close": 270.37,
           "volume": 86167123,
-          "ATRr_14": 5.2275838425
+          "ATRr_14": 5.2279510669
         },
         {
           "date": "2025-11-03",
@@ -3682,7 +3609,7 @@
           "low": 266.25,
           "close": 269.05,
           "volume": 50194583,
-          "ATRr_14": 5.1827564252
+          "ATRr_14": 5.1830974192
         },
         {
           "date": "2025-11-04",
@@ -3691,7 +3618,7 @@
           "low": 267.61,
           "close": 270.04,
           "volume": 49274846,
-          "ATRr_14": 5.0897023948
+          "ATRr_14": 5.0900190321
         },
         {
           "date": "2025-11-05",
@@ -3700,7 +3627,7 @@
           "low": 266.93,
           "close": 270.14,
           "volume": 43683072,
-          "ATRr_14": 5.0668665095
+          "ATRr_14": 5.0671605298
         },
         {
           "date": "2025-11-06",
@@ -3709,7 +3636,7 @@
           "low": 267.89,
           "close": 269.77,
           "volume": 51204045,
-          "ATRr_14": 5.0985189017
+          "ATRr_14": 5.0987919206
         },
         {
           "date": "2025-11-07",
@@ -3718,7 +3645,7 @@
           "low": 266.77,
           "close": 268.47,
           "volume": 48227365,
-          "ATRr_14": 5.1286246944
+          "ATRr_14": 5.128878212
         },
         {
           "date": "2025-11-10",
@@ -3727,7 +3654,7 @@
           "low": 267.45,
           "close": 269.43,
           "volume": 41312412,
-          "ATRr_14": 5.2108657877
+          "ATRr_14": 5.2111011968
         },
         {
           "date": "2025-11-11",
@@ -3736,7 +3663,7 @@
           "low": 269.8,
           "close": 275.25,
           "volume": 46208318,
-          "ATRr_14": 5.3015182314
+          "ATRr_14": 5.3017368256
         },
         {
           "date": "2025-11-12",
@@ -3745,7 +3672,7 @@
           "low": 271.7,
           "close": 273.47,
           "volume": 48397982,
-          "ATRr_14": 5.2106955006
+          "ATRr_14": 5.2108984809
         },
         {
           "date": "2025-11-13",
@@ -3754,7 +3681,7 @@
           "low": 272.09,
           "close": 272.95,
           "volume": 49602794,
-          "ATRr_14": 5.1677886791
+          "ATRr_14": 5.1679771609
         },
         {
           "date": "2025-11-14",
@@ -3763,7 +3690,7 @@
           "low": 269.6,
           "close": 272.41,
           "volume": 47431331,
-          "ATRr_14": 5.2529466306
+          "ATRr_14": 5.2531216494
         },
         {
           "date": "2025-11-17",
@@ -3772,7 +3699,7 @@
           "low": 265.73,
           "close": 267.46,
           "volume": 45018260,
-          "ATRr_14": 5.3548790141
+          "ATRr_14": 5.3550415316
         },
         {
           "date": "2025-11-18",
@@ -3781,7 +3708,7 @@
           "low": 265.32,
           "close": 267.44,
           "volume": 45677278,
-          "ATRr_14": 5.357387656
+          "ATRr_14": 5.357538565
         },
         {
           "date": "2025-11-19",
@@ -3790,7 +3717,7 @@
           "low": 265.5,
           "close": 268.56,
           "volume": 40424492,
-          "ATRr_14": 5.4540028234
+          "ATRr_14": 5.4541429532
         },
         {
           "date": "2025-11-20",
@@ -3799,7 +3726,7 @@
           "low": 265.92,
           "close": 266.25,
           "volume": 45823568,
-          "ATRr_14": 5.7437169075
+          "ATRr_14": 5.743847028
         },
         {
           "date": "2025-11-21",
@@ -3808,7 +3735,7 @@
           "low": 265.67,
           "close": 271.49,
           "volume": 59030832,
-          "ATRr_14": 5.8805942712
+          "ATRr_14": 5.8807150974
         },
         {
           "date": "2025-11-24",
@@ -3817,7 +3744,7 @@
           "low": 270.9,
           "close": 275.92,
           "volume": 65585796,
-          "ATRr_14": 5.896266109
+          "ATRr_14": 5.8963783048
         },
         {
           "date": "2025-11-25",
@@ -3826,7 +3753,7 @@
           "low": 275.25,
           "close": 276.97,
           "volume": 46914220,
-          "ATRr_14": 5.8415328155
+          "ATRr_14": 5.8416369973
         },
         {
           "date": "2025-11-26",
@@ -3835,7 +3762,7 @@
           "low": 276.63,
           "close": 277.55,
           "volume": 33431423,
-          "ATRr_14": 5.6314233287
+          "ATRr_14": 5.6315200689
         },
         {
           "date": "2025-11-28",
@@ -3844,7 +3771,7 @@
           "low": 275.99,
           "close": 278.85,
           "volume": 20135620,
-          "ATRr_14": 5.4441788052
+          "ATRr_14": 5.4442686354
         },
         {
           "date": "2025-12-01",
@@ -3853,7 +3780,7 @@
           "low": 276.14,
           "close": 283.1,
           "volume": 46587722,
-          "ATRr_14": 5.5753088905
+          "ATRr_14": 5.5753923043
         },
         {
           "date": "2025-12-02",
@@ -3862,7 +3789,7 @@
           "low": 282.63,
           "close": 286.19,
           "volume": 53669532,
-          "ATRr_14": 5.5177868269
+          "ATRr_14": 5.5178642826
         },
         {
           "date": "2025-12-03",
@@ -3871,7 +3798,7 @@
           "low": 283.3,
           "close": 284.15,
           "volume": 43538687,
-          "ATRr_14": 5.5036591964
+          "ATRr_14": 5.5037311195
         },
         {
           "date": "2025-12-04",
@@ -3880,7 +3807,7 @@
           "low": 278.59,
           "close": 280.7,
           "volume": 43989056,
-          "ATRr_14": 5.549112111
+          "ATRr_14": 5.5491788967
         },
         {
           "date": "2025-12-05",
@@ -3889,7 +3816,7 @@
           "low": 278.05,
           "close": 278.78,
           "volume": 47265845,
-          "ATRr_14": 5.3734612459
+          "ATRr_14": 5.3735232612
         },
         {
           "date": "2025-12-08",
@@ -3898,7 +3825,7 @@
           "low": 276.15,
           "close": 277.89,
           "volume": 38211832,
-          "ATRr_14": 5.2410711569
+          "ATRr_14": 5.2411287426
         },
         {
           "date": "2025-12-09",
@@ -3907,7 +3834,7 @@
           "low": 276.92,
           "close": 277.18,
           "volume": 32193256,
-          "ATRr_14": 5.0888517886
+          "ATRr_14": 5.088905261
         },
         {
           "date": "2025-12-10",
@@ -3916,7 +3843,7 @@
           "low": 276.44,
           "close": 278.78,
           "volume": 33038318,
-          "ATRr_14": 4.9617909465
+          "ATRr_14": 4.9618405995
         },
         {
           "date": "2025-12-11",
@@ -3925,7 +3852,7 @@
           "low": 273.81,
           "close": 278.03,
           "volume": 33247986,
-          "ATRr_14": 5.0202344503
+          "ATRr_14": 5.0202805566
         },
         {
           "date": "2025-12-12",
@@ -3934,7 +3861,7 @@
           "low": 276.82,
           "close": 278.28,
           "volume": 39532887,
-          "ATRr_14": 4.8330748467
+          "ATRr_14": 4.8331176597
         },
         {
           "date": "2025-12-15",
@@ -3943,32 +3870,32 @@
           "low": 272.84,
           "close": 274.11,
           "volume": 50409078,
-          "ATRr_14": 5.009998072
+          "ATRr_14": 5.0100378269
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "ATRr_14": 4.9171779821
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 127"
+      "truncated_note": "Trimmed data to last 60 items out of 138"
     },
     {
       "tool_name": "calculate_obv",
       "data": [
         {
-          "date": "2025-09-22",
-          "open": 248.33,
-          "high": 256.64,
-          "low": 248.12,
-          "close": 256.08,
-          "volume": 105517416,
-          "OBV": 884831609.0
-        },
-        {
           "date": "2025-09-23",
           "open": 255.91,
           "high": 257.34,
           "low": 253.58,
           "close": 254.43,
           "volume": 60275187,
-          "OBV": 824556422.0
+          "OBV": 775018633.0
         },
         {
           "date": "2025-09-24",
@@ -3977,7 +3904,7 @@
           "low": 251.04,
           "close": 252.31,
           "volume": 42303710,
-          "OBV": 782252712.0
+          "OBV": 732714923.0
         },
         {
           "date": "2025-09-25",
@@ -3986,7 +3913,7 @@
           "low": 251.71,
           "close": 256.87,
           "volume": 55202075,
-          "OBV": 837454787.0
+          "OBV": 787916998.0
         },
         {
           "date": "2025-09-26",
@@ -3995,7 +3922,7 @@
           "low": 253.78,
           "close": 255.46,
           "volume": 46076258,
-          "OBV": 791378529.0
+          "OBV": 741840740.0
         },
         {
           "date": "2025-09-29",
@@ -4004,7 +3931,7 @@
           "low": 253.01,
           "close": 254.43,
           "volume": 40127687,
-          "OBV": 751250842.0
+          "OBV": 701713053.0
         },
         {
           "date": "2025-09-30",
@@ -4013,7 +3940,7 @@
           "low": 253.11,
           "close": 254.63,
           "volume": 37704259,
-          "OBV": 788955101.0
+          "OBV": 739417312.0
         },
         {
           "date": "2025-10-01",
@@ -4022,7 +3949,7 @@
           "low": 254.93,
           "close": 255.45,
           "volume": 48713940,
-          "OBV": 837669041.0
+          "OBV": 788131252.0
         },
         {
           "date": "2025-10-02",
@@ -4031,7 +3958,7 @@
           "low": 254.15,
           "close": 257.13,
           "volume": 42630239,
-          "OBV": 880299280.0
+          "OBV": 830761491.0
         },
         {
           "date": "2025-10-03",
@@ -4040,7 +3967,7 @@
           "low": 253.95,
           "close": 258.02,
           "volume": 49155614,
-          "OBV": 929454894.0
+          "OBV": 879917105.0
         },
         {
           "date": "2025-10-06",
@@ -4049,7 +3976,7 @@
           "low": 255.05,
           "close": 256.69,
           "volume": 44664118,
-          "OBV": 884790776.0
+          "OBV": 835252987.0
         },
         {
           "date": "2025-10-07",
@@ -4058,7 +3985,7 @@
           "low": 255.43,
           "close": 256.48,
           "volume": 31955776,
-          "OBV": 852835000.0
+          "OBV": 803297211.0
         },
         {
           "date": "2025-10-08",
@@ -4067,7 +3994,7 @@
           "low": 256.11,
           "close": 258.06,
           "volume": 36496895,
-          "OBV": 889331895.0
+          "OBV": 839794106.0
         },
         {
           "date": "2025-10-09",
@@ -4076,7 +4003,7 @@
           "low": 253.14,
           "close": 254.04,
           "volume": 38322012,
-          "OBV": 851009883.0
+          "OBV": 801472094.0
         },
         {
           "date": "2025-10-10",
@@ -4085,7 +4012,7 @@
           "low": 244.0,
           "close": 245.27,
           "volume": 61999098,
-          "OBV": 789010785.0
+          "OBV": 739472996.0
         },
         {
           "date": "2025-10-13",
@@ -4094,7 +4021,7 @@
           "low": 245.56,
           "close": 247.66,
           "volume": 38142942,
-          "OBV": 827153727.0
+          "OBV": 777615938.0
         },
         {
           "date": "2025-10-14",
@@ -4103,7 +4030,7 @@
           "low": 244.7,
           "close": 247.77,
           "volume": 35477986,
-          "OBV": 862631713.0
+          "OBV": 813093924.0
         },
         {
           "date": "2025-10-15",
@@ -4112,7 +4039,7 @@
           "low": 247.47,
           "close": 249.34,
           "volume": 33893611,
-          "OBV": 896525324.0
+          "OBV": 846987535.0
         },
         {
           "date": "2025-10-16",
@@ -4121,7 +4048,7 @@
           "low": 245.13,
           "close": 247.45,
           "volume": 39776974,
-          "OBV": 856748350.0
+          "OBV": 807210561.0
         },
         {
           "date": "2025-10-17",
@@ -4130,7 +4057,7 @@
           "low": 247.27,
           "close": 252.29,
           "volume": 49146961,
-          "OBV": 905895311.0
+          "OBV": 856357522.0
         },
         {
           "date": "2025-10-20",
@@ -4139,7 +4066,7 @@
           "low": 255.63,
           "close": 262.24,
           "volume": 90483029,
-          "OBV": 996378340.0
+          "OBV": 946840551.0
         },
         {
           "date": "2025-10-21",
@@ -4148,7 +4075,7 @@
           "low": 261.83,
           "close": 262.77,
           "volume": 46695948,
-          "OBV": 1043074288.0
+          "OBV": 993536499.0
         },
         {
           "date": "2025-10-22",
@@ -4157,7 +4084,7 @@
           "low": 255.43,
           "close": 258.45,
           "volume": 45015254,
-          "OBV": 998059034.0
+          "OBV": 948521245.0
         },
         {
           "date": "2025-10-23",
@@ -4166,7 +4093,7 @@
           "low": 258.01,
           "close": 259.58,
           "volume": 32754941,
-          "OBV": 1030813975.0
+          "OBV": 981276186.0
         },
         {
           "date": "2025-10-24",
@@ -4175,7 +4102,7 @@
           "low": 259.18,
           "close": 262.82,
           "volume": 38253717,
-          "OBV": 1069067692.0
+          "OBV": 1019529903.0
         },
         {
           "date": "2025-10-27",
@@ -4184,7 +4111,7 @@
           "low": 264.65,
           "close": 268.81,
           "volume": 44888152,
-          "OBV": 1113955844.0
+          "OBV": 1064418055.0
         },
         {
           "date": "2025-10-28",
@@ -4193,7 +4120,7 @@
           "low": 268.15,
           "close": 269.0,
           "volume": 41534759,
-          "OBV": 1155490603.0
+          "OBV": 1105952814.0
         },
         {
           "date": "2025-10-29",
@@ -4202,7 +4129,7 @@
           "low": 267.11,
           "close": 269.7,
           "volume": 51086742,
-          "OBV": 1206577345.0
+          "OBV": 1157039556.0
         },
         {
           "date": "2025-10-30",
@@ -4211,7 +4138,7 @@
           "low": 268.48,
           "close": 271.4,
           "volume": 69886534,
-          "OBV": 1276463879.0
+          "OBV": 1226926090.0
         },
         {
           "date": "2025-10-31",
@@ -4220,7 +4147,7 @@
           "low": 269.16,
           "close": 270.37,
           "volume": 86167123,
-          "OBV": 1190296756.0
+          "OBV": 1140758967.0
         },
         {
           "date": "2025-11-03",
@@ -4229,7 +4156,7 @@
           "low": 266.25,
           "close": 269.05,
           "volume": 50194583,
-          "OBV": 1140102173.0
+          "OBV": 1090564384.0
         },
         {
           "date": "2025-11-04",
@@ -4238,7 +4165,7 @@
           "low": 267.61,
           "close": 270.04,
           "volume": 49274846,
-          "OBV": 1189377019.0
+          "OBV": 1139839230.0
         },
         {
           "date": "2025-11-05",
@@ -4247,7 +4174,7 @@
           "low": 266.93,
           "close": 270.14,
           "volume": 43683072,
-          "OBV": 1233060091.0
+          "OBV": 1183522302.0
         },
         {
           "date": "2025-11-06",
@@ -4256,7 +4183,7 @@
           "low": 267.89,
           "close": 269.77,
           "volume": 51204045,
-          "OBV": 1181856046.0
+          "OBV": 1132318257.0
         },
         {
           "date": "2025-11-07",
@@ -4265,7 +4192,7 @@
           "low": 266.77,
           "close": 268.47,
           "volume": 48227365,
-          "OBV": 1133628681.0
+          "OBV": 1084090892.0
         },
         {
           "date": "2025-11-10",
@@ -4274,7 +4201,7 @@
           "low": 267.45,
           "close": 269.43,
           "volume": 41312412,
-          "OBV": 1174941093.0
+          "OBV": 1125403304.0
         },
         {
           "date": "2025-11-11",
@@ -4283,7 +4210,7 @@
           "low": 269.8,
           "close": 275.25,
           "volume": 46208318,
-          "OBV": 1221149411.0
+          "OBV": 1171611622.0
         },
         {
           "date": "2025-11-12",
@@ -4292,7 +4219,7 @@
           "low": 271.7,
           "close": 273.47,
           "volume": 48397982,
-          "OBV": 1172751429.0
+          "OBV": 1123213640.0
         },
         {
           "date": "2025-11-13",
@@ -4301,7 +4228,7 @@
           "low": 272.09,
           "close": 272.95,
           "volume": 49602794,
-          "OBV": 1123148635.0
+          "OBV": 1073610846.0
         },
         {
           "date": "2025-11-14",
@@ -4310,7 +4237,7 @@
           "low": 269.6,
           "close": 272.41,
           "volume": 47431331,
-          "OBV": 1075717304.0
+          "OBV": 1026179515.0
         },
         {
           "date": "2025-11-17",
@@ -4319,7 +4246,7 @@
           "low": 265.73,
           "close": 267.46,
           "volume": 45018260,
-          "OBV": 1030699044.0
+          "OBV": 981161255.0
         },
         {
           "date": "2025-11-18",
@@ -4328,7 +4255,7 @@
           "low": 265.32,
           "close": 267.44,
           "volume": 45677278,
-          "OBV": 985021766.0
+          "OBV": 935483977.0
         },
         {
           "date": "2025-11-19",
@@ -4337,7 +4264,7 @@
           "low": 265.5,
           "close": 268.56,
           "volume": 40424492,
-          "OBV": 1025446258.0
+          "OBV": 975908469.0
         },
         {
           "date": "2025-11-20",
@@ -4346,7 +4273,7 @@
           "low": 265.92,
           "close": 266.25,
           "volume": 45823568,
-          "OBV": 979622690.0
+          "OBV": 930084901.0
         },
         {
           "date": "2025-11-21",
@@ -4355,7 +4282,7 @@
           "low": 265.67,
           "close": 271.49,
           "volume": 59030832,
-          "OBV": 1038653522.0
+          "OBV": 989115733.0
         },
         {
           "date": "2025-11-24",
@@ -4364,7 +4291,7 @@
           "low": 270.9,
           "close": 275.92,
           "volume": 65585796,
-          "OBV": 1104239318.0
+          "OBV": 1054701529.0
         },
         {
           "date": "2025-11-25",
@@ -4373,7 +4300,7 @@
           "low": 275.25,
           "close": 276.97,
           "volume": 46914220,
-          "OBV": 1151153538.0
+          "OBV": 1101615749.0
         },
         {
           "date": "2025-11-26",
@@ -4382,7 +4309,7 @@
           "low": 276.63,
           "close": 277.55,
           "volume": 33431423,
-          "OBV": 1184584961.0
+          "OBV": 1135047172.0
         },
         {
           "date": "2025-11-28",
@@ -4391,7 +4318,7 @@
           "low": 275.99,
           "close": 278.85,
           "volume": 20135620,
-          "OBV": 1204720581.0
+          "OBV": 1155182792.0
         },
         {
           "date": "2025-12-01",
@@ -4400,7 +4327,7 @@
           "low": 276.14,
           "close": 283.1,
           "volume": 46587722,
-          "OBV": 1251308303.0
+          "OBV": 1201770514.0
         },
         {
           "date": "2025-12-02",
@@ -4409,7 +4336,7 @@
           "low": 282.63,
           "close": 286.19,
           "volume": 53669532,
-          "OBV": 1304977835.0
+          "OBV": 1255440046.0
         },
         {
           "date": "2025-12-03",
@@ -4418,7 +4345,7 @@
           "low": 283.3,
           "close": 284.15,
           "volume": 43538687,
-          "OBV": 1261439148.0
+          "OBV": 1211901359.0
         },
         {
           "date": "2025-12-04",
@@ -4427,7 +4354,7 @@
           "low": 278.59,
           "close": 280.7,
           "volume": 43989056,
-          "OBV": 1217450092.0
+          "OBV": 1167912303.0
         },
         {
           "date": "2025-12-05",
@@ -4436,7 +4363,7 @@
           "low": 278.05,
           "close": 278.78,
           "volume": 47265845,
-          "OBV": 1170184247.0
+          "OBV": 1120646458.0
         },
         {
           "date": "2025-12-08",
@@ -4445,7 +4372,7 @@
           "low": 276.15,
           "close": 277.89,
           "volume": 38211832,
-          "OBV": 1131972415.0
+          "OBV": 1082434626.0
         },
         {
           "date": "2025-12-09",
@@ -4454,7 +4381,7 @@
           "low": 276.92,
           "close": 277.18,
           "volume": 32193256,
-          "OBV": 1099779159.0
+          "OBV": 1050241370.0
         },
         {
           "date": "2025-12-10",
@@ -4463,7 +4390,7 @@
           "low": 276.44,
           "close": 278.78,
           "volume": 33038318,
-          "OBV": 1132817477.0
+          "OBV": 1083279688.0
         },
         {
           "date": "2025-12-11",
@@ -4472,7 +4399,7 @@
           "low": 273.81,
           "close": 278.03,
           "volume": 33247986,
-          "OBV": 1099569491.0
+          "OBV": 1050031702.0
         },
         {
           "date": "2025-12-12",
@@ -4481,7 +4408,7 @@
           "low": 276.82,
           "close": 278.28,
           "volume": 39532887,
-          "OBV": 1139102378.0
+          "OBV": 1089564589.0
         },
         {
           "date": "2025-12-15",
@@ -4490,38 +4417,35 @@
           "low": 272.84,
           "close": 274.11,
           "volume": 50409078,
-          "OBV": 1088693300.0
+          "OBV": 1039155511.0
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "OBV": 1076804139.0
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 127"
+      "truncated_note": "Trimmed data to last 60 items out of 138"
     },
     {
       "tool_name": "calculate_adx",
       "data": [
         {
-          "date": "2025-09-22",
-          "open": 248.33,
-          "high": 256.64,
-          "low": 248.12,
-          "close": 256.08,
-          "volume": 105517416,
-          "ADX_14": 25.0404754369,
-          "ADXR_14_2": 23.6870996055,
-          "DMP_14": 44.9862741618,
-          "DMN_14": 15.2450417834
-        },
-        {
           "date": "2025-09-23",
           "open": 255.91,
           "high": 257.34,
           "low": 253.58,
           "close": 254.43,
           "volume": 60275187,
-          "ADX_14": 26.839239082,
-          "ADXR_14_2": 25.0037850088,
-          "DMP_14": 43.6137248101,
-          "DMN_14": 14.4515201653
+          "ADX_14": 29.240628589,
+          "ADXR_14_2": 27.5657591806,
+          "DMP_14": 43.724957311,
+          "DMN_14": 14.3384727603
         },
         {
           "date": "2025-09-24",
@@ -4530,10 +4454,10 @@
           "low": 251.04,
           "close": 252.31,
           "volume": 42303710,
-          "ADX_14": 27.8525939488,
-          "ADXR_14_2": 26.4465346928,
-          "DMP_14": 40.7578687982,
-          "DMN_14": 17.0439676157
+          "ADX_14": 30.1086147369,
+          "ADXR_14_2": 28.8526841713,
+          "DMP_14": 40.8625611721,
+          "DMN_14": 16.9376475454
         },
         {
           "date": "2025-09-25",
@@ -4542,10 +4466,10 @@
           "low": 251.71,
           "close": 256.87,
           "volume": 55202075,
-          "ADX_14": 28.9443300491,
-          "ADXR_14_2": 27.8917845655,
-          "DMP_14": 39.6548597591,
-          "DMN_14": 15.7534380852
+          "ADX_14": 31.0643959096,
+          "ADXR_14_2": 30.1525122493,
+          "DMP_14": 39.7518917025,
+          "DMN_14": 15.6554761267
         },
         {
           "date": "2025-09-26",
@@ -4554,10 +4478,10 @@
           "low": 253.78,
           "close": 255.46,
           "volume": 46076258,
-          "ADX_14": 30.0046201274,
-          "ADXR_14_2": 28.9286070381,
-          "DMP_14": 38.1221855221,
-          "DMN_14": 14.9032155111
+          "ADX_14": 31.9981433214,
+          "ADXR_14_2": 31.0533790292,
+          "DMP_14": 38.2143297854,
+          "DMN_14": 14.8107324667
         },
         {
           "date": "2025-09-29",
@@ -4566,10 +4490,10 @@
           "low": 253.01,
           "close": 254.43,
           "volume": 40127687,
-          "ADX_14": 30.7671562336,
-          "ADXR_14_2": 29.8557431413,
-          "DMP_14": 36.7521633546,
-          "DMN_14": 15.4970981446
+          "ADX_14": 32.642685514,
+          "ADXR_14_2": 31.8535407118,
+          "DMP_14": 36.8412967891,
+          "DMN_14": 15.407807997
         },
         {
           "date": "2025-09-30",
@@ -4578,10 +4502,10 @@
           "low": 253.11,
           "close": 254.63,
           "volume": 37704259,
-          "ADX_14": 31.589891139,
-          "ADXR_14_2": 30.7972556332,
-          "DMP_14": 36.5816462481,
-          "DMN_14": 14.838435787
+          "ADX_14": 33.3551703637,
+          "ADXR_14_2": 32.6766568426,
+          "DMP_14": 36.6670278402,
+          "DMN_14": 14.7530779343
         },
         {
           "date": "2025-10-01",
@@ -4590,10 +4514,10 @@
           "low": 254.93,
           "close": 255.45,
           "volume": 48713940,
-          "ADX_14": 32.6974219528,
-          "ADXR_14_2": 31.7322890932,
-          "DMP_14": 38.638350991,
-          "DMN_14": 13.8967674964
+          "ADX_14": 34.3582838553,
+          "ADXR_14_2": 33.5004846847,
+          "DMP_14": 38.7179114823,
+          "DMN_14": 13.8170103589
         },
         {
           "date": "2025-10-02",
@@ -4602,10 +4526,10 @@
           "low": 254.15,
           "close": 257.13,
           "volume": 42630239,
-          "ADX_14": 33.4756644845,
-          "ADXR_14_2": 32.5327778117,
-          "DMP_14": 36.2390588373,
-          "DMN_14": 14.2356926083
+          "ADX_14": 35.0390984848,
+          "ADXR_14_2": 34.1971344243,
+          "DMP_14": 36.314121575,
+          "DMN_14": 14.1608247691
         },
         {
           "date": "2025-10-03",
@@ -4614,10 +4538,10 @@
           "low": 253.95,
           "close": 258.02,
           "volume": 49155614,
-          "ADX_14": 34.3339951099,
-          "ADXR_14_2": 33.5157085313,
-          "DMP_14": 34.931663257,
-          "DMN_14": 13.0869121317
+          "ADX_14": 35.806221761,
+          "ADXR_14_2": 35.0822528082,
+          "DMP_14": 35.0008909522,
+          "DMN_14": 13.0182793326
         },
         {
           "date": "2025-10-06",
@@ -4626,10 +4550,10 @@
           "low": 255.05,
           "close": 256.69,
           "volume": 44664118,
-          "ADX_14": 35.1310164048,
-          "ADXR_14_2": 34.3033404447,
-          "DMP_14": 32.7676551971,
-          "DMN_14": 12.2761811017
+          "ADX_14": 36.5185505174,
+          "ADXR_14_2": 35.7788245011,
+          "DMP_14": 32.8329385191,
+          "DMN_14": 12.2119281345
         },
         {
           "date": "2025-10-07",
@@ -4638,10 +4562,10 @@
           "low": 255.43,
           "close": 256.48,
           "volume": 31955776,
-          "ADX_14": 35.8711076073,
-          "ADXR_14_2": 35.1025513586,
-          "DMP_14": 31.7302741945,
-          "DMN_14": 11.887533303
+          "ADX_14": 37.1799986484,
+          "ADXR_14_2": 36.4931102047,
+          "DMP_14": 31.7936505437,
+          "DMN_14": 11.8253739411
         },
         {
           "date": "2025-10-08",
@@ -4650,10 +4574,10 @@
           "low": 256.11,
           "close": 258.06,
           "volume": 36496895,
-          "ADX_14": 36.7239931143,
-          "ADXR_14_2": 35.9275047596,
-          "DMP_14": 32.3205577807,
-          "DMN_14": 11.4115696273
+          "ADX_14": 37.9589589716,
+          "ADXR_14_2": 37.2387547445,
+          "DMP_14": 32.3813098645,
+          "DMN_14": 11.3519689384
         },
         {
           "date": "2025-10-09",
@@ -4662,10 +4586,10 @@
           "low": 253.14,
           "close": 254.04,
           "volume": 38322012,
-          "ADX_14": 36.3720707605,
-          "ADXR_14_2": 36.1215891839,
-          "DMP_14": 29.7056638948,
-          "DMN_14": 15.3722147024
+          "ADX_14": 37.5364495601,
+          "ADXR_14_2": 37.3582241043,
+          "DMP_14": 29.7618562164,
+          "DMN_14": 15.3168980805
         },
         {
           "date": "2025-10-10",
@@ -4674,10 +4598,10 @@
           "low": 244.0,
           "close": 245.27,
           "volume": 61999098,
-          "ADX_14": 33.9900638392,
-          "ADXR_14_2": 35.3570284767,
-          "DMP_14": 24.3641262948,
-          "DMN_14": 25.8836045413
+          "ADX_14": 35.0580200944,
+          "ADXR_14_2": 36.508489533,
+          "DMP_14": 24.4108098065,
+          "DMN_14": 25.8370640705
         },
         {
           "date": "2025-10-13",
@@ -4686,10 +4610,10 @@
           "low": 245.56,
           "close": 247.66,
           "volume": 38142942,
-          "ADX_14": 31.7782002693,
-          "ADXR_14_2": 34.0751355149,
-          "DMP_14": 22.7885819323,
-          "DMN_14": 24.2098007397
+          "ADX_14": 32.7566213048,
+          "ADXR_14_2": 35.1465354325,
+          "DMP_14": 22.8324108604,
+          "DMN_14": 24.1664437583
         },
         {
           "date": "2025-10-14",
@@ -4698,10 +4622,10 @@
           "low": 244.7,
           "close": 247.77,
           "volume": 35477986,
-          "ADX_14": 29.9184379369,
-          "ADXR_14_2": 31.954250888,
-          "DMP_14": 21.3899601727,
-          "DMN_14": 23.9957958903
+          "ADX_14": 30.8140689327,
+          "ADXR_14_2": 32.9360445136,
+          "DMP_14": 21.4312360361,
+          "DMN_14": 23.9551205359
         },
         {
           "date": "2025-10-15",
@@ -4710,10 +4634,10 @@
           "low": 247.47,
           "close": 249.34,
           "volume": 33893611,
-          "ADX_14": 28.0841799021,
-          "ADXR_14_2": 29.9311900857,
-          "DMP_14": 24.4277630751,
-          "DMN_14": 22.4410748451
+          "ADX_14": 28.9274507699,
+          "ADXR_14_2": 30.8420360374,
+          "DMP_14": 24.4660873477,
+          "DMN_14": 22.4031766923
         },
         {
           "date": "2025-10-16",
@@ -4722,10 +4646,10 @@
           "low": 245.13,
           "close": 247.45,
           "volume": 39776974,
-          "ADX_14": 26.327456571,
-          "ADXR_14_2": 28.122947254,
-          "DMP_14": 22.8825137171,
-          "DMN_14": 24.5374973629
+          "ADX_14": 27.0996899645,
+          "ADXR_14_2": 28.9568794486,
+          "DMP_14": 22.9185461188,
+          "DMN_14": 24.5018169611
         },
         {
           "date": "2025-10-17",
@@ -4734,10 +4658,10 @@
           "low": 247.27,
           "close": 252.29,
           "volume": 49146961,
-          "ADX_14": 25.1511716043,
-          "ADXR_14_2": 26.6176757532,
-          "DMP_14": 27.21459294,
-          "DMN_14": 22.3297816582
+          "ADX_14": 25.8775785617,
+          "ADXR_14_2": 27.4025146658,
+          "DMP_14": 27.2470462789,
+          "DMN_14": 22.2974832132
         },
         {
           "date": "2025-10-20",
@@ -4746,10 +4670,10 @@
           "low": 255.63,
           "close": 262.24,
           "volume": 90483029,
-          "ADX_14": 25.7355512036,
-          "ADXR_14_2": 26.0315038873,
-          "DMP_14": 37.4739534924,
-          "DMN_14": 18.7373339708
+          "ADX_14": 26.4168743581,
+          "ADXR_14_2": 26.7582821613,
+          "DMP_14": 37.5005155996,
+          "DMN_14": 18.7104661676
         },
         {
           "date": "2025-10-21",
@@ -4758,10 +4682,10 @@
           "low": 261.83,
           "close": 262.77,
           "volume": 46695948,
-          "ADX_14": 26.3861606316,
-          "ADXR_14_2": 25.7686661179,
-          "DMP_14": 36.9461069265,
-          "DMN_14": 17.8521549639
+          "ADX_14": 27.0254597062,
+          "ADXR_14_2": 26.451519134,
+          "DMP_14": 36.9714471436,
+          "DMN_14": 17.8266114685
         },
         {
           "date": "2025-10-22",
@@ -4770,10 +4694,10 @@
           "low": 255.43,
           "close": 258.45,
           "volume": 45015254,
-          "ADX_14": 25.5786657715,
-          "ADXR_14_2": 25.6571084876,
-          "DMP_14": 33.3117072215,
-          "DMN_14": 24.5808030891
+          "ADX_14": 26.1780396397,
+          "ADXR_14_2": 26.2974569989,
+          "DMP_14": 33.3347588783,
+          "DMN_14": 24.5573944472
         },
         {
           "date": "2025-10-23",
@@ -4782,10 +4706,10 @@
           "low": 258.01,
           "close": 259.58,
           "volume": 32754941,
-          "ADX_14": 24.8288491157,
-          "ADXR_14_2": 25.6075048737,
-          "DMP_14": 32.114985905,
-          "DMN_14": 23.6977390409
+          "ADX_14": 25.391149578,
+          "ADXR_14_2": 26.2083046421,
+          "DMP_14": 32.1372742442,
+          "DMN_14": 23.6752190996
         },
         {
           "date": "2025-10-24",
@@ -4794,10 +4718,10 @@
           "low": 259.18,
           "close": 262.82,
           "volume": 38253717,
-          "ADX_14": 24.649818575,
-          "ADXR_14_2": 25.1142421732,
-          "DMP_14": 34.7669030439,
-          "DMN_14": 22.0777908475
+          "ADX_14": 25.1771807347,
+          "ADXR_14_2": 25.6776101872,
+          "DMP_14": 34.7875341442,
+          "DMN_14": 22.0568919434
         },
         {
           "date": "2025-10-27",
@@ -4806,10 +4730,10 @@
           "low": 264.65,
           "close": 268.81,
           "volume": 44888152,
-          "ADX_14": 25.124285662,
-          "ADXR_14_2": 24.9765673889,
-          "DMP_14": 38.5739378195,
-          "DMN_14": 20.1864324985
+          "ADX_14": 25.6185757494,
+          "ADXR_14_2": 25.5048626637,
+          "DMP_14": 38.5926260667,
+          "DMN_14": 20.1674110724
         },
         {
           "date": "2025-10-28",
@@ -4818,10 +4742,10 @@
           "low": 268.15,
           "close": 269.0,
           "volume": 41534759,
-          "ADX_14": 25.657266189,
-          "ADXR_14_2": 25.153542382,
-          "DMP_14": 38.7150456277,
-          "DMN_14": 19.6848485092
+          "ADX_14": 26.1207562849,
+          "ADXR_14_2": 25.6489685098,
+          "DMP_14": 38.7332631944,
+          "DMN_14": 19.6663222477
         },
         {
           "date": "2025-10-29",
@@ -4830,10 +4754,10 @@
           "low": 267.11,
           "close": 269.7,
           "volume": 51086742,
-          "ADX_14": 26.337499325,
-          "ADXR_14_2": 25.7308924935,
-          "DMP_14": 38.5062509263,
-          "DMN_14": 18.4638628909
+          "ADX_14": 26.7722089301,
+          "ADXR_14_2": 26.1953923397,
+          "DMP_14": 38.5233473701,
+          "DMN_14": 18.4465371897
         },
         {
           "date": "2025-10-30",
@@ -4842,10 +4766,10 @@
           "low": 268.48,
           "close": 271.4,
           "volume": 69886534,
-          "ADX_14": 27.2899228861,
-          "ADXR_14_2": 26.4735945375,
-          "DMP_14": 39.2923723117,
-          "DMN_14": 16.9716360719
+          "ADX_14": 27.697596657,
+          "ADXR_14_2": 26.909176471,
+          "DMP_14": 39.3080566252,
+          "DMN_14": 16.9557683973
         },
         {
           "date": "2025-10-31",
@@ -4854,10 +4778,10 @@
           "low": 269.16,
           "close": 270.37,
           "volume": 86167123,
-          "ADX_14": 28.5188864734,
-          "ADXR_14_2": 27.4281928992,
-          "DMP_14": 39.2564968186,
-          "DMN_14": 15.0794796307
+          "ADX_14": 28.9011232622,
+          "ADXR_14_2": 27.8366660961,
+          "DMP_14": 39.2704337941,
+          "DMN_14": 15.0654461355
         },
         {
           "date": "2025-11-03",
@@ -4866,10 +4790,10 @@
           "low": 266.25,
           "close": 269.05,
           "volume": 50194583,
-          "ADX_14": 28.9061596746,
-          "ADXR_14_2": 28.0980412804,
-          "DMP_14": 36.7679001581,
-          "DMN_14": 18.1338542134
+          "ADX_14": 29.2645302483,
+          "ADXR_14_2": 28.4810634526,
+          "DMP_14": 36.7810339237,
+          "DMN_14": 18.120611797
         },
         {
           "date": "2025-11-04",
@@ -4878,10 +4802,10 @@
           "low": 267.61,
           "close": 270.04,
           "volume": 49274846,
-          "ADX_14": 29.3460158943,
-          "ADXR_14_2": 28.9324511839,
-          "DMP_14": 35.664060768,
-          "DMN_14": 17.1464912938
+          "ADX_14": 29.6821641546,
+          "ADXR_14_2": 29.2916437084,
+          "DMP_14": 35.676513107,
+          "DMN_14": 17.1340000006
         },
         {
           "date": "2025-11-05",
@@ -4890,10 +4814,10 @@
           "low": 266.93,
           "close": 270.14,
           "volume": 43683072,
-          "ADX_14": 29.570304545,
-          "ADXR_14_2": 29.2382321098,
-          "DMP_14": 33.2660080902,
-          "DMN_14": 16.9521187714
+          "ADX_14": 29.8857587452,
+          "ADXR_14_2": 29.5751444967,
+          "DMP_14": 33.2776913791,
+          "DMN_14": 16.9404728989
         },
         {
           "date": "2025-11-06",
@@ -4902,10 +4826,10 @@
           "low": 267.89,
           "close": 269.77,
           "volume": 51204045,
-          "ADX_14": 30.014285853,
-          "ADXR_14_2": 29.6801508736,
-          "DMP_14": 33.0797487302,
-          "DMN_14": 15.6435928362
+          "ADX_14": 30.3103554924,
+          "ADXR_14_2": 29.9962598235,
+          "DMP_14": 33.0905351052,
+          "DMN_14": 15.6328802321
         },
         {
           "date": "2025-11-07",
@@ -4914,10 +4838,10 @@
           "low": 266.77,
           "close": 268.47,
           "volume": 48227365,
-          "ADX_14": 30.1014716614,
-          "ADXR_14_2": 29.8358881032,
-          "DMP_14": 30.5367111847,
-          "DMN_14": 16.0007787208
+          "ADX_14": 30.3794445705,
+          "ADXR_14_2": 30.1326016578,
+          "DMP_14": 30.5467299968,
+          "DMN_14": 15.9908809822
         },
         {
           "date": "2025-11-10",
@@ -4926,10 +4850,10 @@
           "low": 267.45,
           "close": 269.43,
           "volume": 41312412,
-          "ADX_14": 30.4002684226,
-          "ADXR_14_2": 30.2072771378,
-          "DMP_14": 29.881917602,
-          "DMN_14": 14.6234266376
+          "ADX_14": 30.6612963251,
+          "ADXR_14_2": 30.4858259087,
+          "DMP_14": 29.8910885134,
+          "DMN_14": 14.6144113872
         },
         {
           "date": "2025-11-11",
@@ -4938,10 +4862,10 @@
           "low": 269.8,
           "close": 275.25,
           "volume": 46208318,
-          "ADX_14": 30.9942369811,
-          "ADXR_14_2": 30.5478543213,
-          "DMP_14": 30.2101828525,
-          "DMN_14": 13.346753995
+          "ADX_14": 31.2393264338,
+          "ADXR_14_2": 30.8093855021,
+          "DMP_14": 30.2185464939,
+          "DMN_14": 13.3385515973
         },
         {
           "date": "2025-11-12",
@@ -4950,10 +4874,10 @@
           "low": 271.7,
           "close": 273.47,
           "volume": 48397982,
-          "ADX_14": 31.5457792141,
-          "ADXR_14_2": 30.9730238183,
-          "DMP_14": 28.5413253289,
-          "DMN_14": 12.6094585298
+          "ADX_14": 31.7760686776,
+          "ADXR_14_2": 31.2186825013,
+          "DMP_14": 28.549258831,
+          "DMN_14": 12.6017233178
         },
         {
           "date": "2025-11-13",
@@ -4962,10 +4886,10 @@
           "low": 272.09,
           "close": 272.95,
           "volume": 49602794,
-          "ADX_14": 32.2051244104,
-          "ADXR_14_2": 31.5996806958,
-          "DMP_14": 28.0634425469,
-          "DMN_14": 11.806024626
+          "ADX_14": 32.4215766195,
+          "ADXR_14_2": 31.8304515267,
+          "DMP_14": 28.0708791062,
+          "DMN_14": 11.7987966345
         },
         {
           "date": "2025-11-14",
@@ -4974,10 +4898,10 @@
           "low": 269.6,
           "close": 272.41,
           "volume": 47431331,
-          "ADX_14": 31.9621205887,
-          "ADXR_14_2": 31.7539499014,
-          "DMP_14": 25.6365315065,
-          "DMN_14": 14.1707981263
+          "ADX_14": 32.1655198503,
+          "ADXR_14_2": 31.9707942639,
+          "DMP_14": 25.6433646107,
+          "DMN_14": 14.1641565684
         },
         {
           "date": "2025-11-17",
@@ -4986,10 +4910,10 @@
           "low": 265.73,
           "close": 267.46,
           "volume": 45018260,
-          "ADX_14": 30.5899491492,
-          "ADXR_14_2": 31.3975367798,
-          "DMP_14": 23.3522689234,
-          "DMN_14": 18.0701924516
+          "ADX_14": 30.7809489723,
+          "ADXR_14_2": 31.6012627959,
+          "DMP_14": 23.3585271835,
+          "DMN_14": 18.0640846382
         },
         {
           "date": "2025-11-18",
@@ -4998,10 +4922,10 @@
           "low": 265.32,
           "close": 267.44,
           "volume": 45677278,
-          "ADX_14": 29.2028866385,
-          "ADXR_14_2": 30.5825036136,
-          "DMP_14": 21.6741389363,
-          "DMN_14": 17.3182682728
+          "ADX_14": 29.3823449114,
+          "ADXR_14_2": 30.7739323808,
+          "DMP_14": 21.6799706501,
+          "DMN_14": 17.3126097546
         },
         {
           "date": "2025-11-19",
@@ -5010,10 +4934,10 @@
           "low": 265.5,
           "close": 268.56,
           "volume": 40424492,
-          "ADX_14": 28.2470095939,
-          "ADXR_14_2": 29.4184793715,
-          "DMP_14": 21.7339432544,
-          "DMN_14": 15.7964127454
+          "ADX_14": 28.4156349834,
+          "ADXR_14_2": 29.5982919778,
+          "DMP_14": 21.7392617552,
+          "DMN_14": 15.791270638
         },
         {
           "date": "2025-11-20",
@@ -5022,10 +4946,10 @@
           "low": 265.92,
           "close": 266.25,
           "volume": 45823568,
-          "ADX_14": 28.0084538786,
-          "ADXR_14_2": 28.6056702585,
-          "DMP_14": 23.1679054463,
-          "DMN_14": 13.9282746937
+          "ADX_14": 28.1667958218,
+          "ADXR_14_2": 28.7745703666,
+          "DMP_14": 23.1725790428,
+          "DMN_14": 13.9237614525
         },
         {
           "date": "2025-11-21",
@@ -5034,10 +4958,10 @@
           "low": 265.67,
           "close": 271.49,
           "volume": 59030832,
-          "ADX_14": 27.7071341756,
-          "ADXR_14_2": 27.9770718847,
-          "DMP_14": 21.0123551434,
-          "DMN_14": 12.9360395112
+          "ADX_14": 27.8559126716,
+          "ADXR_14_2": 28.1357738275,
+          "DMP_14": 21.0166156255,
+          "DMN_14": 12.9319561747
         },
         {
           "date": "2025-11-24",
@@ -5046,10 +4970,10 @@
           "low": 270.9,
           "close": 275.92,
           "volume": 65585796,
-          "ADX_14": 28.1017368196,
-          "ADXR_14_2": 28.0550953491,
-          "DMP_14": 23.9054753727,
-          "DMN_14": 11.9801261538
+          "ADX_14": 28.2414095434,
+          "ADXR_14_2": 28.2041026826,
+          "DMP_14": 23.909394037,
+          "DMN_14": 11.9763534722
         },
         {
           "date": "2025-11-25",
@@ -5058,10 +4982,10 @@
           "low": 275.25,
           "close": 276.97,
           "volume": 46914220,
-          "ADX_14": 28.9900444046,
-          "ADXR_14_2": 28.3485892901,
-          "DMP_14": 26.5388523576,
-          "DMN_14": 11.2286471597
+          "ADX_14": 29.1210890718,
+          "ADXR_14_2": 28.4885008717,
+          "DMP_14": 26.5425021909,
+          "DMN_14": 11.2251176965
         },
         {
           "date": "2025-11-26",
@@ -5070,10 +4994,10 @@
           "low": 276.63,
           "close": 277.55,
           "volume": 33431423,
-          "ADX_14": 29.8149014478,
-          "ADXR_14_2": 28.9583191337,
-          "DMP_14": 25.5626785967,
-          "DMN_14": 10.8156258813
+          "ADX_14": 29.9379343482,
+          "ADXR_14_2": 29.0896719458,
+          "DMP_14": 25.5662024018,
+          "DMN_14": 10.8122297193
         },
         {
           "date": "2025-11-28",
@@ -5082,10 +5006,10 @@
           "low": 275.99,
           "close": 278.85,
           "volume": 20135620,
-          "ADX_14": 30.3452690245,
-          "ADXR_14_2": 29.6676567146,
-          "DMP_14": 24.5531795519,
-          "DMN_14": 11.2281830974
+          "ADX_14": 30.4608335254,
+          "ADXR_14_2": 29.7909612986,
+          "DMP_14": 24.5565723659,
+          "DMN_14": 11.2249177151
         },
         {
           "date": "2025-12-01",
@@ -5094,10 +5018,10 @@
           "low": 276.14,
           "close": 283.1,
           "volume": 46587722,
-          "ADX_14": 31.5039026196,
-          "ADXR_14_2": 30.6594020337,
-          "DMP_14": 27.9258212012,
-          "DMN_14": 10.1809629768
+          "ADX_14": 31.6123294706,
+          "ADXR_14_2": 30.7751319094,
+          "DMP_14": 27.92887284,
+          "DMN_14": 10.1780098267
         },
         {
           "date": "2025-12-02",
@@ -5106,10 +5030,10 @@
           "low": 282.63,
           "close": 286.19,
           "volume": 53669532,
-          "ADX_14": 33.0604912339,
-          "ADXR_14_2": 31.7028801292,
-          "DMP_14": 31.3535729394,
-          "DMN_14": 9.5523132504
+          "ADX_14": 33.1621454194,
+          "ADXR_14_2": 31.8114894724,
+          "DMP_14": 31.3564125569,
+          "DMN_14": 9.5495467755
         },
         {
           "date": "2025-12-03",
@@ -5118,10 +5042,10 @@
           "low": 283.3,
           "close": 284.15,
           "volume": 43538687,
-          "ADX_14": 34.6390609149,
-          "ADXR_14_2": 33.0714817673,
-          "DMP_14": 30.7721354267,
-          "DMN_14": 8.8927818911
+          "ADX_14": 34.7343862838,
+          "ADXR_14_2": 33.1733578772,
+          "DMP_14": 30.7747827119,
+          "DMN_14": 8.8902106498
         },
         {
           "date": "2025-12-04",
@@ -5130,10 +5054,10 @@
           "low": 278.59,
           "close": 280.7,
           "volume": 43989056,
-          "ADX_14": 34.5273292198,
-          "ADXR_14_2": 33.7939102268,
-          "DMP_14": 28.3401010424,
-          "DMN_14": 14.2526323422
+          "ADX_14": 34.6166564047,
+          "ADXR_14_2": 33.889400912,
+          "DMP_14": 28.3425534553,
+          "DMN_14": 14.2502326865
         },
         {
           "date": "2025-12-05",
@@ -5142,10 +5066,10 @@
           "low": 278.05,
           "close": 278.78,
           "volume": 47265845,
-          "ADX_14": 34.2594104762,
-          "ADXR_14_2": 34.4492356955,
-          "DMP_14": 27.1760469771,
-          "DMN_14": 14.3850192302
+          "ADX_14": 34.3431550678,
+          "ADXR_14_2": 34.5387706758,
+          "DMP_14": 27.1784052458,
+          "DMN_14": 14.3827173894
         },
         {
           "date": "2025-12-08",
@@ -5154,10 +5078,10 @@
           "low": 276.15,
           "close": 277.89,
           "volume": 38211832,
-          "ADX_14": 33.4368610509,
-          "ADXR_14_2": 33.9820951353,
-          "DMP_14": 25.8723504452,
-          "DMN_14": 16.2843493136
+          "ADX_14": 33.5153765737,
+          "ADXR_14_2": 34.0660164892,
+          "DMP_14": 25.8746026061,
+          "DMN_14": 16.282147665
         },
         {
           "date": "2025-12-09",
@@ -5166,10 +5090,10 @@
           "low": 276.92,
           "close": 277.18,
           "volume": 32193256,
-          "ADX_14": 32.7413720532,
-          "ADXR_14_2": 33.5003912647,
-          "DMP_14": 25.2482609621,
-          "DMN_14": 15.5734979442
+          "ADX_14": 32.8150222509,
+          "ADXR_14_2": 33.5790886593,
+          "DMP_14": 25.2504180265,
+          "DMN_14": 15.5713960646
         },
         {
           "date": "2025-12-10",
@@ -5178,10 +5102,10 @@
           "low": 276.44,
           "close": 278.78,
           "volume": 33038318,
-          "ADX_14": 31.9412584594,
-          "ADXR_14_2": 32.6890597552,
-          "DMP_14": 24.0451961964,
-          "DMN_14": 15.5224183773
+          "ADX_14": 32.0103788672,
+          "ADXR_14_2": 32.7628777204,
+          "DMP_14": 24.0472563811,
+          "DMN_14": 15.5204169012
         },
         {
           "date": "2025-12-11",
@@ -5190,10 +5114,10 @@
           "low": 273.81,
           "close": 278.03,
           "volume": 33247986,
-          "ADX_14": 30.3872843682,
-          "ADXR_14_2": 31.5643282107,
-          "DMP_14": 22.0677690345,
-          "DMN_14": 17.9878549168
+          "ADX_14": 30.4521349575,
+          "ADXR_14_2": 31.6335786042,
+          "DMP_14": 22.0696686988,
+          "DMN_14": 17.9860069356
         },
         {
           "date": "2025-12-12",
@@ -5202,10 +5126,10 @@
           "low": 276.82,
           "close": 278.28,
           "volume": 39532887,
-          "ADX_14": 28.9443084263,
-          "ADXR_14_2": 30.4427834428,
-          "DMP_14": 21.2850342916,
-          "DMN_14": 17.3498330591
+          "ADX_14": 29.0051941841,
+          "ADXR_14_2": 30.5077865257,
+          "DMP_14": 21.2868699754,
+          "DMN_14": 17.3480533958
         },
         {
           "date": "2025-12-15",
@@ -5214,27 +5138,577 @@
           "low": 272.84,
           "close": 274.11,
           "volume": 50409078,
-          "ADX_14": 27.2579591009,
-          "ADXR_14_2": 28.8226217345,
-          "DMP_14": 19.0667204047,
-          "DMN_14": 21.2159702825
+          "ADX_14": 27.3139170094,
+          "ADXR_14_2": 28.8830259834,
+          "DMP_14": 19.0683734058,
+          "DMN_14": 21.2143610525
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "ADX_14": 26.0036645245,
+          "ADXR_14_2": 27.5044293543,
+          "DMP_14": 18.0407303645,
+          "DMN_14": 21.5963258038
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 127"
+      "truncated_note": "Trimmed data to last 60 items out of 138"
+    },
+    {
+      "tool_name": "calculate_ema",
+      "data": [
+        {
+          "date": "2025-09-23",
+          "open": 255.91,
+          "high": 257.34,
+          "low": 253.58,
+          "close": 254.43,
+          "volume": 60275187,
+          "close_EMA_50": 227.5579939096
+        },
+        {
+          "date": "2025-09-24",
+          "open": 255.25,
+          "high": 255.74,
+          "low": 251.04,
+          "close": 252.31,
+          "volume": 42303710,
+          "close_EMA_50": 228.5286608151
+        },
+        {
+          "date": "2025-09-25",
+          "open": 253.04,
+          "high": 257.17,
+          "low": 251.71,
+          "close": 256.87,
+          "volume": 55202075,
+          "close_EMA_50": 229.6400858812
+        },
+        {
+          "date": "2025-09-26",
+          "open": 254.19,
+          "high": 257.6,
+          "low": 253.78,
+          "close": 255.46,
+          "volume": 46076258,
+          "close_EMA_50": 230.6526315329
+        },
+        {
+          "date": "2025-09-29",
+          "open": 254.54,
+          "high": 255.0,
+          "low": 253.01,
+          "close": 254.43,
+          "volume": 40127687,
+          "close_EMA_50": 231.5850773551
+        },
+        {
+          "date": "2025-09-30",
+          "open": 254.77,
+          "high": 255.92,
+          "low": 253.11,
+          "close": 254.63,
+          "volume": 37704259,
+          "close_EMA_50": 232.4887998118
+        },
+        {
+          "date": "2025-10-01",
+          "open": 254.95,
+          "high": 258.79,
+          "low": 254.93,
+          "close": 255.45,
+          "volume": 48713940,
+          "close_EMA_50": 233.3892390349
+        },
+        {
+          "date": "2025-10-02",
+          "open": 256.55,
+          "high": 258.18,
+          "low": 254.15,
+          "close": 257.13,
+          "volume": 42630239,
+          "close_EMA_50": 234.3202492688
+        },
+        {
+          "date": "2025-10-03",
+          "open": 254.59,
+          "high": 259.24,
+          "low": 253.95,
+          "close": 258.02,
+          "volume": 49155614,
+          "close_EMA_50": 235.2496512583
+        },
+        {
+          "date": "2025-10-06",
+          "open": 257.98,
+          "high": 259.07,
+          "low": 255.05,
+          "close": 256.69,
+          "volume": 44664118,
+          "close_EMA_50": 236.0904492481
+        },
+        {
+          "date": "2025-10-07",
+          "open": 256.79,
+          "high": 257.4,
+          "low": 255.43,
+          "close": 256.48,
+          "volume": 31955776,
+          "close_EMA_50": 236.8900394737
+        },
+        {
+          "date": "2025-10-08",
+          "open": 256.52,
+          "high": 258.52,
+          "low": 256.11,
+          "close": 258.06,
+          "volume": 36496895,
+          "close_EMA_50": 237.7202340041
+        },
+        {
+          "date": "2025-10-09",
+          "open": 257.8,
+          "high": 258.0,
+          "low": 253.14,
+          "close": 254.04,
+          "volume": 38322012,
+          "close_EMA_50": 238.3602248275
+        },
+        {
+          "date": "2025-10-10",
+          "open": 255.04,
+          "high": 256.38,
+          "low": 244.0,
+          "close": 245.27,
+          "volume": 61999098,
+          "close_EMA_50": 238.6311964029
+        },
+        {
+          "date": "2025-10-13",
+          "open": 249.3,
+          "high": 249.69,
+          "low": 245.56,
+          "close": 247.66,
+          "volume": 38142942,
+          "close_EMA_50": 238.9852671322
+        },
+        {
+          "date": "2025-10-14",
+          "open": 246.53,
+          "high": 248.85,
+          "low": 244.7,
+          "close": 247.77,
+          "volume": 35477986,
+          "close_EMA_50": 239.3297664603
+        },
+        {
+          "date": "2025-10-15",
+          "open": 249.46,
+          "high": 251.82,
+          "low": 247.47,
+          "close": 249.34,
+          "volume": 33893611,
+          "close_EMA_50": 239.7223246384
+        },
+        {
+          "date": "2025-10-16",
+          "open": 248.35,
+          "high": 249.04,
+          "low": 245.13,
+          "close": 247.45,
+          "volume": 39776974,
+          "close_EMA_50": 240.025370731
+        },
+        {
+          "date": "2025-10-17",
+          "open": 247.99,
+          "high": 253.38,
+          "low": 247.27,
+          "close": 252.29,
+          "volume": 49146961,
+          "close_EMA_50": 240.5063365847
+        },
+        {
+          "date": "2025-10-20",
+          "open": 255.81,
+          "high": 264.38,
+          "low": 255.63,
+          "close": 262.24,
+          "volume": 90483029,
+          "close_EMA_50": 241.3586371108
+        },
+        {
+          "date": "2025-10-21",
+          "open": 261.9,
+          "high": 265.29,
+          "low": 261.83,
+          "close": 262.77,
+          "volume": 46695948,
+          "close_EMA_50": 242.1982984005
+        },
+        {
+          "date": "2025-10-22",
+          "open": 262.65,
+          "high": 262.85,
+          "low": 255.43,
+          "close": 258.45,
+          "volume": 45015254,
+          "close_EMA_50": 242.8356200319
+        },
+        {
+          "date": "2025-10-23",
+          "open": 259.93,
+          "high": 260.62,
+          "low": 258.01,
+          "close": 259.58,
+          "volume": 32754941,
+          "close_EMA_50": 243.4922623836
+        },
+        {
+          "date": "2025-10-24",
+          "open": 261.16,
+          "high": 264.13,
+          "low": 259.18,
+          "close": 262.82,
+          "volume": 38253717,
+          "close_EMA_50": 244.2502128783
+        },
+        {
+          "date": "2025-10-27",
+          "open": 264.96,
+          "high": 269.12,
+          "low": 264.65,
+          "close": 268.81,
+          "volume": 44888152,
+          "close_EMA_50": 245.2133417851
+        },
+        {
+          "date": "2025-10-28",
+          "open": 269.1,
+          "high": 269.89,
+          "low": 268.15,
+          "close": 269.0,
+          "volume": 41534759,
+          "close_EMA_50": 246.1461519111
+        },
+        {
+          "date": "2025-10-29",
+          "open": 269.31,
+          "high": 271.41,
+          "low": 267.11,
+          "close": 269.7,
+          "volume": 51086742,
+          "close_EMA_50": 247.0698322284
+        },
+        {
+          "date": "2025-10-30",
+          "open": 272.05,
+          "high": 274.14,
+          "low": 268.48,
+          "close": 271.4,
+          "volume": 69886534,
+          "close_EMA_50": 248.0239564547
+        },
+        {
+          "date": "2025-10-31",
+          "open": 277.06,
+          "high": 277.32,
+          "low": 269.16,
+          "close": 270.37,
+          "volume": 86167123,
+          "close_EMA_50": 248.9002718878
+        },
+        {
+          "date": "2025-11-03",
+          "open": 270.47,
+          "high": 270.85,
+          "low": 266.25,
+          "close": 269.05,
+          "volume": 50194583,
+          "close_EMA_50": 249.690457304
+        },
+        {
+          "date": "2025-11-04",
+          "open": 268.33,
+          "high": 271.49,
+          "low": 267.61,
+          "close": 270.04,
+          "volume": 49274846,
+          "close_EMA_50": 250.4884785862
+        },
+        {
+          "date": "2025-11-05",
+          "open": 268.66,
+          "high": 271.7,
+          "low": 266.93,
+          "close": 270.14,
+          "volume": 43683072,
+          "close_EMA_50": 251.2591264848
+        },
+        {
+          "date": "2025-11-06",
+          "open": 268.01,
+          "high": 273.4,
+          "low": 267.89,
+          "close": 269.77,
+          "volume": 51204045,
+          "close_EMA_50": 251.9850430932
+        },
+        {
+          "date": "2025-11-07",
+          "open": 269.74,
+          "high": 272.29,
+          "low": 266.77,
+          "close": 268.47,
+          "volume": 48227365,
+          "close_EMA_50": 252.6315119915
+        },
+        {
+          "date": "2025-11-10",
+          "open": 269.0,
+          "high": 273.73,
+          "low": 267.45,
+          "close": 269.43,
+          "volume": 41312412,
+          "close_EMA_50": 253.2902762272
+        },
+        {
+          "date": "2025-11-11",
+          "open": 269.86,
+          "high": 275.91,
+          "low": 269.8,
+          "close": 275.25,
+          "volume": 46208318,
+          "close_EMA_50": 254.1514418653
+        },
+        {
+          "date": "2025-11-12",
+          "open": 275.0,
+          "high": 275.73,
+          "low": 271.7,
+          "close": 273.47,
+          "volume": 48397982,
+          "close_EMA_50": 254.9090323804
+        },
+        {
+          "date": "2025-11-13",
+          "open": 274.11,
+          "high": 276.7,
+          "low": 272.09,
+          "close": 272.95,
+          "volume": 49602794,
+          "close_EMA_50": 255.6165213067
+        },
+        {
+          "date": "2025-11-14",
+          "open": 270.95,
+          "high": 275.96,
+          "low": 269.6,
+          "close": 272.41,
+          "volume": 47431331,
+          "close_EMA_50": 256.2750890985
+        },
+        {
+          "date": "2025-11-17",
+          "open": 268.94,
+          "high": 270.49,
+          "low": 265.73,
+          "close": 267.46,
+          "volume": 45018260,
+          "close_EMA_50": 256.7137130555
+        },
+        {
+          "date": "2025-11-18",
+          "open": 269.87,
+          "high": 270.71,
+          "low": 265.32,
+          "close": 267.44,
+          "volume": 45677278,
+          "close_EMA_50": 257.1343517592
+        },
+        {
+          "date": "2025-11-19",
+          "open": 265.64,
+          "high": 272.21,
+          "low": 265.5,
+          "close": 268.56,
+          "volume": 40424492,
+          "close_EMA_50": 257.5824163961
+        },
+        {
+          "date": "2025-11-20",
+          "open": 270.86,
+          "high": 275.43,
+          "low": 265.92,
+          "close": 266.25,
+          "volume": 45823568,
+          "close_EMA_50": 257.9223216354
+        },
+        {
+          "date": "2025-11-21",
+          "open": 265.95,
+          "high": 273.33,
+          "low": 265.67,
+          "close": 271.49,
+          "volume": 59030832,
+          "close_EMA_50": 258.4543874537
+        },
+        {
+          "date": "2025-11-24",
+          "open": 271.11,
+          "high": 277.0,
+          "low": 270.9,
+          "close": 275.92,
+          "volume": 65585796,
+          "close_EMA_50": 259.1393134359
+        },
+        {
+          "date": "2025-11-25",
+          "open": 275.27,
+          "high": 280.38,
+          "low": 275.25,
+          "close": 276.97,
+          "volume": 46914220,
+          "close_EMA_50": 259.8385560462
+        },
+        {
+          "date": "2025-11-26",
+          "open": 276.98,
+          "high": 279.53,
+          "low": 276.63,
+          "close": 277.55,
+          "volume": 33431423,
+          "close_EMA_50": 260.5331224758
+        },
+        {
+          "date": "2025-11-28",
+          "open": 277.33,
+          "high": 279.0,
+          "low": 275.99,
+          "close": 278.85,
+          "volume": 20135620,
+          "close_EMA_50": 261.2514313983
+        },
+        {
+          "date": "2025-12-01",
+          "open": 278.2,
+          "high": 283.42,
+          "low": 276.14,
+          "close": 283.1,
+          "volume": 46587722,
+          "close_EMA_50": 262.1082380101
+        },
+        {
+          "date": "2025-12-02",
+          "open": 282.99,
+          "high": 287.4,
+          "low": 282.63,
+          "close": 286.19,
+          "volume": 53669532,
+          "close_EMA_50": 263.0526208333
+        },
+        {
+          "date": "2025-12-03",
+          "open": 286.19,
+          "high": 288.62,
+          "low": 283.3,
+          "close": 284.15,
+          "volume": 43538687,
+          "close_EMA_50": 263.8799690359
+        },
+        {
+          "date": "2025-12-04",
+          "open": 284.1,
+          "high": 284.73,
+          "low": 278.59,
+          "close": 280.7,
+          "volume": 43989056,
+          "close_EMA_50": 264.5395780933
+        },
+        {
+          "date": "2025-12-05",
+          "open": 280.54,
+          "high": 281.14,
+          "low": 278.05,
+          "close": 278.78,
+          "volume": 47265845,
+          "close_EMA_50": 265.0980260112
+        },
+        {
+          "date": "2025-12-08",
+          "open": 278.02,
+          "high": 279.67,
+          "low": 276.15,
+          "close": 277.89,
+          "volume": 38211832,
+          "close_EMA_50": 265.59967205
+        },
+        {
+          "date": "2025-12-09",
+          "open": 278.16,
+          "high": 280.03,
+          "low": 276.92,
+          "close": 277.18,
+          "volume": 32193256,
+          "close_EMA_50": 266.0538025578
+        },
+        {
+          "date": "2025-12-10",
+          "open": 277.75,
+          "high": 279.75,
+          "low": 276.44,
+          "close": 278.78,
+          "volume": 33038318,
+          "close_EMA_50": 266.5528691242
+        },
+        {
+          "date": "2025-12-11",
+          "open": 279.02,
+          "high": 279.59,
+          "low": 273.81,
+          "close": 278.03,
+          "volume": 33247986,
+          "close_EMA_50": 267.0029526879
+        },
+        {
+          "date": "2025-12-12",
+          "open": 277.82,
+          "high": 279.22,
+          "low": 276.82,
+          "close": 278.28,
+          "volume": 39532887,
+          "close_EMA_50": 267.4451898374
+        },
+        {
+          "date": "2025-12-15",
+          "open": 279.94,
+          "high": 280.15,
+          "low": 272.84,
+          "close": 274.11,
+          "volume": 50409078,
+          "close_EMA_50": 267.7065549419
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "close_EMA_50": 267.9772782775
+        }
+      ],
+      "truncated": true,
+      "truncated_note": "Trimmed data to last 60 items out of 138"
     },
     {
       "tool_name": "calculate_cci",
       "data": [
-        {
-          "date": "2025-09-22",
-          "open": 248.33,
-          "high": 256.64,
-          "low": 248.12,
-          "close": 256.08,
-          "volume": 105517416,
-          "CCI_20_0.015": -2869.4676206427
-        },
         {
           "date": "2025-09-23",
           "open": 255.91,
@@ -5765,10 +6239,19 @@
           "close": 274.11,
           "volume": 50409078,
           "CCI_20_0.015": -4205.2154119192
+        },
+        {
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "CCI_20_0.015": -4688.0998774894
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 127"
+      "truncated_note": "Trimmed data to last 60 items out of 138"
     }
   ]
 }

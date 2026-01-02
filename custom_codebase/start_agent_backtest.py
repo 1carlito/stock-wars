@@ -26,124 +26,150 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from ReasoningAgent import ReasoningAgent
 
-async def test_workflow():
+
+async def run_backtest(
+    symbol: str,
+    start_date: str,
+    end_date: str | None = None,
+    starting_cash: float = 100000.0,
+) -> None:
     """
-    Test the full workflow for a single stock decision.
-    
-    Flow:
-    1. Initialize ReasoningAgent (connects to MCP server)
-    2. Set up portfolio state
-    3. Call make_decision_async() which:
-       a. Calls LLM with prompt + available tools
-       b. LLM responds with tool call (e.g., "I'll call calculate_rsi")
-       c. Agent parses tool call, executes via MCP client
-       d. Tool result is fed back to LLM
-       e. LLM may call more tools OR make final decision
-       f. Loop continues until decision is made
-    4. Trade is executed (if requested)
+    Run a simple backtest loop over one or more dates.
+
+    - If end_date is None, runs a single-day decision on start_date.
+    - If end_date is provided, runs once per day from start_date to end_date (inclusive).
     """
-    
     print("=" * 70)
-    print("🧪 Testing Full Workflow: ReasoningAgent → MCP → OpenBB → Trade")
+    print("🧪 Backtest: ReasoningAgent → MCP → OpenBB → Trade")
     print("=" * 70)
-    
+
     # Initialize agent (will connect to MCP server)
     agent = ReasoningAgent(
         data_dir=".",
-        use_mcp_client=True  # Enable MCP client connection
+        use_mcp_client=True,  # Enable MCP client connection
     )
-    
-    # Test stock
-    symbol = "AAPL"
-    current_date = "2025-12-15"
-    
+
+    # Build date list
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+    if end_date:
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+    else:
+        end_dt = start_dt
+
+    dates: list[str] = []
+    cur = start_dt
+    while cur <= end_dt:
+        dates.append(cur.strftime("%Y-%m-%d"))
+        cur += timedelta(days=1)
+
     # Initial portfolio state
-    portfolio_state = {
-        "cash": 100000.0,  # $100k starting capital
-        "positions": {},  # No long positions
-        "short_positions": {},  # No short positions
+    portfolio_state: dict[str, Any] = {
+        "cash": starting_cash,
+        "positions": {},
+        "short_positions": {},
         "last_prices": {},
         "market_caps": {},
-        "realized_short_pnl": 0.0
+        "realized_short_pnl": 0.0,
     }
-    
-    print(f"\n📊 Analyzing: {symbol} on {current_date}")
-    print(f"💰 Portfolio: ${portfolio_state['cash']:,.2f} cash")
-    print(f"\n🔄 Starting ReAct loop...")
-    print("-" * 70)
-    print("\n💡 This will make MULTIPLE LLM API calls in a loop:")
-    print("   1. LLM sees prompt → decides to call a tool")
-    print("   2. Tool executes → returns JSON result")
-    print("   3. LLM sees result → may call another tool OR make decision")
-    print("   4. Loop continues until decision is made\n")
-    print("-" * 70)
-    
-    # Make decision (this triggers the ReAct loop)
-    result = await agent._make_decision_async(
-        symbol=symbol,
-        current_date=current_date,
-        portfolio_state=portfolio_state,
-        execute_trade_after=True,  # Execute trade after decision
-        current_price=None,  # Will be fetched if needed
-        max_tool_iterations=5  # Max 5 tool calls before forcing decision
-    )
-    
-    # Update portfolio state from trade execution (if trade was executed)
-    if result.get('portfolio_state_updated'):
-        portfolio_state = result['portfolio_state_updated']
-    
+
+    all_results: list[dict[str, Any]] = []
+
+    for current_date in dates:
+        print("\n" + "-" * 70)
+        print(f"📊 Analyzing: {symbol} on {current_date}")
+        print(f"💰 Portfolio cash: ${portfolio_state.get('cash', 0):,.2f}")
+        print("🔄 Starting ReAct loop for this date...")
+
+        result = await agent._make_decision_async(
+            symbol=symbol,
+            current_date=current_date,
+            portfolio_state=portfolio_state,
+            execute_trade_after=True,  # Execute trade after decision
+            current_price=None,  # Will be fetched if needed
+            max_tool_iterations=5,
+        )
+
+        all_results.append(result)
+
+        # Update portfolio state from trade execution (if trade was executed)
+        if result.get("portfolio_state_updated"):
+            portfolio_state = result["portfolio_state_updated"]
+
+        print(f"\n✅ Decision for {current_date}: {result.get('decision', 'N/A')}")
+        print(f"   Amount: ${result.get('amount_usd', 0):,.2f}")
+        print(f"   Confidence: {result.get('confidence', 0):.2%}")
+        print(f"   Tool Calls Made: {result.get('tool_calls_made', 0)}")
+
     print("\n" + "=" * 70)
-    print("✅ Decision Complete!")
+    print("🏁 Backtest Complete")
     print("=" * 70)
-    print(f"\n📋 Decision: {result.get('decision', 'N/A')}")
-    print(f"💵 Amount: ${result.get('amount_usd', 0):,.2f}")
-    print(f"📈 Confidence: {result.get('confidence', 0):.2%}")
-    print(f"🔧 Tool Calls Made: {result.get('tool_calls_made', 0)}")
-    
-    if result.get('trade_execution'):
-        trade_exec = result['trade_execution']
-        trade_details = trade_exec.get('trade_details', {})
-        print(f"\n💼 Trade Execution:")
-        print(f"   Action: {trade_details.get('action', 'N/A')}")
-        if 'shares' in trade_details:
-            print(f"   Shares: {trade_details['shares']}")
-        if 'cost' in trade_details:
-            print(f"   Cost: ${trade_details['cost']:,.2f}")
-        if 'proceeds' in trade_details:
-            print(f"   Proceeds: ${trade_details['proceeds']:,.2f}")
-    
-    if result.get('tool_results'):
-        print(f"\n🔍 Tools Used:")
-        for i, tool_result in enumerate(result['tool_results'], 1):
-            tool_name = tool_result.get('tool_name', 'unknown')
-            print(f"   {i}. {tool_name}")
-            if 'error' in tool_result:
-                print(f"      ⚠️  Error: {tool_result['error']}")
-    
-    print("\n" + "=" * 70)
-    
+    print(f"Symbol: {symbol}")
+    print(f"Date range: {dates[0]} → {dates[-1]}")
+    print(f"Final cash: ${portfolio_state.get('cash', 0):,.2f}")
+    print(f"Final positions: {portfolio_state.get('positions', {})}")
+    print(f"Final short positions: {portfolio_state.get('short_positions', {})}")
+    print(f"Realized short PnL: ${portfolio_state.get('realized_short_pnl', 0):,.2f}")
+
     # Explicitly close MCP session before event loop shuts down
-    # This prevents cleanup errors during asyncio.run() shutdown
     try:
         await agent._close_mcp_session()
         print("✅ MCP session closed cleanly")
-    except Exception as e:
-        # Ignore cleanup errors during shutdown
+    except Exception:
         pass
-    
-    return result
 
 
 if __name__ == "__main__":
-  
-    
-    # Run the test
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run ReasoningAgent backtest.")
+    parser.add_argument("--symbol", type=str, default="AAPL", help="Ticker symbol")
+    parser.add_argument(
+        "--date",
+        type=str,
+        help="Single trading date (YYYY-MM-DD). If provided, overrides start/end.",
+    )
+    parser.add_argument(
+        "--start-date",
+        type=str,
+        default="2025-12-15",
+        help="Start date for backtest (YYYY-MM-DD)",
+    )
+    parser.add_argument(
+        "--end-date",
+        type=str,
+        help="End date for backtest (YYYY-MM-DD). If omitted, runs single day.",
+    )
+    parser.add_argument(
+        "--cash",
+        type=float,
+        default=100000.0,
+        help="Starting cash for the portfolio",
+    )
+
+    args = parser.parse_args()
+
+    # If a single --date is provided, use that; otherwise use start/end
+    if args.date:
+        start = args.date
+        end = None
+    else:
+        start = args.start_date
+        end = args.end_date
+
     try:
-        asyncio.run(test_workflow())
+        asyncio.run(
+            run_backtest(
+                symbol=args.symbol,
+                start_date=start,
+                end_date=end,
+                starting_cash=args.cash,
+            )
+        )
     except KeyboardInterrupt:
         print("\n⚠️  Interrupted by user")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 

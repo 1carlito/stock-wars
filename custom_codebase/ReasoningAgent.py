@@ -314,17 +314,12 @@ class ReasoningAgent:
                 # Check if LLM wants to call a tool
                 tool_calls = self._extract_tool_calls(response_text)
                 
-                print(f"🔍 Extracted {len(tool_calls)} tool call(s):")
-                for i, tc in enumerate(tool_calls, 1):
-                    print(f"  {i}. {tc['name']}({tc.get('arguments', {})})")
-                
                 # Only break if DECISION is present in the correct format AND there are no tool calls to execute
                 # Check for exact format: "DECISION: [BUY/SELL/HOLD/SHORT]" (case-insensitive, at start of line or after whitespace)
                 decision_pattern = re.compile(r'^\s*DECISION:\s*(BUY|SELL|HOLD|SHORT|CLOSE)', re.IGNORECASE | re.MULTILINE)
                 has_decision = bool(decision_pattern.search(response_text))
                 
                 if has_decision and not tool_calls:
-                    print("✅ LLM made a decision (no tool calls), ending ReAct loop")
                     break 
                 
                 # Execute tool calls via MCP client (in parallel for efficiency)
