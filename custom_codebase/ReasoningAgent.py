@@ -437,6 +437,30 @@ class ReasoningAgent:
                                 if current_price:
                                     break
                     
+                    # If still missing, try to fetch it via MCP
+                    if not current_price and mcp_session:
+                        try:
+                            print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
+                            price_tool_call = {
+                                "name": "get_current_price",
+                                "arguments": {
+                                    "symbol": symbol,
+                                    "current_date": current_date
+                                }
+                            }
+                            price_result = await self._execute_tool_via_mcp(
+                                mcp_session, price_tool_call, symbol, current_date
+                            )
+                            if 'error' not in price_result:
+                                data = price_result.get('data', [])
+                                if data and isinstance(data, list) and len(data) > 0:
+                                    entry = data[0]
+                                    current_price = entry.get('close') or entry.get('price') or entry.get('last_price') or entry.get('prev_close')
+                                    if current_price:
+                                        print(f"✅ Fetched current_price: ${current_price:.2f}")
+                        except Exception as e:
+                            print(f"⚠️  Failed to fetch current_price: {e}")
+                    
                     # No fallback to portfolio state - must have current price from tools
                     if not current_price:
                         print(f"⚠️  Cannot execute trade: current_price not provided and could not be fetched")
@@ -492,23 +516,24 @@ class ReasoningAgent:
                 tools_list += f"\n... and {len(self.available_tools) - 20} more tools"
             tools_list += "\n\nTo use a tool, format your request as:\nTOOL_CALL: tool_name(param1=value1, param2=value2)"
         else:
-            # Fallback: list predefined tools
+            # Fallback: list predefined tools (note: actual tool schemas come from MCP discovery when available)
             tools_list = """You have access to the following analysis tools:
 - get_price_history(symbol, start_date, end_date)
-- calculate_rsi(symbol, period)
-- calculate_macd(symbol, fast, slow, signal)
-- calculate_bbands(symbol, period, std_dev)
-- calculate_atr(symbol, period)
-- calculate_obv(symbol)
-- calculate_adx(symbol, period)
-- calculate_ema(symbol, period)
-- calculate_cci(symbol, period)
-- get_earnings_calendar(start_date, end_date, symbol)
+- calculate_rsi(symbol, start_date, end_date, length=14, target='close')
+- calculate_macd(symbol, start_date, end_date, fast=12, slow=26, signal=9, target='close')
+- calculate_bbands(symbol, start_date, end_date, length=20, std=2.0, target='close')
+- calculate_atr(symbol, start_date, end_date, length=14)
+- calculate_obv(symbol, start_date, end_date)
+- calculate_adx(symbol, start_date, end_date, length=14)
+- calculate_ema(symbol, start_date, end_date, length=50, target='close')
+- calculate_cci(symbol, start_date, end_date, length=20)
+- get_current_price(symbol, current_date=None)
+- get_earnings_calendar(start_date, end_date, symbol=None, current_date=None)
 - get_analyst_estimates(symbol)
 - get_company_profile(symbol)
-- get_income_statement(symbol, period, limit)
-- get_balance_sheet(symbol, period, limit)
-- get_cash_flow(symbol, period, limit)"""
+- get_income_statement(symbol, period='annual', limit=5)
+- get_balance_sheet(symbol, period='annual', limit=5)
+- get_cash_flow(symbol, period='annual', limit=5)"""
         
         return f"""You are an expert autonomous trading agent powered by OpenBB data.
 Your goal is to analyze stocks and make profitable trading decisions (BUY, SELL, HOLD, SHORT).
@@ -667,37 +692,98 @@ Avoid lookahead bias: do not use data from after {current_date}.
         return result
 
     def _extract_tool_calls(self, text: str) -> List[Dict[str, Any]]:
-        """Extract tool calls from LLM response text"""
+        """Extract tool calls from LLM response text with proper handling of dictionaries and nested structures"""
+        import ast
+        
         tool_calls = []
         
         # Pattern: TOOL_CALL: tool_name(param1=value1, param2=value2)
         pattern = r'TOOL_CALL:\s*(\w+)\s*\(([^)]*)\)'
-        matches = re.finditer(pattern, text, re.IGNORECASE)
+        matches = re.finditer(pattern, text, re.IGNORECASE | re.DOTALL)
         
         for match in matches:
             tool_name = match.group(1)
-            params_str = match.group(2)
+            params_str = match.group(2).strip()
             
-            # Parse parameters (simple key=value parsing)
             params = {}
-            if params_str.strip():
-                for param in params_str.split(','):
-                    param = param.strip()
-                    if '=' in param:
-                        key, value = param.split('=', 1)
-                        key = key.strip()
-                        value = value.strip().strip('"').strip("'")
-                        
-                        # Try to convert to appropriate type
-                        try:
-                            if value.lower() in ('true', 'false'):
-                                params[key] = value.lower() == 'true'
-                            elif '.' in value:
-                                params[key] = float(value)
-                            else:
-                                params[key] = int(value)
-                        except ValueError:
-                            params[key] = value
+            if params_str:
+                # Use a smarter parser that handles nested structures
+                # Split parameters while respecting nested brackets and quotes
+                param_parts = []
+                current_part = ""
+                depth = 0  # Track nesting depth for {}, [], ()
+                in_string = False
+                string_char = None
+                i = 0
+                
+                while i < len(params_str):
+                    char = params_str[i]
+                    
+                    # Handle string literals
+                    if char in ('"', "'") and (i == 0 or params_str[i-1] != '\\'):
+                        if not in_string:
+                            in_string = True
+                            string_char = char
+                        elif char == string_char:
+                            in_string = False
+                            string_char = None
+                        current_part += char
+                    elif in_string:
+                        current_part += char
+                    # Handle brackets
+                    elif char in ('{', '[', '('):
+                        depth += 1
+                        current_part += char
+                    elif char in ('}', ']', ')'):
+                        depth -= 1
+                        current_part += char
+                    # Handle parameter separator (comma at top level)
+                    elif char == ',' and depth == 0:
+                        if current_part.strip():
+                            param_parts.append(current_part.strip())
+                        current_part = ""
+                    else:
+                        current_part += char
+                    i += 1
+                
+                # Add the last parameter
+                if current_part.strip():
+                    param_parts.append(current_part.strip())
+                
+                # Parse each parameter
+                for param in param_parts:
+                    if '=' not in param:
+                        continue
+                    
+                    # Split on first '=' only
+                    key, value_str = param.split('=', 1)
+                    key = key.strip()
+                    value_str = value_str.strip()
+                    
+                    # Try to parse as Python literal (handles dicts, lists, numbers, bools, None)
+                    try:
+                        # Use ast.literal_eval for safe evaluation of Python literals
+                        params[key] = ast.literal_eval(value_str)
+                    except (ValueError, SyntaxError):
+                        # Fallback: try to parse as string, number, or bool
+                        # Remove surrounding quotes if present
+                        if (value_str.startswith('"') and value_str.endswith('"')) or \
+                           (value_str.startswith("'") and value_str.endswith("'")):
+                            params[key] = value_str[1:-1]
+                        elif value_str.lower() in ('true', 'false'):
+                            params[key] = value_str.lower() == 'true'
+                        elif value_str.lower() == 'none':
+                            params[key] = None
+                        else:
+                            # Try to parse as number
+                            try:
+                                if '.' in value_str:
+                                    params[key] = float(value_str)
+                                else:
+                                    params[key] = int(value_str)
+                            except ValueError:
+                                # Keep as string
+                                params[key] = value_str
             
             tool_calls.append({
                 "name": tool_name,
@@ -716,18 +802,27 @@ Avoid lookahead bias: do not use data from after {current_date}.
         """Execute a tool call via MCP client"""
         tool_name = tool_call["name"]
         arguments = tool_call["arguments"]
+
+        # Parse current_date once for reuse in clamps
+        current_date_dt = None
+        try:
+            current_date_dt = datetime.strptime(current_date, "%Y-%m-%d")
+        except Exception:
+            # If current_date is invalid, we simply skip clamping – the tools may still handle it
+            pass
         
         # Fill in common parameters
         # Note: earnings_calendar now accepts optional symbol parameter for filtering
-        if "symbol" not in arguments:
-            # For earnings calendar, add symbol to filter results
-            if tool_name in ["get_earnings_calendar", "fundamental_earnings_calendar"]:
-                arguments["symbol"] = symbol  # Filter to only this symbol
-                arguments["current_date"] = current_date  # Prevent lookahead bias
-            else:
+        if tool_name in ["get_earnings_calendar", "fundamental_earnings_calendar"]:
+            # Always ensure symbol + current_date are present to avoid lookahead
+            arguments.setdefault("symbol", symbol)
+            if "current_date" not in arguments and current_date:
+                arguments["current_date"] = current_date
+        else:
+            if "symbol" not in arguments:
                 arguments["symbol"] = symbol
         
-        # Add current_date to get_current_price to prevent lookahead bias
+        # Add current_date to get_current_price to prevent lookahead bias   
         if tool_name == "get_current_price" and "current_date" not in arguments:
             arguments["current_date"] = current_date
         
@@ -742,18 +837,35 @@ Avoid lookahead bias: do not use data from after {current_date}.
         ]
         
         # For technical indicators, auto-fill dates if not provided (they return summaries, not raw data)
+        # Technical indicators now REQUIRE start_date and end_date, so ensure both are always present
         # Technical indicators need longer lookbacks (e.g., 200-day MA needs 200+ days) but return small calculated values
-        if tool_name in technical_indicators_needing_dates and "start_date" not in arguments:
-            lookback_days = arguments.get("lookback_days", 200)  # Default 200 days for indicators like 200-day MA
-            # Allow up to 252 days (1 trading year) for technical calculations - they return summaries, not raw data
-            if lookback_days > 252:
-                lookback_days = 252  # Cap at 1 trading year
-            end_date = current_date
-            start_date = (datetime.strptime(current_date, '%Y-%m-%d') - timedelta(days=lookback_days)).strftime('%Y-%m-%d')
-            arguments["start_date"] = start_date
-            arguments["end_date"] = end_date
-            # Remove lookback_days if present (not a real parameter)
-            arguments.pop("lookback_days", None)
+        if tool_name in technical_indicators_needing_dates:
+            # Always ensure both dates are provided since they're required parameters
+            if "start_date" not in arguments or "end_date" not in arguments:
+                lookback_days = arguments.get("lookback_days", 200)  # Default 200 days for indicators like 200-day MA
+                # Allow up to 252 days (1 trading year) for technical calculations - they return summaries, not raw data
+                if lookback_days > 252:
+                    lookback_days = 252  # Cap at 1 trading year
+                end_date = current_date
+                if current_date_dt:
+                    start_dt = current_date_dt - timedelta(days=lookback_days)
+                    start_date = start_dt.strftime("%Y-%m-%d")
+                else:
+                    start_date = current_date
+                arguments["start_date"] = start_date
+                arguments["end_date"] = end_date
+                # Remove lookback_days if present (not a real parameter)
+                arguments.pop("lookback_days", None)
+
+        # Clamp any provided end_date to current_date to avoid lookahead where applicable
+        if current_date_dt and "end_date" in arguments:
+            try:
+                end_dt = datetime.strptime(str(arguments["end_date"]), "%Y-%m-%d")
+                if end_dt > current_date_dt:
+                    arguments["end_date"] = current_date
+            except Exception:
+                # If parsing fails, leave as-is and let the tool handle it
+                pass
         
         # For get_price_history, require explicit dates - return error if missing
         if tool_name == "get_price_history":
@@ -764,14 +876,21 @@ Avoid lookahead bias: do not use data from after {current_date}.
                             "Example: TOOL_CALL: get_price_history(symbol=AAPL, start_date=2025-11-15, end_date=2025-12-15)",
                     "tool_name": tool_name
                 }
-            # Limit to max 90 days of data to prevent prompt flooding
+            # Ensure no lookahead for price history
             try:
-                start = datetime.strptime(arguments["start_date"], '%Y-%m-%d')
-                end = datetime.strptime(arguments["end_date"], '%Y-%m-%d')
+                if current_date_dt:
+                    end = datetime.strptime(arguments["end_date"], "%Y-%m-%d")
+                    if end > current_date_dt:
+                        end = current_date_dt
+                        arguments["end_date"] = current_date
+
+                # Limit to max 90 days of data to prevent prompt flooding
+                start = datetime.strptime(arguments["start_date"], "%Y-%m-%d")
+                end = datetime.strptime(arguments["end_date"], "%Y-%m-%d")
                 days_diff = (end - start).days
                 if days_diff > 90:
                     # Auto-limit to last 90 days
-                    arguments["start_date"] = (end - timedelta(days=90)).strftime('%Y-%m-%d')
+                    arguments["start_date"] = (end - timedelta(days=90)).strftime("%Y-%m-%d")
                     print(f"⚠️  Limited get_price_history to 90 days (requested {days_diff} days)")
             except (ValueError, KeyError):
                 pass  # Let the tool handle invalid dates

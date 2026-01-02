@@ -6,12 +6,25 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 from openbb import obb
 
-# Import the conversion helper from parent module
+# Import the conversion helper from utils module
 import sys
 import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
-from OpenBBMCPServer import _convert_openbb_result
+from utils import _convert_openbb_result
+
+
+def _fetch_price_data(symbol: str, start_date: str, end_date: str):
+    """Helper function to fetch price data for technical indicators"""
+    price_result = obb.equity.price.historical(
+        symbol=symbol,
+        start_date=start_date,
+        end_date=end_date
+    )
+    if hasattr(price_result, 'results') and price_result.results:
+        return price_result.results
+    else:
+        raise ValueError(f"No price data returned for {symbol} from {start_date} to {end_date}")
 
 
 def register_technical_tools(mcp):
@@ -20,28 +33,33 @@ def register_technical_tools(mcp):
     @mcp.tool(name="calculate_rsi")
     def calculate_rsi(
         symbol: str,
-        period: int = 14,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        start_date: str,
+        end_date: str,
+        length: int = 14,
+        target: str = "close"
     ) -> Dict[str, Any]:
         """
         Calculate Relative Strength Index (RSI) for a stock.
         
         Args:
             symbol: Stock ticker symbol
-            period: RSI period (default: 14)
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
+            start_date: Start date (YYYY-MM-DD) - required
+            end_date: End date (YYYY-MM-DD) - required
+            length: RSI period (default: 14)
+            target: Target column name (default: "close")
         
         Returns:
             Dict with RSI data
         """
         try:
+            # Fetch price data first
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Calculate RSI on the price data
             result = obb.technical.rsi(
-                symbol=symbol,
-                period=period,
-                start_date=start_date,
-                end_date=end_date
+                data=price_data,
+                target=target,
+                length=length
             )
             return {
                 "tool_name": "calculate_rsi",
@@ -53,34 +71,39 @@ def register_technical_tools(mcp):
     @mcp.tool(name="calculate_macd")
     def calculate_macd(
         symbol: str,
+        start_date: str,
+        end_date: str,
         fast: int = 12,
         slow: int = 26,
         signal: int = 9,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        target: str = "close"
     ) -> Dict[str, Any]:
         """
         Calculate MACD (Moving Average Convergence Divergence) for a stock.
         
         Args:
             symbol: Stock ticker symbol
+            start_date: Start date (YYYY-MM-DD) - required
+            end_date: End date (YYYY-MM-DD) - required
             fast: Fast period (default: 12)
             slow: Slow period (default: 26)
             signal: Signal period (default: 9)
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
+            target: Target column name (default: "close")
         
         Returns:
             Dict with MACD data
         """
         try:
+            # Fetch price data first
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Calculate MACD on the price data
             result = obb.technical.macd(
-                symbol=symbol,
-                fast_period=fast,
-                slow_period=slow,
-                signal_period=signal,
-                start_date=start_date,
-                end_date=end_date
+                data=price_data,
+                target=target,
+                fast=fast,
+                slow=slow,
+                signal=signal
             )
             return {
                 "tool_name": "calculate_macd",
@@ -92,31 +115,36 @@ def register_technical_tools(mcp):
     @mcp.tool(name="calculate_bbands")
     def calculate_bbands(
         symbol: str,
-        period: int = 20,
-        std_dev: float = 2.0,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        start_date: str,
+        end_date: str,
+        length: int = 20,
+        std: float = 2.0,
+        target: str = "close"
     ) -> Dict[str, Any]:
         """
         Calculate Bollinger Bands for a stock.
         
         Args:
             symbol: Stock ticker symbol
-            period: Period for moving average (default: 20)
-            std_dev: Standard deviation multiplier (default: 2.0)
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
+            start_date: Start date (YYYY-MM-DD) - required
+            end_date: End date (YYYY-MM-DD) - required
+            length: Period for moving average (default: 20)
+            std: Standard deviation multiplier (default: 2.0)
+            target: Target column name (default: "close")
         
         Returns:
             Dict with Bollinger Bands data
         """
         try:
+            # Fetch price data first
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Calculate Bollinger Bands on the price data
             result = obb.technical.bbands(
-                symbol=symbol,
-                period=period,
-                std=std_dev,
-                start_date=start_date,
-                end_date=end_date
+                data=price_data,
+                target=target,
+                length=length,
+                std=std
             )
             return {
                 "tool_name": "calculate_bbands",
@@ -128,28 +156,30 @@ def register_technical_tools(mcp):
     @mcp.tool(name="calculate_atr")
     def calculate_atr(
         symbol: str,
-        period: int = 14,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        start_date: str,
+        end_date: str,
+        length: int = 14
     ) -> Dict[str, Any]:
         """
         Calculate Average True Range (ATR) for a stock.
         
         Args:
             symbol: Stock ticker symbol
-            period: ATR period (default: 14)
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
+            start_date: Start date (YYYY-MM-DD) - required
+            end_date: End date (YYYY-MM-DD) - required
+            length: ATR period (default: 14)
         
         Returns:
             Dict with ATR data
         """
         try:
+            # Fetch price data first
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Calculate ATR on the price data
             result = obb.technical.atr(
-                symbol=symbol,
-                period=period,
-                start_date=start_date,
-                end_date=end_date
+                data=price_data,
+                length=length
             )
             return {
                 "tool_name": "calculate_atr",
@@ -161,25 +191,27 @@ def register_technical_tools(mcp):
     @mcp.tool(name="calculate_obv")
     def calculate_obv(
         symbol: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        start_date: str,
+        end_date: str
     ) -> Dict[str, Any]:
         """
         Calculate On-Balance Volume (OBV) for a stock.
         
         Args:
             symbol: Stock ticker symbol
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
+            start_date: Start date (YYYY-MM-DD) - required
+            end_date: End date (YYYY-MM-DD) - required
         
         Returns:
             Dict with OBV data
         """
         try:
+            # Fetch price data first
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Calculate OBV on the price data
             result = obb.technical.obv(
-                symbol=symbol,
-                start_date=start_date,
-                end_date=end_date
+                data=price_data
             )
             return {
                 "tool_name": "calculate_obv",
@@ -191,28 +223,30 @@ def register_technical_tools(mcp):
     @mcp.tool(name="calculate_adx")
     def calculate_adx(
         symbol: str,
-        period: int = 14,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        start_date: str,
+        end_date: str,
+        length: int = 14
     ) -> Dict[str, Any]:
         """
         Calculate Average Directional Index (ADX) for a stock.
         
         Args:
             symbol: Stock ticker symbol
-            period: ADX period (default: 14)
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
+            start_date: Start date (YYYY-MM-DD) - required
+            end_date: End date (YYYY-MM-DD) - required
+            length: ADX period (default: 14)
         
         Returns:
             Dict with ADX data
         """
         try:
+            # Fetch price data first
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Calculate ADX on the price data
             result = obb.technical.adx(
-                symbol=symbol,
-                period=period,
-                start_date=start_date,
-                end_date=end_date
+                data=price_data,
+                length=length
             )
             return {
                 "tool_name": "calculate_adx",
@@ -224,28 +258,33 @@ def register_technical_tools(mcp):
     @mcp.tool(name="calculate_ema")
     def calculate_ema(
         symbol: str,
-        period: int = 50,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        start_date: str,
+        end_date: str,
+        length: int = 50,
+        target: str = "close"
     ) -> Dict[str, Any]:
         """
         Calculate Exponential Moving Average (EMA) for a stock.
         
         Args:
             symbol: Stock ticker symbol
-            period: EMA period (default: 50)
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
+            start_date: Start date (YYYY-MM-DD) - required
+            end_date: End date (YYYY-MM-DD) - required
+            length: EMA period (default: 50)
+            target: Target column name (default: "close")
         
         Returns:
             Dict with EMA data
         """
         try:
+            # Fetch price data first
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Calculate EMA on the price data
             result = obb.technical.ema(
-                symbol=symbol,
-                period=period,
-                start_date=start_date,
-                end_date=end_date
+                data=price_data,
+                target=target,
+                length=length
             )
             return {
                 "tool_name": "calculate_ema",
@@ -257,28 +296,30 @@ def register_technical_tools(mcp):
     @mcp.tool(name="calculate_cci")
     def calculate_cci(
         symbol: str,
-        period: int = 20,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        start_date: str,
+        end_date: str,
+        length: int = 20
     ) -> Dict[str, Any]:
         """
         Calculate Commodity Channel Index (CCI) for a stock.
         
         Args:
             symbol: Stock ticker symbol
-            period: CCI period (default: 20)
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
+            start_date: Start date (YYYY-MM-DD) - required
+            end_date: End date (YYYY-MM-DD) - required
+            length: CCI period (default: 20)
         
         Returns:
             Dict with CCI data
         """
         try:
+            # Fetch price data first
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Calculate CCI on the price data
             result = obb.technical.cci(
-                symbol=symbol,
-                period=period,
-                start_date=start_date,
-                end_date=end_date
+                data=price_data,
+                length=length
             )
             return {
                 "tool_name": "calculate_cci",

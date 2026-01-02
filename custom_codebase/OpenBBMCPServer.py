@@ -49,33 +49,8 @@ else:
     mcp = None
 
 
-# Helper function to convert OpenBB OBBject results to dict
-def _convert_openbb_result(result):
-    """Convert OpenBB OBBject result to dictionary format"""
-    if hasattr(result, 'results'):
-        # OBBject has .results attribute
-        if hasattr(result.results, 'to_dict'):
-            return result.results.to_dict()
-        elif hasattr(result.results, 'to_dataframe'):
-            # For DataFrame results
-            df = result.results.to_dataframe()
-            return df.to_dict('records')
-        elif isinstance(result.results, list):
-            # List of Data objects
-            return [item.model_dump() if hasattr(item, 'model_dump') else dict(item) for item in result.results]
-        elif isinstance(result.results, dict):
-            return result.results
-        else:
-            return {"data": str(result.results)}
-    elif hasattr(result, 'to_dict'):
-        return result.to_dict()
-    elif hasattr(result, 'to_dataframe'):
-        df = result.to_dataframe()
-        return df.to_dict('records')
-    elif isinstance(result, dict):
-        return result
-    else:
-        return {"data": str(result)}
+# Import helper function from utils module
+from utils import _convert_openbb_result
 
 
 # ============================================================================
@@ -86,31 +61,39 @@ def _convert_openbb_result(result):
 try:
     import sys
     import os
-    # Add Tools directory to path
-    tools_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Tools")
-    if tools_dir not in sys.path:
-        sys.path.insert(0, tools_dir)
+    import importlib.util
     
-    from Fundamental_Tools import register_fundamental_tools
-    from Technical_Tools import register_technical_tools
-    from News_Tools import register_news_tools
-    TOOLS_AVAILABLE = True
-except ImportError as e:
-    TOOLS_AVAILABLE = False
+    # Get the absolute path to the Tools directory
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    tools_dir = os.path.join(base_dir, "Tools")
+    
+    # Use importlib to load modules from specific paths to avoid stale imports
+    def load_module_from_path(module_name, file_path):
+        """Load a module from a specific file path"""
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load {module_name} from {file_path}")
+        module = importlib.util.module_from_spec(spec)
+        # Add parent directory to sys.path for utils import
+        if base_dir not in sys.path:
+            sys.path.insert(0, base_dir)
+        spec.loader.exec_module(module)
+        return module
+    
+    # Load modules from specific file paths
+    fundamental_tools_path = os.path.join(tools_dir, "Fundamental_Tools.py")
+    technical_tools_path = os.path.join(tools_dir, "Technical_Tools.py")
+    
+    Fundamental_Tools = load_module_from_path("Fundamental_Tools", fundamental_tools_path)
+    Technical_Tools = load_module_from_path("Technical_Tools", technical_tools_path)
+    
+    register_fundamental_tools = Fundamental_Tools.register_fundamental_tools
+    register_technical_tools = Technical_Tools.register_technical_tools
+
+except Exception as e:
     print(f"⚠️  Tool modules not available: {e}")
-
-# Register all tools with MCP server
-if mcp and TOOLS_AVAILABLE:
-    register_fundamental_tools(mcp)
-    register_technical_tools(mcp)
-    register_news_tools(mcp)
-
-
-# ============================================================================
-# TRADE EXECUTION TOOL - Extracted from ParallelOrchestrator
-# MCP tool for executing trades and updating portfolio state
-# ============================================================================
-
+    register_fundamental_tools = None
+    register_technical_tools = None
 # ============================================================================
 # TRADE EXECUTION TOOL - Extracted from ParallelOrchestrator
 # MCP tool for executing trades and updating portfolio state
@@ -379,6 +362,21 @@ if mcp:
             portfolio_state=portfolio_state,
             market_cap_bil=market_cap_bil
         )
+
+    # Register fundamental and technical analysis tools
+    if register_fundamental_tools:
+        try:
+            register_fundamental_tools(mcp)
+            print("✅ Registered fundamental analysis tools")
+        except Exception as e:
+            print(f"⚠️  Failed to register fundamental tools: {e}")
+    
+    if register_technical_tools:
+        try:
+            register_technical_tools(mcp)
+            print("✅ Registered technical analysis tools")
+        except Exception as e:
+            print(f"⚠️  Failed to register technical tools: {e}")
 
 
 if __name__ == "__main__":

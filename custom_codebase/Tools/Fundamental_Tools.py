@@ -5,12 +5,12 @@ Fundamental_Tools.py: Fundamental analysis tools using OpenBB SDK
 from typing import Dict, Any, Optional
 from openbb import obb
 
-# Import the conversion helper from parent module
+# Import the conversion helper from utils module
 import sys
 import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
-from OpenBBMCPServer import _convert_openbb_result
+from utils import _convert_openbb_result
 
 
 def register_fundamental_tools(mcp):
@@ -139,6 +139,8 @@ def register_fundamental_tools(mcp):
         Get earnings calendar for a date range. Optionally filter by symbol.
         If current_date is provided, only returns earnings up to that date (prevents lookahead bias).
         
+        NOTE: This endpoint requires a premium FMP subscription. Returns a message if unavailable.
+        
         Args:
             start_date: Start date (YYYY-MM-DD)
             end_date: End date (YYYY-MM-DD)
@@ -146,7 +148,7 @@ def register_fundamental_tools(mcp):
             current_date: Optional current date to prevent lookahead bias
         
         Returns:
-            Dict with earnings calendar data
+            Dict with earnings calendar data or error message
         """
         try:
             # If current_date is provided, limit end_date to current_date
@@ -171,6 +173,15 @@ def register_fundamental_tools(mcp):
                 "data": data
             }
         except Exception as e:
+            error_str = str(e)
+            # Check if it's a premium endpoint error
+            if "Premium" in error_str or "402" in error_str or "subscription" in error_str.lower():
+                return {
+                    "tool_name": "get_earnings_calendar",
+                    "data": [],
+                    "message": "Earnings calendar data requires a premium FMP subscription. This feature is not available on the free tier. You can use get_company_profile to get basic earnings information.",
+                    "premium_required": True
+                }
             return {"tool_name": "get_earnings_calendar", "error": str(e)}
     
     @mcp.tool(name="get_analyst_estimates")
