@@ -316,7 +316,7 @@ class ReasoningAgent:
                 
                 # Only break if DECISION is present in the correct format AND there are no tool calls to execute
                 # Check for exact format: "DECISION: [BUY/SELL/SHORT]" (case-insensitive, at start of line or after whitespace)
-                decision_pattern = re.compile(r'^\s*DECISION:\s*(BUY|SELL|SHORT|CLOSE)', re.IGNORECASE | re.MULTILINE)
+                decision_pattern = re.compile(r'^\s*DECISION:\s*(BUY|SELL|SHORT|HOLD|CLOSE)', re.IGNORECASE | re.MULTILINE)
                 has_decision = bool(decision_pattern.search(response_text))
                 
                 if has_decision and not tool_calls:
@@ -488,7 +488,7 @@ class ReasoningAgent:
                 
                 # Execute trade if decision is actionable
                 decision = decision_result.get('decision', '').upper()
-                if decision in ('BUY', 'SELL', 'SHORT', 'CLOSE'):
+                if decision in ('BUY', 'SELL', 'SHORT', 'HOLD', 'CLOSE'):
                     amount_usd = decision_result.get('amount_usd', 0)
                     if decision == 'CLOSE' or amount_usd > 0:
                         try:
@@ -557,7 +557,7 @@ class ReasoningAgent:
 - get_cash_flow(symbol, period='annual', limit=5)"""
         
         return f"""You are an expert autonomous trading agent powered by OpenBB data.
-Your goal is to analyze stocks and make profitable trading decisions (BUY, SELL, SHORT).
+Your goal is to analyze stocks and make profitable trading decisions (BUY, SELL, SHORT, HOLD).
 
 {tools_list}
 
@@ -583,7 +583,7 @@ Make sure to check for:
 5. Fundamental events (Earnings) and health.
 
 Once you have receiced the data from the tool calls, then you can provide your final output in this format:
-DECISION: [BUY/SELL/SHORT]
+DECISION: [BUY/SELL/SHORT/HOLD]
 CONFIDENCE: [0.0-1.0]
 AMOUNT_USD: [Optional - dollar amount for the trade, based on confidence and portfolio size]
 REASONING: [Detailed analysis]
@@ -629,7 +629,7 @@ Avoid lookahead bias: do not use data from after {current_date}.
         # Parse decision, confidence, amount, and reasoning
         import re
         
-        decision = ""
+        decision = "HOLD"
         confidence = 0.0
         amount_usd = 0.0
         reasoning = text
@@ -638,7 +638,7 @@ Avoid lookahead bias: do not use data from after {current_date}.
         decision_match = re.search(r"DECISION:\s*(\w+)", text, re.IGNORECASE)
         if decision_match:
             decision = decision_match.group(1).upper()
-            if decision not in ('BUY', 'SELL', 'SHORT', 'CLOSE'):
+            if decision not in ('BUY', 'SELL', 'SHORT', 'HOLD', 'CLOSE'):
                 decision = ""
         
         # Extract confidence
@@ -998,9 +998,10 @@ Avoid lookahead bias: do not use data from after {current_date}.
         return {
             "symbol": symbol,
             "date": date,
-            "decision": "",
+            "decision": "HOLD",
             "confidence": 0.0,
             "reasoning": f"Error: {error}"
+        
         }
     
     def __del__(self):
