@@ -27,6 +27,33 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from ReasoningAgent import ReasoningAgent
 
 
+def calculate_unrealized_pnl(portfolio_state: dict) -> float:
+    """Calculate total unrealized P&L for all positions using last_prices."""
+    unrealized_pnl = 0.0
+    
+    # Long positions: (current_price - avg_price) * shares
+    positions = portfolio_state.get('positions', {})
+    last_prices = portfolio_state.get('last_prices', {})
+    
+    for symbol, position in positions.items():
+        shares = position.get('shares', 0)
+        avg_price = position.get('avg_price', 0)
+        current_price = last_prices.get(symbol, avg_price)
+        if shares > 0 and avg_price > 0:
+            unrealized_pnl += (current_price - avg_price) * shares
+    
+    # Short positions: (avg_price - current_price) * shares
+    short_positions = portfolio_state.get('short_positions', {})
+    for symbol, position in short_positions.items():
+        shares = position.get('shares', 0)
+        avg_price = position.get('avg_price', 0)
+        current_price = last_prices.get(symbol, avg_price)
+        if shares > 0 and avg_price > 0:
+            unrealized_pnl += (avg_price - current_price) * shares
+    
+    return unrealized_pnl
+
+
 async def run_backtest(
     symbol: str,
     start_date: str,
@@ -70,6 +97,7 @@ async def run_backtest(
         "last_prices": {},
         "market_caps": {},
         "realized_short_pnl": 0.0,
+        "unrealized_pnl": 0.0,
     }
 
     all_results: list[dict[str, Any]] = []
@@ -94,11 +122,17 @@ async def run_backtest(
         # Update portfolio state from trade execution (if trade was executed)
         if result.get("portfolio_state_updated"):
             portfolio_state = result["portfolio_state_updated"]
+        
+        # Calculate and update unrealized P&L
+        portfolio_state['unrealized_pnl'] = calculate_unrealized_pnl(portfolio_state)
 
         print(f"\n✅ Decision for {current_date}: {result.get('decision', 'N/A')}")
         print(f"   Amount: ${result.get('amount_usd', 0):,.2f}")
         print(f"   Confidence: {result.get('confidence', 0):.2%}")
         print(f"   Tool Calls Made: {result.get('tool_calls_made', 0)}")
+        if result.get('trade_execution'):
+            trade_exec = result['trade_execution']
+            print(f"   Trade: {trade_exec.get('trade_details', {}).get('action', 'N/A')}")
 
     print("\n" + "=" * 70)
     print("🏁 Backtest Complete")
@@ -108,6 +142,7 @@ async def run_backtest(
     print(f"Final cash: ${portfolio_state.get('cash', 0):,.2f}")
     print(f"Final positions: {portfolio_state.get('positions', {})}")
     print(f"Final short positions: {portfolio_state.get('short_positions', {})}")
+    print(f"Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}")
     print(f"Realized short PnL: ${portfolio_state.get('realized_short_pnl', 0):,.2f}")
 
     # Explicitly close MCP session before event loop shuts down
