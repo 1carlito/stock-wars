@@ -427,64 +427,91 @@ class ReasoningAgent:
                 print(f"⚠️  Failed to save raw LLM prompt: {e}")
             self._save_decision(decision_result)
             
+            # 4.5. Extract current_price from tool_results (always, not just for trade execution)
+            # This ensures last_prices is updated even when no trade executes
+            if not current_price:
+                # Try to extract price from tool results (get_current_price or get_price_history)
+                price_history_data = None
+                for tool_result in tool_results:
+                    # Skip if tool_result has an error
+                    if tool_result.get('error'):
+                        continue
+                    
+                    tool_name = tool_result.get('tool_name', '')
+                    if tool_name == 'get_current_price':
+                        data = tool_result.get('data', [])
+                        if data and isinstance(data, list) and len(data) > 0:
+                            entry = data[0]
+                            # Try multiple price fields (close, price, last_price, prev_close)
+                            current_price = entry.get('close') or entry.get('price') or entry.get('last_price') or entry.get('prev_close')
+                            if current_price:
+                                break
+                    elif tool_name == 'get_price_history':
+                        # Store price_history data for fallback
+                        data = tool_result.get('data', [])
+                        if data and isinstance(data, list) and len(data) > 0:
+                            price_history_data = data
+                            # Try to find exact date match first
+                            for entry in reversed(data):  # Start from most recent
+                                entry_date = entry.get('date', '')
+                                if entry_date == current_date:
+                                    price = entry.get('close')
+                                    if price:
+                                        current_price = price
+                                        break
+                            if current_price:
+                                break
+                
+                # Fallback: if get_current_price failed but we have price_history, use most recent price
+                if not current_price and price_history_data:
+                    for entry in reversed(price_history_data):
+                        price = entry.get('close')
+                        if price:
+                            current_price = price
+                            break
+            
+            # Print current price if found
+            if current_price:
+                print(f"📊 Current price today is ${current_price:.2f}")
+            
             # 5. Optionally execute trade if requested
             if execute_trade_after and TRADE_EXECUTION_AVAILABLE:
-                if not current_price:
-                    # Try to extract price from tool results (get_current_price or get_price_history)
-                    for tool_result in tool_results:
-                        tool_name = tool_result.get('tool_name', '')
-                        if tool_name == 'get_current_price':
-                            data = tool_result.get('data', [])
+                # If still missing and we need it for trade execution, try to fetch it via MCP
+                if not current_price and mcp_session:
+                    try:
+                        print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
+                        price_tool_call = {
+                            "name": "get_current_price",
+                            "arguments": {
+                                "symbol": symbol,
+                                "current_date": current_date
+                            }
+                        }
+                        price_result = await self._execute_tool_via_mcp(
+                            mcp_session, price_tool_call, symbol, current_date
+                        )
+                        if 'error' not in price_result:
+                            data = price_result.get('data', [])
                             if data and isinstance(data, list) and len(data) > 0:
                                 entry = data[0]
-                                # Try multiple price fields (close, price, last_price, prev_close)
                                 current_price = entry.get('close') or entry.get('price') or entry.get('last_price') or entry.get('prev_close')
                                 if current_price:
-                                    break
-                        elif tool_name == 'get_price_history':
-                            # Get the close price for the current_date from history
-                            data = tool_result.get('data', [])
-                            if data and isinstance(data, list):
-                                # Find entry for current_date (exact match)
-                                for entry in reversed(data):  # Start from most recent
-                                    entry_date = entry.get('date', '')
-                                    if entry_date == current_date:
-                                        price = entry.get('close')
-                                        if price:
-                                            current_price = price
-                                            break
-                                if current_price:
-                                    break
-                    
-                    # If still missing, try to fetch it via MCP
-                    if not current_price and mcp_session:
-                        try:
-                            print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
-                            price_tool_call = {
-                                "name": "get_current_price",
-                                "arguments": {
-                                    "symbol": symbol,
-                                    "current_date": current_date
-                                }
-                            }
-                            price_result = await self._execute_tool_via_mcp(
-                                mcp_session, price_tool_call, symbol, current_date
-                            )
-                            if 'error' not in price_result:
-                                data = price_result.get('data', [])
-                                if data and isinstance(data, list) and len(data) > 0:
-                                    entry = data[0]
-                                    current_price = entry.get('close') or entry.get('price') or entry.get('last_price') or entry.get('prev_close')
-                                    if current_price:
-                                        print(f"✅ Fetched current_price: ${current_price:.2f}")
-                        except Exception as e:
-                            print(f"⚠️  Failed to fetch current_price: {e}")
-                    
-                    # No fallback to portfolio state - must have current price from tools
-                    if not current_price:
-                        print(f"⚠️  Cannot execute trade: current_price not provided and could not be fetched")
-                        print(f"   Tool results: {len(tool_results)} results")
-                        return decision_result
+                                    print(f"✅ Fetched current_price: ${current_price:.2f}")
+                                    print(f"📊 Current price today is ${current_price:.2f}")
+                    except Exception as e:
+                        print(f"⚠️  Failed to fetch current_price: {e}")
+                
+                # Check if we still don't have price for trade execution
+                if not current_price:
+                    print(f"⚠️  Cannot execute trade: current_price not provided and could not be fetched")
+                    print(f"   Tool results: {len(tool_results)} results")
+                    # Don't return early - continue to allow last_prices update if we get price later
+                    # Only return if we need price for trade execution AND decision requires trade
+                    decision = decision_result.get('decision', '').upper()
+                    if decision in ('BUY', 'SELL', 'SHORT', 'CLOSE'):
+                        amount_usd = decision_result.get('amount_usd', 0)
+                        if decision == 'CLOSE' or amount_usd > 0:
+                            return decision_result
                 
                 # Execute trade if decision is actionable
                 decision = decision_result.get('decision', '').upper()
@@ -507,6 +534,22 @@ class ReasoningAgent:
                         except Exception as e:
                             print(f"❌ Trade execution failed: {e}")
                             decision_result['trade_execution_error'] = str(e)
+                
+                # Update last_prices even when no trade executes (for unrealized P&L calculation)
+                if current_price and not decision_result.get('portfolio_state_updated'):
+                    updated_state = json.loads(json.dumps(portfolio_state))
+                    if 'last_prices' not in updated_state:
+                        updated_state['last_prices'] = {}
+                    updated_state['last_prices'][symbol] = current_price
+                    decision_result['portfolio_state_updated'] = updated_state
+            else:
+                # Even if trade execution is disabled, update last_prices if we have current_price
+                if current_price and not decision_result.get('portfolio_state_updated'):
+                    updated_state = json.loads(json.dumps(portfolio_state))
+                    if 'last_prices' not in updated_state:
+                        updated_state['last_prices'] = {}
+                    updated_state['last_prices'][symbol] = current_price
+                    decision_result['portfolio_state_updated'] = updated_state
             
             # Note: MCP session is NOT closed here to allow caching across backtest days.
             # The session will be closed by the caller (e.g., backtest script) when done.

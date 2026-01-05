@@ -15,6 +15,7 @@ import asyncio
 import sys
 import os
 from datetime import datetime, timedelta
+from typing import Any
 from dotenv import load_dotenv
 
 # Load environment variables from .env file (for OpenBB API keys)
@@ -38,8 +39,11 @@ def calculate_unrealized_pnl(portfolio_state: dict) -> float:
     for symbol, position in positions.items():
         shares = position.get('shares', 0)
         avg_price = position.get('avg_price', 0)
-        current_price = last_prices.get(symbol, avg_price)
-        if shares > 0 and avg_price > 0:
+        # Only calculate P&L if we have a current price in last_prices
+        if symbol not in last_prices:
+            continue  # Skip if we don't have current price
+        current_price = last_prices[symbol]
+        if shares > 0 and avg_price > 0 and current_price > 0:
             unrealized_pnl += (current_price - avg_price) * shares
     
     # Short positions: (avg_price - current_price) * shares
@@ -47,8 +51,11 @@ def calculate_unrealized_pnl(portfolio_state: dict) -> float:
     for symbol, position in short_positions.items():
         shares = position.get('shares', 0)
         avg_price = position.get('avg_price', 0)
-        current_price = last_prices.get(symbol, avg_price)
-        if shares > 0 and avg_price > 0:
+        # Only calculate P&L if we have a current price in last_prices
+        if symbol not in last_prices:
+            continue  # Skip if we don't have current price
+        current_price = last_prices[symbol]
+        if shares > 0 and avg_price > 0 and current_price > 0:
             unrealized_pnl += (avg_price - current_price) * shares
     
     return unrealized_pnl
@@ -130,9 +137,6 @@ async def run_backtest(
         print(f"   Amount: ${result.get('amount_usd', 0):,.2f}")
         print(f"   Confidence: {result.get('confidence', 0):.2%}")
         print(f"   Tool Calls Made: {result.get('tool_calls_made', 0)}")
-        if result.get('trade_execution'):
-            trade_exec = result['trade_execution']
-            print(f"   Trade: {trade_exec.get('trade_details', {}).get('action', 'N/A')}")
 
     print("\n" + "=" * 70)
     print("🏁 Backtest Complete")
@@ -142,8 +146,22 @@ async def run_backtest(
     print(f"Final cash: ${portfolio_state.get('cash', 0):,.2f}")
     print(f"Final positions: {portfolio_state.get('positions', {})}")
     print(f"Final short positions: {portfolio_state.get('short_positions', {})}")
+    print(f"Last prices: {portfolio_state.get('last_prices', {})}")
     print(f"Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}")
     print(f"Realized short PnL: ${portfolio_state.get('realized_short_pnl', 0):,.2f}")
+    
+    # Debug: Show P&L calculation details
+    positions = portfolio_state.get('positions', {})
+    last_prices = portfolio_state.get('last_prices', {})
+    for symbol, position in positions.items():
+        shares = position.get('shares', 0)
+        avg_price = position.get('avg_price', 0)
+        current_price = last_prices.get(symbol)
+        if current_price:
+            pnl = (current_price - avg_price) * shares
+            print(f"   {symbol}: {shares} shares @ ${avg_price:.2f} avg, current ${current_price:.2f} → P&L: ${pnl:,.2f}")
+        else:
+            print(f"   {symbol}: {shares} shares @ ${avg_price:.2f} avg, NO CURRENT PRICE in last_prices")
 
     # Explicitly close MCP session before event loop shuts down
     try:
