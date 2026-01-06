@@ -62,10 +62,8 @@ class SessionConfig:
     symbols: List[str]
     risk_level: RiskLevel
     starting_capital: float
-    max_positions: int
     trade_mode: TradeMode
     run_mode: RunMode
-    time_horizon: TimeHorizon
     notes: str = ""
 
 
@@ -221,15 +219,7 @@ def _prompt_starting_capital() -> float:
             console.print("[red]Please enter a positive number (e.g. 5000, 10000).[/red]")
 
 
-def _prompt_max_positions(default: int) -> int:
-    prompt_text = (
-        "How many **concurrent positions** should the agent allow?\n"
-        "This caps diversification and overall exposure."
-    )
-    console.print(
-        Panel(prompt_text, title="Step 4 • Position Limits", border_style="cyan"),
-    )
-    return IntPrompt.ask("Max open positions", default=default)
+# Removed _prompt_max_positions - not needed for once-a-day trading
 
 
 def _prompt_trade_mode() -> TradeMode:
@@ -265,24 +255,7 @@ def _prompt_run_mode() -> RunMode:
     return choice  # type: ignore[return-value]
 
 
-def _prompt_time_horizon() -> TimeHorizon:
-    prompt_text = (
-        "What is your **intended holding period**?\n"
-        "- [bold]intraday[/bold]: same‑day entries and exits\n"
-        "- [bold]swing[/bold]: multi‑day to multi‑week\n"
-        "- [bold]long_term[/bold]: months to years"
-    )
-    console.print(
-        Panel(prompt_text, title="Step 7 • Time Horizon", border_style="cyan"),
-    )
-
-    choice = Prompt.ask(
-        "Time horizon",
-        choices=["intraday", "swing", "long_term"],
-        default="swing",
-        show_choices=True,
-    )
-    return choice  # type: ignore[return-value]
+# Removed _prompt_time_horizon - redundant for current trading strategy
 
 
 def _prompt_notes() -> str:
@@ -310,10 +283,8 @@ def _review_config(cfg: SessionConfig) -> bool:
     table.add_row("Symbols", ", ".join(cfg.symbols))
     table.add_row("Risk level", cfg.risk_level)
     table.add_row("Starting capital", f"${cfg.starting_capital:,.2f}")
-    table.add_row("Max positions", str(cfg.max_positions))
     table.add_row("Trading mode", cfg.trade_mode)
     table.add_row("Run mode", cfg.run_mode)
-    table.add_row("Time horizon", cfg.time_horizon.replace("_", " "))
     table.add_row("Notes", cfg.notes or "—")
 
     panel = Panel(
@@ -366,7 +337,7 @@ def _launch_session(cfg: SessionConfig) -> None:
 
     console.print()
 
-    # Run once vs daemon
+    # Run once vs daemon - pass config through
     if cfg.run_mode == "once":
         for sym in cfg.symbols:
             console.print(
@@ -378,7 +349,12 @@ def _launch_session(cfg: SessionConfig) -> None:
                     border_style="green",
                 )
             )
-            live_trading_loop.run_once(sym.upper())
+            live_trading_loop.run_once(
+                sym.upper(),
+                starting_capital=cfg.starting_capital,
+                risk_level=cfg.risk_level,
+                notes=cfg.notes,
+            )
     else:
         if len(cfg.symbols) > 1:
             console.print(
@@ -401,7 +377,12 @@ def _launch_session(cfg: SessionConfig) -> None:
                 border_style="green",
             )
         )
-        live_trading_loop.run_daemon(sym)
+        live_trading_loop.run_daemon(
+            sym,
+            starting_capital=cfg.starting_capital,
+            risk_level=cfg.risk_level,
+            notes=cfg.notes,
+        )
 
 
 def run_interactive() -> None:
@@ -411,21 +392,16 @@ def run_interactive() -> None:
     symbols = _prompt_symbols()
     risk = _prompt_risk_level()
     capital = _prompt_starting_capital()
-    max_pos_default = max(1, len(symbols))
-    max_positions = _prompt_max_positions(default=max_pos_default)
     trade_mode = _prompt_trade_mode()
     run_mode = _prompt_run_mode()
-    horizon = _prompt_time_horizon()
     notes = _prompt_notes()
 
     cfg = SessionConfig(
         symbols=symbols,
         risk_level=risk,
         starting_capital=capital,
-        max_positions=max_positions,
         trade_mode=trade_mode,
         run_mode=run_mode,
-        time_horizon=horizon,
         notes=notes,
     )
 

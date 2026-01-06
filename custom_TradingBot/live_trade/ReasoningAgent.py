@@ -224,12 +224,14 @@ class ReasoningAgent:
         execute_trade_after: bool,
         current_price: Optional[float],
         max_tool_iterations: int,
+        risk_level: str = "medium",
+        notes: str = "",
     ) -> Dict:
         try:
             mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
-            system_prompt = self._build_system_prompt(mcp_session)
-            user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state)
+            system_prompt = self._build_system_prompt(mcp_session, risk_level=risk_level)
+            user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, notes=notes)
 
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -525,7 +527,7 @@ class ReasoningAgent:
             print(f"❌ Error for {symbol}: {e}")
             return self._create_error_decision(symbol, current_date, str(e))
 
-    def _build_system_prompt(self, mcp_session=None) -> str:
+    def _build_system_prompt(self, mcp_session=None, risk_level: str = "medium") -> str:
         if mcp_session and self.available_tools:
             tools_list = "You have access to the following tools via MCP:\n"
             tools_list += "\n".join([f"- {tool}" for tool in self.available_tools[:20]])
@@ -553,8 +555,18 @@ class ReasoningAgent:
 - get_company_news(symbol, start_date, end_date, limit)
 - get_world_news(start_date, end_date, topics=None, limit)"""
 
+        # Risk level guidance for position sizing
+        risk_guidance = {
+            "low": "Capital preservation focus: Use small position sizes (5-10% of available cash per trade), prioritize stop-losses, avoid high volatility stocks.",
+            "medium": "Balanced approach: Use moderate position sizes (10-20% of available cash per trade), balanced risk/reward, standard stop-losses.",
+            "high": "Aggressive strategy: Use larger position sizes (25-30% of available cash per trade), higher drawdown tolerance, can take on more volatility.",
+        }.get(risk_level.lower(), "Balanced approach: Use moderate position sizes (10-20% of available cash per trade), balanced risk/reward, standard stop-losses.")
+
         return f"""You are an expert autonomous trading agent powered by OpenBB data.
 Your goal is to analyze stocks and make profitable trading decisions (BUY, SELL, SHORT, HOLD).
+
+Risk Level: {risk_level.upper()}
+{risk_guidance}
 
 {tools_list}
 
@@ -570,15 +582,18 @@ STAGE 1 - PLANNING (FIRST RESPONSE ONLY):
 
 STAGE 2 - ANALYSIS AND DECISION (AFTER YOU SEE TOOL RESULTS):
 - When tool results are provided, use them to form a single, final trading decision.
+- Consider the risk level when sizing positions (AMOUNT_USD).
 
 Once you have received the data from the tool calls, output:
 DECISION: [BUY/SELL/SHORT/HOLD]
 CONFIDENCE: [0.0-1.0]
-AMOUNT_USD: [Optional - dollar amount for the trade, based on confidence and portfolio size]
+AMOUNT_USD: [Dollar amount for the trade, based on confidence, portfolio size, and risk level]
 REASONING: [Detailed analysis]
 """
 
-    def _build_user_prompt(self, symbol, current_date, portfolio_state) -> str:
+    def _build_user_prompt(self, symbol, current_date, portfolio_state, notes: str = "") -> str:
+        notes_section = f"\n\nAdditional Instructions:\n{notes}" if notes else ""
+        
         return f"""Analyze {symbol} for trading date {current_date}.
 
 Portfolio State:
@@ -586,6 +601,7 @@ Portfolio State:
 - Long Positions: {portfolio_state.get('positions', {})}
 - Short Positions: {portfolio_state.get('short_positions', {})}
 - Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}
+{notes_section}
 
 Please use the available tools to gather data and make a decision.
 Avoid lookahead bias: do not use data from after {current_date}.

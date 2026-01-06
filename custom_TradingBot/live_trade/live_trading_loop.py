@@ -141,6 +141,14 @@ def _get_alpaca_client() -> Optional["TradingClient"]:
     if not api_key or not api_secret:
         print("⚠️  ALPACA_ENABLED is true but ALPACA_API_KEY / ALPACA_API_SECRET are missing; skipping Alpaca execution.")
         return None
+    
+    # Check if user accidentally put the base URL in ALPACA_API_KEY
+    if api_key.startswith("http://") or api_key.startswith("https://"):
+        print("⚠️  ALPACA_API_KEY appears to be a URL, not an API key token.")
+        print("   ALPACA_API_KEY should be your actual API key (token string), not the base URL.")
+        print("   The base URL is automatically set based on ALPACA_PAPER setting.")
+        print("   Skipping Alpaca execution.")
+        return None
 
     # Default to paper trading unless explicitly set to a live-like value
     paper_flag = os.getenv("ALPACA_PAPER", "true").lower()
@@ -149,7 +157,20 @@ def _get_alpaca_client() -> Optional["TradingClient"]:
     try:
         _ALPACA_CLIENT = TradingClient(api_key=api_key, secret_key=api_secret, paper=paper)
         mode = "paper" if paper else "live"
-        print(f"🦙 Alpaca client initialised ({mode} mode).")
+        
+        # Test the connection by fetching account info
+        try:
+            account = _ALPACA_CLIENT.get_account()
+            print(f"🦙 Alpaca client initialised ({mode} mode).")
+            print(f"   Account: {account.account_number} | Buying Power: ${float(account.buying_power):,.2f}")
+        except Exception as auth_exc:  # noqa: BLE001
+            print(f"❌ Alpaca authentication failed: {auth_exc}")
+            print(f"   Please verify your API keys are correct for {mode} trading.")
+            print(f"   Paper trading keys are different from live trading keys.")
+            print(f"   Get your keys from: https://app.alpaca.markets/paper/dashboard/overview")
+            _ALPACA_CLIENT = None
+            return None
+            
     except Exception as exc:  # noqa: BLE001
         print(f"❌ Failed to create Alpaca TradingClient: {exc}")
         _ALPACA_CLIENT = None
@@ -218,7 +239,12 @@ def _maybe_execute_with_alpaca(
             order = client.submit_order(order_data=order_req)
             print(f"✅ Alpaca market {decision} submitted: {order}")
         except Exception as exc:  # noqa: BLE001
-            print(f"❌ Alpaca {decision} order failed: {exc}")
+            error_msg = str(exc)
+            print(f"❌ Alpaca {decision} order failed: {error_msg}")
+            if "401" in error_msg or "not authorized" in error_msg.lower():
+                print("   ⚠️  Authentication error - please verify your API keys are correct.")
+                print("   ⚠️  Make sure you're using PAPER trading keys (not live trading keys).")
+                print("   ⚠️  Get paper keys from: https://app.alpaca.markets/paper/dashboard/overview")
         return
 
     # SELL / CLOSE: let Alpaca work out the size by closing the position
@@ -244,11 +270,12 @@ def _portfolio_history_path() -> str:
     return os.path.join(_get_live_trade_dir(), "portfolio_history.jsonl")
 
 
-def load_portfolio_state() -> PortfolioState:
+def load_portfolio_state(starting_capital: Optional[float] = None) -> PortfolioState:
     path = _portfolio_state_path()
     if not os.path.exists(path):
-        # First run: start with default state
-        state = PortfolioState()
+        # First run: start with provided starting_capital or default
+        initial_cash = starting_capital if starting_capital is not None else 50.0
+        state = PortfolioState(cash=initial_cash)
         print(f"📁 No existing portfolio_state.json found. Initializing new state with cash={state.cash}.")
         save_portfolio_state(state)
         return state
@@ -256,6 +283,13 @@ def load_portfolio_state() -> PortfolioState:
     with open(path, "r") as f:
         data = json.load(f)
     state = PortfolioState.from_dict(data)
+    
+    # If starting_capital provided and current cash is default (50.0), update it
+    if starting_capital is not None and state.cash == 50.0 and not state.positions and not state.short_positions:
+        state.cash = starting_capital
+        save_portfolio_state(state)
+        print(f"📁 Updated portfolio_state.json with starting_capital={starting_capital:.2f}")
+    
     print(
         f"📁 Loaded portfolio_state.json | cash={state.cash:.2f}, "
         f"positions={len(state.positions)}, shorts={len(state.short_positions)}"
@@ -359,7 +393,13 @@ def get_next_run_time(now: datetime) -> datetime:
     return next_day.replace(hour=15, minute=0, second=0, microsecond=0)
 
 
-async def run_single_trading_cycle(symbol: str, trade_date: date) -> None:
+async def run_single_trading_cycle(
+    symbol: str,
+    trade_date: date,
+    starting_capital: Optional[float] = None,
+    risk_level: str = "medium",
+    notes: str = "",
+) -> None:
     """
     Execute one full decision + trade cycle for a single symbol on a given date.
     """
@@ -367,8 +407,8 @@ async def run_single_trading_cycle(symbol: str, trade_date: date) -> None:
     print(f"🚀 Live trading cycle for {symbol} on {trade_date.isoformat()}")
     print("=" * 80)
 
-    # 1. Load portfolio state
-    state = load_portfolio_state()
+    # 1. Load portfolio state (initialize with starting_capital if provided)
+    state = load_portfolio_state(starting_capital=starting_capital)
 
     # 2. Initialize ReasoningAgent (MCP client connects lazily on first use)
     agent = ReasoningAgent(
@@ -379,7 +419,7 @@ async def run_single_trading_cycle(symbol: str, trade_date: date) -> None:
     # 3. Build portfolio_state dict expected by ReasoningAgent
     portfolio_state_dict: Dict[str, Any] = state.to_dict()
 
-    # 4. Run decision with trade execution enabled
+    # 4. Run decision with trade execution enabled, passing risk_level and notes
     decision_result = await agent._make_decision_async(
         symbol=symbol,
         current_date=trade_date.isoformat(),
@@ -417,7 +457,12 @@ async def run_single_trading_cycle(symbol: str, trade_date: date) -> None:
     print("=" * 80)
 
 
-def run_daemon(symbol: str) -> None:
+def run_daemon(
+    symbol: str,
+    starting_capital: Optional[float] = None,
+    risk_level: str = "medium",
+    notes: str = "",
+) -> None:
     """
     Long‑running scheduler:
     - Computes next 15:00 ET trading time.
@@ -445,10 +490,15 @@ def run_daemon(symbol: str) -> None:
 
         # At/after scheduled time, run trading cycle for "today" in NY
         trade_date = datetime.now(tz=NY_TZ).date()
-        asyncio.run(run_single_trading_cycle(symbol, trade_date))
+        asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, risk_level, notes))
 
 
-def run_once(symbol: str) -> None:
+def run_once(
+    symbol: str,
+    starting_capital: Optional[float] = None,
+    risk_level: str = "medium",
+    notes: str = "",
+) -> None:
     """
     Run a single trading cycle "now" for today's NY date.
 
@@ -460,7 +510,7 @@ def run_once(symbol: str) -> None:
         f"🏁 One‑shot mode: running trading cycle for {symbol} on "
         f"{trade_date.isoformat()} (NY date)"
     )
-    asyncio.run(run_single_trading_cycle(symbol, trade_date))
+    asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, risk_level, notes))
 
 
 def _parse_args(argv: Optional[list] = None):
