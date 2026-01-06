@@ -1,0 +1,538 @@
+#!/usr/bin/env python3
+"""
+LLM STOCK MANAGER - Interactive CLI
+===================================
+
+A polished, self‑contained command line interface for configuring the live
+trading agent.
+
+This CLI is **purely front-end**:
+- It does NOT connect to the live trading backend yet.
+- It focuses on gathering all the key inputs in a pleasant terminal UI.
+
+Inspired by the Dexter terminal experience (`https://github.com/virattt/dexter`),
+but tailored for this project.
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+import json
+import time
+import threading
+import contextlib
+from dataclasses import dataclass, asdict
+from datetime import date, datetime
+from typing import List, Literal, Dict, Any
+from pathlib import Path
+
+from rich import box
+from rich.align import Align
+from rich.console import Console
+from rich.layout import Layout
+from rich.panel import Panel
+from rich.prompt import Confirm, IntPrompt, Prompt
+from rich.table import Table
+from rich.text import Text
+from rich.progress import track, Progress, SpinnerColumn, TextColumn
+
+
+console = Console()
+
+
+# Wire in the core ReasoningAgent (non-live_trade) so this CLI can drive analysis
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+CORE_AGENT_DIR = PROJECT_ROOT / "custom_TradingBot"
+if str(CORE_AGENT_DIR) not in sys.path:
+    sys.path.insert(0, str(CORE_AGENT_DIR))
+
+try:
+    from ReasoningAgent import ReasoningAgent  # type: ignore
+except Exception as import_exc:  # pragma: no cover - defensive import
+    ReasoningAgent = None  # type: ignore[assignment]
+
+
+RiskLevel = Literal["low", "medium", "high"]
+TradeMode = Literal["paper", "live"]
+RunMode = Literal["once", "daemon"]
+
+
+@dataclass
+class SessionConfig:
+    symbols: List[str]
+    risk_level: RiskLevel
+    starting_capital: float
+    trade_mode: TradeMode
+    run_mode: RunMode
+    notes: str = ""
+
+
+def _render_header() -> Panel:
+    # Render "LLM STOCK MANAGER" in Star Wars‑style ASCII art and append the image.
+    try:
+        from pyfiglet import Figlet  # type: ignore[import]
+
+        # Prefer Star Wars‑style fonts, fall back to a big block font.
+        star_wars_fonts = ["starwars", "epic", "isometric1", "big"]
+        fig = None
+        for font_name in star_wars_fonts:
+            try:
+                fig = Figlet(font=font_name, width=120)
+                break
+            except Exception:  # noqa: BLE001
+                continue
+        if fig is None:
+            fig = Figlet(font="big", width=120)
+
+        # Slight spacing tweak so STOCK and MANAGER feel balanced.
+        ascii_art = fig.renderText("LLM  STOCK    MANAGER")
+
+        # Apply a dark‑yellow gradient across the ASCII banner.
+        title = Text()
+        for line in ascii_art.split("\n"):
+            for i, ch in enumerate(line):
+                style = "bold yellow" if i % 2 == 0 else "bold bright_yellow"
+                title.append(ch, style=style)
+            title.append("\n")
+
+        # Append the provided image (e.g. General Grievous trader motif).
+        grievous_art = """
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⠤⠒⠒⠉⠉⠉⠛⠳⢦⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⣷⡆⠀⠀⠀⠀⢀⡴⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⡈⠙⢦⡀⠀⠀⠀⣶⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⢧⠀⠀⠀⢀⣿⠀⠀⣰⠀⠀⠀⠀⠀⠀⠀⠀⠀⣷⠀⠀⢹⠀⠀⠀⡿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣠⠏⠸⡄⠀⣰⢺⡟⠀⠀⢿⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⠁⠀⢸⣆⠀⢀⡇⠘⢆⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢀⡤⠚⠁⠀⠀⡇⠀⣳⣼⠀⠀⠀⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡆⠀⠀⣿⡀⢸⡇⠀⠀⠙⠦⡀⠀⠀⠀⠀⠀
+⠀⠀⠀⢠⠖⠁⠀⠀⠀⠀⢀⣷⣴⣿⠏⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⡇⠀⠀⠘⣷⣾⣀⠀⠀⠀⠀⠈⠳⡄⠀⠀⠀
+⠀⠀⠀⢸⣤⣀⠀⢀⣴⡾⢏⠀⢀⠏⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⠹⡄⠈⣿⣦⡀⠀⠀⣀⡇⠀⠀⠀
+⠀⠀⠀⠈⡇⣀⡉⡛⠇⠀⠈⣧⡎⢀⣀⣀⣀⣀⣿⠐⢦⡀⠀⠀⠀⢀⡠⠔⢀⣧⣀⣀⣀⣀⠹⣤⠁⡇⢹⠊⠁⢀⡇⠀⠀⠀
+⠀⠀⠀⠀⢹⠀⣀⣡⢸⠀⠀⢻⠀⡏⢫⡹⡿⡙⠻⡝⢲⡽⠂⠀⠀⠁⠰⣯⣿⡟⠉⢉⡽⠉⣧⡿⠀⢰⢸⠋⠉⢹⠁⠀⠀⠀
+⠀⠀⠀⠀⠘⡍⠁⠈⢾⣇⠀⢸⡇⢇⠀⠙⠓⢒⣫⡷⠋⠀⠀⠀⠀⠀⠀⠈⢫⣏⠛⠉⠀⢠⢿⡇⠀⣮⡎⠉⠉⣹⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠻⡌⠁⠀⠙⢆⣸⣷⠈⠓⣒⡿⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠛⠶⣖⡉⣸⣃⡼⠟⠉⠉⡩⠋⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠈⢦⠀⠀⠀⠉⠻⢷⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⡼⠛⠁⠀⠀⢀⠞⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠑⣄⠀⠀⠀⠸⡄⠈⠓⢆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠖⠉⢸⠁⠀⠀⠀⣠⠋⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢣⡀⠀⠀⢷⣤⠤⢼⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠢⣤⣌⠀⠀⢀⡼⠁⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣷⡀⠀⠸⣟⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡏⠀⢀⣞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣠⢴⣵⠏⠀⣻⣆⠀⣿⣿⠉⡇⠀⢰⣦⢠⡆⢴⡀⢶⠀⢠⣿⣿⣿⠃⢠⣏⠈⠳⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣠⣾⡿⢋⡏⠀⣰⠃⠻⣄⢹⡇⠀⢃⠀⣾⢿⡏⣥⣦⣧⠀⣇⢸⠁⠉⡿⢀⡇⠈⢣⠀⢹⣶⣄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢀⡴⣿⠏⠀⢸⡇⠀⣯⣠⣾⠿⣆⣇⢠⣧⣴⣿⣼⡇⣿⣿⣿⠀⣿⣬⣧⠀⣇⡼⢷⣄⠈⡇⠀⡿⢍⢷⣄⠀⠀⠀⠀
+⠀⠀⢀⡞⡼⠁⠀⠀⠸⡇⠀⠸⡟⠁⠀⢹⡼⠘⠁⢸⠸⡏⢹⡿⢿⣿⣾⣿⠀⡇⠀⡿⠃⠀⠻⣿⠃⢠⠇⠀⠳⡙⢦⡀⠀⠀
+⠀⠀⡞⢠⠁⠀⠀⠀⠀⢻⡄⠀⠱⣄⡤⠤⢧⠀⠀⢸⢀⣡⣾⣷⢦⣄⡉⣿⠀⡇⣸⠉⠑⠲⣴⠃⢠⡎⠀⠀⠀⠹⡄⢳⡀⠀
+⠀⢰⠃⢸⠀⠀⠀⢀⣠⣼⠿⣄⠀⠱⡄⠀⠸⡄⡄⢸⠿⡟⠛⠉⠉⠛⡿⡟⠀⣇⠇⠀⢠⠞⠁⢠⢿⣷⣤⡀⠀⠀⢻⠘⣇⠀
+⢀⡇⠀⢸⠀⢀⠖⠋⣿⡏⠀⠙⣦⠀⠙⣦⡀⣇⠸⡶⠀⢿⠀⠀⠀⢰⠃⢷⠎⡟⠀⡰⠋⠀⡰⠋⠀⣿⡌⠻⡆⠀⢸⠀⢻⡀
+⢸⠀⠀⠈⢧⠎⠀⠘⣟⢧⣀⠀⠈⠳⣄⠈⠻⣾⡀⢱⠀⠈⡇⣀⣠⡏⢀⠏⣀⡷⠚⢀⡴⠏⠀⢀⣠⢿⠇⠀⢳⣠⠃⠀⠘⡇
+⠀⠀⠀⠀⠈⠳⡀⠀⠈⠙⠒⠭⠭⢷⣚⣳⣄⠈⣹⣾⠓⢻⡉⠀⠀⢹⠛⢿⣅⢀⣴⢿⣵⣒⣯⠥⠚⠉⠀⣠⡿⠁⠀⠀⠀⠁
+⠀⠀⠀⠀⠀⠀⠈⠒⢤⣀⡀⠀⠀⠀⠀⠈⣹⠟⠉⢹⠀⠈⠳⣄⣠⠞⠀⢸⠏⠻⡉⠉⠁⠀⠀⠀⢀⣤⠞⠋⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠁⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⢀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀
+"""
+        title.append(grievous_art, style="yellow")
+
+    except Exception:  # noqa: BLE001
+        # Fallback: simple text title if pyfiglet or the font is unavailable.
+        title = Text("LLM STOCK MANAGER", style="bold magenta")
+
+    subtitle = Text("Autonomous Live Trade Orchestrator", style="dim")
+
+    text = Text()
+    text.append(title)
+    text.append("\n")
+    text.append(subtitle)
+
+    return Panel(
+        Align.center(text, vertical="middle"),
+        border_style="bright_magenta",
+        padding=(1, 4),
+    )
+
+
+def _render_footer() -> Panel:
+    footer_text = Text()
+    footer_text.append("Tip: ", style="bold cyan")
+    footer_text.append(
+        "This interface is UI-only right now.\n"
+        "Once wired up, these settings will feed directly into the live agent.",
+        style="dim",
+    )
+    return Panel(footer_text, border_style="grey42")
+
+
+def _banner() -> None:
+    # Simpler banner: just header + footer, no extra empty body box.
+    console.print(_render_header())
+    console.print(_render_footer())
+    console.print()  # Single blank line before prompts
+
+
+def _prompt_symbols() -> List[str]:
+    prompt_text = (
+        "Enter the ticker **symbol or symbols** you want the agent to manage.\n"
+        "[dim]Examples: AAPL, MSFT, NVDA[/dim]"
+    )
+    console.print(Panel(prompt_text, title="Step 1 • Symbols", border_style="cyan"))
+
+    while True:
+        raw = Prompt.ask("Symbols (comma‑separated)", default="AAPL")
+        symbols = [s.strip().upper() for s in raw.split(",") if s.strip()]
+        if symbols:
+            return symbols
+        console.print("[red]Please enter at least one symbol.[/red]")
+
+
+def _prompt_risk_level() -> RiskLevel:
+    prompt_text = (
+        "Select a **risk level**. This will eventually control position sizing,\n"
+        "leverage, and stop‑loss aggressiveness.\n\n"
+        "- [bold green]low[/bold green]: capital preservation, small positions\n"
+        "- [bold yellow]medium[/bold yellow]: balanced risk / reward\n"
+        "- [bold red]high[/bold red]: aggressive, higher drawdown tolerance"
+    )
+    console.print(Panel(prompt_text, title="Step 2 • Risk Profile", border_style="cyan"))
+
+    choice = Prompt.ask(
+        "Risk level",
+        choices=["low", "medium", "high"],
+        default="medium",
+        show_choices=True,
+    )
+    return choice  # type: ignore[return-value]
+
+
+def _prompt_starting_capital() -> float:
+    prompt_text = (
+        "Specify the **notional capital** you want the agent to reason about.\n"
+        "This does not connect to a broker yet; it's used for sizing logic."
+    )
+    console.print(
+        Panel(prompt_text, title="Step 3 • Capital", border_style="cyan"),
+    )
+
+    while True:
+        amount_str = Prompt.ask("Starting capital (USD)", default="10000")
+        try:
+            value = float(amount_str)
+            if value <= 0:
+                raise ValueError
+            return value
+        except ValueError:
+            console.print("[red]Please enter a positive number (e.g. 5000, 10000).[/red]")
+
+
+def _prompt_trade_mode() -> TradeMode:
+    prompt_text = (
+        "Choose whether this configuration is intended for **paper** or **live** trading.\n"
+        "Right now this is informational only, but it will guide safety checks later."
+    )
+    console.print(Panel(prompt_text, title="Step 5 • Mode", border_style="cyan"))
+
+    choice = Prompt.ask(
+        "Trading mode",
+        choices=["paper", "live"],
+        default="paper",
+        show_choices=True,
+    )
+    return choice  # type: ignore[return-value]
+
+
+def _prompt_run_mode() -> RunMode:
+    prompt_text = (
+        "How should the agent run?\n"
+        "- [bold]once[/bold]: run a single decision cycle and exit\n"
+        "- [bold]daemon[/bold]: schedule one run per trading day (15:00 NY time)"
+    )
+    console.print(Panel(prompt_text, title="Step 6 • Schedule", border_style="cyan"))
+
+    choice = Prompt.ask(
+        "Run mode",
+        choices=["once", "daemon"],
+        default="once",
+        show_choices=True,
+    )
+    return choice  # type: ignore[return-value]
+
+
+def _prompt_notes() -> str:
+    console.print(
+        Panel(
+            "Optional: add any [bold]session notes[/bold] or constraints "
+            "(e.g. 'no earnings plays', 'focus on mega‑caps only').",
+            title="Step 8 • Notes (Optional)",
+            border_style="cyan",
+        )
+    )
+    return Prompt.ask("Notes", default="")
+
+
+def _review_config(cfg: SessionConfig) -> bool:
+    table = Table(
+        title="Session Summary",
+        box=box.ROUNDED,
+        show_edge=True,
+        expand=True,
+    )
+    table.add_column("Field", style="cyan", no_wrap=True)
+    table.add_column("Value", style="white")
+
+    table.add_row("Symbols", ", ".join(cfg.symbols))
+    table.add_row("Risk level", cfg.risk_level)
+    table.add_row("Starting capital", f"${cfg.starting_capital:,.2f}")
+    table.add_row("Trading mode", cfg.trade_mode)
+    table.add_row("Run mode", cfg.run_mode)
+    table.add_row("Notes", cfg.notes or "—")
+
+    panel = Panel(
+        table,
+        title="Review Configuration",
+        border_style="bright_magenta",
+    )
+    console.print(panel)
+    return Confirm.ask("Launch session with these settings?", default=True)
+
+
+@contextlib.contextmanager
+def _suppress_prints() -> None:
+    """Silence stdout/stderr while the ReAct loop runs."""
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    try:
+        with open(os.devnull, "w") as devnull:
+            sys.stdout = devnull
+            sys.stderr = devnull
+            yield
+    finally:
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
+
+
+def _reasoning_decisions_dir() -> Path:
+    """Directory where ReasoningAgent writes decisions + prompt snapshots."""
+    return PROJECT_ROOT / "reasoning_decisions"
+
+
+def _load_decision(symbol: str, decision_date: date) -> Dict[str, Any] | None:
+    """Load saved decision JSON for a symbol/date if it exists."""
+    decisions_dir = _reasoning_decisions_dir()
+    filename = f"{symbol}_{decision_date.isoformat()}_decision.json"
+    path = decisions_dir / filename
+    if not path.exists():
+        return None
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _two_line_summary(decision: Dict[str, Any]) -> str:
+    """Return at most the last two non-empty lines of reasoning/raw_response."""
+    text = (decision.get("reasoning") or decision.get("raw_response") or "").strip()
+    if not text:
+        return ""
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return ""
+    if len(lines) <= 2:
+        return "\n".join(lines)
+    return "\n".join(lines[-2:])
+
+
+def _render_decision_summary(
+    symbol: str,
+    decision: Dict[str, Any],
+    starting_capital: float,
+) -> None:
+    """Pretty-print compact portfolio + decision summary."""
+    decision_str = (decision.get("decision") or "HOLD").upper()
+    confidence = float(decision.get("confidence") or 0.0)
+    amount_usd = float(decision.get("amount_usd") or 0.0)
+
+    decision_color = {
+        "BUY": "green",
+        "SELL": "yellow",
+        "SHORT": "red",
+        "HOLD": "cyan",
+        "CLOSE": "magenta",
+    }.get(decision_str, "white")
+
+    table = Table(
+        title=f"Decision Summary • {symbol}",
+        box=box.ROUNDED,
+        show_edge=True,
+        expand=True,
+    )
+    table.add_column("Field", style="cyan", no_wrap=True)
+    table.add_column("Value", style="white")
+
+    table.add_row("Decision", f"[{decision_color}]{decision_str}[/{decision_color}]")
+    table.add_row("Confidence", f"{confidence:.1%}")
+    table.add_row("Amount (USD)", f"${amount_usd:,.2f}")
+    table.add_row("Starting Cash", f"${starting_capital:,.2f}")
+
+    reasoning_snippet = _two_line_summary(decision)
+    reasoning_panel = Panel(
+        reasoning_snippet or "[dim]No reasoning summary available.[/dim]",
+        title="LLM Summary (last lines)",
+        border_style="grey42",
+    )
+
+    console.print()
+    console.print(Panel(table, border_style="bright_magenta"))
+    console.print(reasoning_panel)
+    console.print()
+
+
+def _run_analysis_for_symbol(cfg: SessionConfig, symbol: str) -> None:
+    """Run ReasoningAgent.make_decision with a spinner and clean summary."""
+    if ReasoningAgent is None:
+        console.print(
+            Panel(
+                "ReasoningAgent could not be imported. "
+                "Make sure the core `custom_TradingBot` package is available.",
+                border_style="red",
+            )
+        )
+        return
+
+    symbol_clean = symbol.upper()
+    today = date.today()
+
+    # Minimal portfolio state – this CLI is display-only, not executing trades.
+    portfolio_state: Dict[str, Any] = {
+        "cash": cfg.starting_capital,
+        "positions": {},
+        "short_positions": {},
+        "last_prices": {},
+        "market_caps": {},
+        "realized_short_pnl": 0.0,
+        "unrealized_pnl": 0.0,
+    }
+
+    error_holder: Dict[str, Exception] = {}
+
+    def _worker() -> None:
+        try:
+            agent = ReasoningAgent(
+                data_dir=str(PROJECT_ROOT),
+                use_mcp_client=True,
+            )
+            with _suppress_prints():
+                # ReAct loop + MCP logs are suppressed, but prompts/decisions
+                # are still saved into reasoning_decisions on disk.
+                agent.make_decision(
+                    symbol=symbol_clean,
+                    current_date=today.isoformat(),
+                    portfolio_state=portfolio_state,
+                    execute_trade_after=False,
+                    current_price=None,
+                    max_tool_iterations=5,
+                )
+        except Exception as exc:  # noqa: BLE001
+            error_holder["error"] = exc
+
+    # Run the worker in a background thread while we show a spinner.
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
+
+    description = (
+        f"[bold magenta]Generating analysis for '{symbol_clean}'[/bold magenta]"
+    )
+
+    with Progress(
+        SpinnerColumn(style="bold magenta"),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+        console=console,
+    ) as progress:
+        task_id = progress.add_task(description, start=True)
+        while thread.is_alive():
+            time.sleep(0.1)
+            progress.refresh()
+        thread.join()
+        progress.update(task_id, completed=1.0)
+
+    if "error" in error_holder:
+        console.print(
+            Panel(
+                f"[red]Error while generating analysis for {symbol_clean}:[/red]\n"
+                f"{str(error_holder['error'])}",
+                border_style="red",
+                title="Run Error",
+            )
+        )
+        return
+
+    decision = _load_decision(symbol_clean, today)
+    if not decision:
+        console.print(
+            Panel(
+                f"[red]No decision file found for {symbol_clean} on {today.isoformat()}.[/red]\n"
+                "[dim]Check the `reasoning_decisions` folder for details.[/dim]",
+                border_style="red",
+                title="Decision Missing",
+            )
+        )
+        return
+
+    _render_decision_summary(symbol_clean, decision, cfg.starting_capital)
+
+
+def _simulate_launch(cfg: SessionConfig) -> None:
+    console.print()
+    console.print(
+        Panel(
+            Text(
+                "Launching LLM STOCK MANAGER...",
+                style="bold green",
+            ),
+            border_style="green",
+        )
+    )
+
+    steps = [
+        "Validating configuration",
+        "Initializing reasoning engine",
+        "Preparing portfolio state",
+    ]
+
+    for step in track(steps, description="Preparing session", transient=True):
+        _ = step  # noqa: F841
+
+    console.print()
+
+    # Run analysis for each symbol with a spinner and compact summary.
+    for sym in cfg.symbols:
+        _run_analysis_for_symbol(cfg, sym)
+
+
+def run_interactive() -> None:
+    os.system("clear" if os.name != "nt" else "cls")
+    _banner()
+
+    symbols = _prompt_symbols()
+    risk = _prompt_risk_level()
+    capital = _prompt_starting_capital()
+    trade_mode = _prompt_trade_mode()
+    run_mode = _prompt_run_mode()
+    notes = _prompt_notes()
+
+    cfg = SessionConfig(
+        symbols=symbols,
+        risk_level=risk,
+        starting_capital=capital,
+        trade_mode=trade_mode,
+        run_mode=run_mode,
+        notes=notes,
+    )
+
+    console.print()
+    if _review_config(cfg):
+        _simulate_launch(cfg)
+    else:
+        console.print(
+            Panel(
+                "Configuration cancelled. You can re‑run the launcher to start over.",
+                border_style="red",
+            )
+        )
+
+
+if __name__ == "__main__":
+    run_interactive()
+
+
