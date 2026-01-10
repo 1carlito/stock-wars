@@ -1,18 +1,22 @@
 """
-Technical_Tools.py: Technical indicator tools using OpenBB SDK
+Technical_Tools.py: Technical indicator tools using OpenBB SDK + FMP precomputed indicators.
 """
 
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 from functools import lru_cache
+import sys
+import os
+import requests
 from openbb import obb
 
 # Import helpers from utils module
-import sys
-import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
-from utils import openbb_tool_wrapper
+from utils import openbb_tool_wrapper, format_tool_result
+
+FMP_BASE_URL = "https://financialmodelingprep.com/stable"
+FMP_API_KEY = os.getenv("fmp_api_key")
 
 
 @lru_cache(maxsize=512)
@@ -34,8 +38,47 @@ def _fetch_price_data(symbol: str, start_date: str, end_date: str):
     """Helper function to fetch price data for technical indicators (with caching)."""
     price_result = _cached_price_history(symbol, start_date, end_date)
     if hasattr(price_result, "results") and price_result.results:
-        return price_result.results
+        results = price_result.results
+        # Prefer a DataFrame when available so we can de-duplicate and sort
+        if hasattr(results, "to_dataframe"):
+            df = results.to_dataframe()
+            # Drop duplicate index entries that can cause technical functions to fail
+            if not df.index.is_unique:
+                df = df[~df.index.duplicated(keep="last")]
+            df = df.sort_index()
+            return df
+
+        # Fallback: de-duplicate list-like data by date, if present
+        if isinstance(results, list):
+            seen_dates = set()
+            cleaned = []
+            for row in results:
+                date_val = None
+                if hasattr(row, "date"):
+                    date_val = getattr(row, "date")
+                elif isinstance(row, dict):
+                    date_val = row.get("date")
+                if date_val in seen_dates:
+                    continue
+                if date_val is not None:
+                    seen_dates.add(date_val)
+                cleaned.append(row)
+            return cleaned
+
+        return results
     raise ValueError(f"No price data returned for {symbol} from {start_date} to {end_date}")
+
+
+def _fmp_get(path: str, params: Dict[str, Any]) -> Any:
+    """Thin wrapper around FMP GET requests for technical indicators."""
+    if not FMP_API_KEY:
+        raise RuntimeError("fmp_api_key not set in environment for FMP technical tools")
+    q = dict(params)
+    q["apikey"] = FMP_API_KEY
+    url = f"{FMP_BASE_URL}{path}"
+    resp = requests.get(url, params=q, timeout=30)
+    resp.raise_for_status()
+    return resp.json()
 
 
 def register_technical_tools(mcp):
@@ -71,44 +114,6 @@ def register_technical_tools(mcp):
             data=price_data,
             target=target,
             length=length,
-        )
-    
-    @mcp.tool(name="calculate_macd")
-    @openbb_tool_wrapper("calculate_macd")
-    def calculate_macd(
-        symbol: str,
-        start_date: str,
-        end_date: str,
-        fast: int = 12,
-        slow: int = 26,
-        signal: int = 9,
-        target: str = "close"
-    ) -> Dict[str, Any]:
-        """
-        Calculate MACD (Moving Average Convergence Divergence) for a stock.
-        
-        Args:
-            symbol: Stock ticker symbol
-            start_date: Start date (YYYY-MM-DD) - required
-            end_date: End date (YYYY-MM-DD) - required
-            fast: Fast period (default: 12)
-            slow: Slow period (default: 26)
-            signal: Signal period (default: 9)
-            target: Target column name (default: "close")
-        
-        Returns:
-            Dict with MACD data
-        """
-        # Fetch price data first
-        price_data = _fetch_price_data(symbol, start_date, end_date)
-
-        # Calculate MACD on the price data
-        return obb.technical.macd(
-            data=price_data,
-            target=target,
-            fast=fast,
-            slow=slow,
-            signal=signal,
         )
     
     @mcp.tool(name="calculate_bbands")
@@ -318,21 +323,89 @@ def register_technical_tools(mcp):
     ) -> Dict[str, Any]:
         """
         Get current price for a stock. If current_date is provided, gets price as of that date.
-        
-        Args:
-            symbol: Stock ticker symbol
-            current_date: Date to get price for (YYYY-MM-DD), defaults to most recent
-        
-        Returns:
-            Dict with current price data
         """
         if current_date:
-            # Get price for specific date
             return obb.equity.price.historical(
                 symbol=symbol,
                 start_date=current_date,
                 end_date=current_date,
             )
-        # Get most recent price
         return obb.equity.price.quote(symbol=symbol)
+
+    # -----------------------------------------------------------------------
+    # FMP PRECOMPUTED TECHNICAL INDICATORS (RSI, EMA)
+    # -----------------------------------------------------------------------
+
+    @mcp.tool(name="get_fmp_rsi")
+    def get_fmp_rsi(
+        symbol: str,
+        start_date: str,
+        end_date: str,
+        period_length: int = 14,
+        timeframe: str = "1day",
+    ) -> Dict[str, Any]:
+        """
+        Get precomputed RSI from FMP technical-indicators API.
+        Uses /technical-indicators/rsi with from/to date range.
+        """
+        tool_name = "get_fmp_rsi"
+        try:
+            if not symbol:
+                raise ValueError("get_fmp_rsi requires a non-empty symbol")
+
+            sd = datetime.strptime(start_date, "%Y-%m-%d")
+            ed = datetime.strptime(end_date, "%Y-%m-%d")
+            if ed < sd:
+                sd, ed = ed, sd
+            # Clamp to max ~120 days window
+            if (ed - sd).days > 120:
+                sd = ed - timedelta(days=120)
+
+            params: Dict[str, Any] = {
+                "symbol": symbol.upper(),
+                "periodLength": int(period_length),
+                "timeframe": timeframe,
+                "from": sd.strftime("%Y-%m-%d"),
+                "to": ed.strftime("%Y-%m-%d"),
+            }
+            data = _fmp_get("/technical-indicators/rsi", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:  # noqa: BLE001
+            return format_tool_result(tool_name, error=e)
+
+    @mcp.tool(name="get_fmp_ema")
+    def get_fmp_ema(
+        symbol: str,
+        start_date: str,
+        end_date: str,
+        period_length: int = 50,
+        timeframe: str = "1day",
+    ) -> Dict[str, Any]:
+        """
+        Get precomputed EMA from FMP technical-indicators API.
+        Uses /technical-indicators/ema with from/to date range.
+        """
+        tool_name = "get_fmp_ema"
+        try:
+            if not symbol:
+                raise ValueError("get_fmp_ema requires a non-empty symbol")
+
+            sd = datetime.strptime(start_date, "%Y-%m-%d")
+            ed = datetime.strptime(end_date, "%Y-%m-%d")
+            if ed < sd:
+                sd, ed = ed, sd
+            if (ed - sd).days > 120:
+                sd = ed - timedelta(days=120)
+
+            params: Dict[str, Any] = {
+                "symbol": symbol.upper(),
+                "periodLength": int(period_length),
+                "timeframe": timeframe,
+                "from": sd.strftime("%Y-%m-%d"),
+                "to": ed.strftime("%Y-%m-%d"),
+            }
+            data = _fmp_get("/technical-indicators/ema", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:  # noqa: BLE001
+            return format_tool_result(tool_name, error=e)
 
