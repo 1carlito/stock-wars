@@ -533,17 +533,20 @@ class ReasoningAgent:
             tools_list += "\n".join([f"- {tool}" for tool in self.available_tools[:20]])
             if len(self.available_tools) > 20:
                 tools_list += f"\n... and {len(self.available_tools) - 20} more tools"
+            tools_list += "\n\nKey FMP technical tools (when available):\n- get_fmp_rsi\n- get_fmp_ema"
+            tools_list += "\n\nKey news tools (when available):\n- get_company_news\n- get_world_news"
             tools_list += "\n\nTo use a tool, format your request as:\nTOOL_CALL: tool_name(param1=value1, param2=value2)"
         else:
             tools_list = """You have access to the following analysis tools:
 - get_price_history(symbol, start_date, end_date)
 - calculate_rsi(symbol, start_date, end_date, length=14, target='close')
-- calculate_macd(symbol, start_date, end_date, fast=12, slow=26, signal=9, target='close')
+- get_fmp_rsi(symbol, start_date, end_date, period_length=14, timeframe='1day')
 - calculate_bbands(symbol, start_date, end_date, length=20, std=2.0, target='close')
 - calculate_atr(symbol, start_date, end_date, length=14)
 - calculate_obv(symbol, start_date, end_date)
 - calculate_adx(symbol, start_date, end_date, length=14)
 - calculate_ema(symbol, start_date, end_date, length=50, target='close')
+- get_fmp_ema(symbol, start_date, end_date, period_length=50, timeframe='1day')
 - calculate_cci(symbol, start_date, end_date, length=20)
 - get_current_price(symbol, current_date=None)
 - get_earnings_calendar(start_date, end_date, symbol=None, current_date=None)
@@ -574,7 +577,7 @@ You operate in TWO CLEAR STAGES:
 
 STAGE 1 - PLANNING (FIRST RESPONSE ONLY):
 - Carefully decide which tools you need and with what parameters.
-- For technical indicators: Use date ranges of 60-90 days for fetching price history.
+- For technical indicators: Use compact date ranges of ~60-90 days. These tools return pre-calculated indicator series (and may internally use longer price windows), so avoid redundant raw price-history calls unless you specifically need candles.
 - For fundamentals, request only as much history as you truly need.
 - For news, use short date windows and small limits.
 - Output ONLY tool calls in this format (no decision yet):
@@ -822,7 +825,6 @@ Avoid lookahead bias: do not use data from after {current_date}.
 
         tools_default_symbol = {
             "calculate_rsi",
-            "calculate_macd",
             "calculate_bbands",
             "calculate_atr",
             "calculate_obv",
@@ -831,6 +833,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "calculate_cci",
             "calculate_moving_averages",
             "calculate_volatility",
+            "get_fmp_rsi",
+            "get_fmp_ema",
             "get_price_history",
             "get_current_price",
             "get_income_statement",
@@ -854,7 +858,6 @@ Avoid lookahead bias: do not use data from after {current_date}.
 
         technical_indicators_needing_dates = [
             "calculate_rsi",
-            "calculate_macd",
             "calculate_bbands",
             "calculate_atr",
             "calculate_obv",
@@ -863,6 +866,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "calculate_cci",
             "calculate_moving_averages",
             "calculate_volatility",
+            "get_fmp_rsi",
+            "get_fmp_ema",
         ]
 
         if tool_name in technical_indicators_needing_dates:
@@ -906,6 +911,20 @@ Avoid lookahead bias: do not use data from after {current_date}.
             if limit > 50:
                 limit = 50
             arguments["limit"] = limit
+
+            # Clamp excessively wide ranges to the last 12 days ending at end_date
+            if "start_date" in arguments and "end_date" in arguments:
+                try:
+                    sd = datetime.strptime(str(arguments["start_date"]), "%Y-%m-%d")
+                    ed = datetime.strptime(str(arguments["end_date"]), "%Y-%m-%d")
+                    if ed < sd:
+                        sd, ed = ed, sd
+                    if (ed - sd).days > 12:
+                        sd = ed - timedelta(days=12)
+                        arguments["start_date"] = sd.strftime("%Y-%m-%d")
+                        arguments["end_date"] = ed.strftime("%Y-%m-%d")
+                except Exception:
+                    pass
 
         if current_date_dt and "end_date" in arguments:
             try:
@@ -965,7 +984,7 @@ Avoid lookahead bias: do not use data from after {current_date}.
                                     filtered.append(item)
                                     continue
                                 raw_date = None
-                                for key in ("date", "published_at", "datetime"):
+                                for key in ("date", "published_at", "publishedDate", "datetime"):
                                     value = item.get(key)
                                     if value:
                                         raw_date = str(value)[:10]

@@ -389,7 +389,7 @@ if __name__ == "__main__":
         print("📊 Available tools:")
         print("   - Fundamental tools (income, balance, cash flow, profile)")
         print("   - Valuation tools (price history, current price)")
-        print("   - Technical indicators (RSI, MACD, SMA, volatility)")
+        print("   - Technical indicators (RSI, SMA, volatility)")
         print("   - News tools (company and world headlines)")
         print("=" * 60)
         print("✅ Direct OpenBB SDK calls")

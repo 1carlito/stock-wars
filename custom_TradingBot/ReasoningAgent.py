@@ -582,18 +582,21 @@ class ReasoningAgent:
             tools_list += "\n".join([f"- {tool}" for tool in self.available_tools[:20]])  # Show first 20
             if len(self.available_tools) > 20:
                 tools_list += f"\n... and {len(self.available_tools) - 20} more tools"
+            tools_list += "\n\nKey FMP technical tools (when available):\n- get_fmp_rsi\n- get_fmp_ema"
+            tools_list += "\n\nKey news tools (when available):\n- get_company_news\n- get_world_news"
             tools_list += "\n\nTo use a tool, format your request as:\nTOOL_CALL: tool_name(param1=value1, param2=value2)"
         else:
             # Fallback: list predefined tools (note: actual tool schemas come from MCP discovery when available)
             tools_list = """You have access to the following analysis tools:
 - get_price_history(symbol, start_date, end_date)
 - calculate_rsi(symbol, start_date, end_date, length=14, target='close')
-- calculate_macd(symbol, start_date, end_date, fast=12, slow=26, signal=9, target='close')
+- get_fmp_rsi(symbol, start_date, end_date, period_length=14, timeframe='1day')
 - calculate_bbands(symbol, start_date, end_date, length=20, std=2.0, target='close')
 - calculate_atr(symbol, start_date, end_date, length=14)
 - calculate_obv(symbol, start_date, end_date)
 - calculate_adx(symbol, start_date, end_date, length=14)
 - calculate_ema(symbol, start_date, end_date, length=50, target='close')
+- get_fmp_ema(symbol, start_date, end_date, period_length=50, timeframe='1day')
 - calculate_cci(symbol, start_date, end_date, length=20)
 - get_current_price(symbol, current_date=None)
 - get_earnings_calendar(start_date, end_date, symbol=None, current_date=None)
@@ -614,7 +617,7 @@ You operate in TWO CLEAR STAGES:
 
 STAGE 1 - PLANNING (FIRST RESPONSE ONLY):
 - Carefully decide which tools you need and with what parameters.
-- For technical indicators: Use date ranges of 60-90 days for fetching price history. You can still use long indicator periods (e.g., 200-day EMA, 50-day EMA) - the period parameter is separate from the data range.
+- For technical indicators: Use compact date ranges of ~60-90 days. These tools return pre-calculated indicator series (and may internally use longer price windows), so avoid redundant raw price-history calls unless you specifically need candles.
 - For fundamentals, request only as much history as you truly need (for example: period='annual', limit=3).
 - For news, use short date windows (for example: the last 3-7 days) and small limits (for example: 20 headlines or fewer).
 - Only call news tools when technicals or fundamentals suggest a potential catalyst (earnings, gaps, abnormal volume, guidance changes, macro events, etc.).
@@ -628,7 +631,7 @@ STAGE 2 - ANALYSIS AND DECISION (AFTER YOU SEE TOOL RESULTS):
 
 Make sure to check for:
 1. Trend (EMA, ADX)
-2. Momentum (RSI, MACD, CCI)
+2. Momentum (RSI, CCI)
 3. Volatility (BBands, ATR)
 4. Volume (OBV)
 5. Fundamental events (Earnings) and health.
@@ -915,9 +918,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
         # Note: earnings_calendar now accepts optional symbol parameter for filtering
         # and some tools (like world news) do NOT take a symbol at all.
         tools_default_symbol = {
-            # Technical indicators
+            # Technical indicators (OpenBB & FMP)
             "calculate_rsi",
-            "calculate_macd",
             "calculate_bbands",
             "calculate_atr",
             "calculate_obv",
@@ -926,6 +928,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "calculate_cci",
             "calculate_moving_averages",
             "calculate_volatility",
+            "get_fmp_rsi",
+            "get_fmp_ema",
             # Price tools
             "get_price_history",
             "get_current_price",
@@ -957,10 +961,17 @@ Avoid lookahead bias: do not use data from after {current_date}.
         # NOTE: get_price_history requires explicit dates - don't auto-fill (returns raw data, can be huge)
         # Technical indicators can auto-fill because they return calculated summaries, not raw data
         technical_indicators_needing_dates = [
-            "calculate_rsi", "calculate_macd", 
-            "calculate_bbands", "calculate_atr", "calculate_obv",
-            "calculate_adx", "calculate_ema", "calculate_cci",
-            "calculate_moving_averages", "calculate_volatility"
+            "calculate_rsi",
+            "calculate_bbands",
+            "calculate_atr",
+            "calculate_obv",
+            "calculate_adx",
+            "calculate_ema",
+            "calculate_cci",
+            "calculate_moving_averages",
+            "calculate_volatility",
+            "get_fmp_rsi",
+            "get_fmp_ema",
         ]
         
         # For technical indicators, auto-fill dates if not provided (they return summaries, not raw data)
@@ -1015,6 +1026,21 @@ Avoid lookahead bias: do not use data from after {current_date}.
             if limit > 50:
                 limit = 50
             arguments["limit"] = limit
+
+            # Extra safety: FMP news search endpoints typically support short lookback windows.
+            # If the model supplies a very wide date range, clamp to the last 12 days ending at end_date.
+            if "start_date" in arguments and "end_date" in arguments:
+                try:
+                    sd = datetime.strptime(str(arguments["start_date"]), "%Y-%m-%d")
+                    ed = datetime.strptime(str(arguments["end_date"]), "%Y-%m-%d")
+                    if ed < sd:
+                        sd, ed = ed, sd
+                    if (ed - sd).days > 12:
+                        sd = ed - timedelta(days=12)
+                        arguments["start_date"] = sd.strftime("%Y-%m-%d")
+                        arguments["end_date"] = ed.strftime("%Y-%m-%d")
+                except Exception:
+                    pass
 
         # Clamp any provided end_date to current_date to avoid lookahead where applicable
         if current_date_dt and "end_date" in arguments:
@@ -1085,7 +1111,7 @@ Avoid lookahead bias: do not use data from after {current_date}.
 
                                 # Try multiple common date fields (for both price + news)
                                 raw_date = None
-                                for key in ("date", "published_at", "datetime"):
+                                for key in ("date", "published_at", "publishedDate", "datetime"):
                                     value = item.get(key)
                                     if value:
                                         # Truncate to YYYY-MM-DD if a full timestamp is provided
