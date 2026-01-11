@@ -19,9 +19,11 @@ import sys
 import json
 import time
 import asyncio
+import math
+import logging
 from dataclasses import dataclass, asdict
 from datetime import datetime, date, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from dotenv import load_dotenv
 
@@ -69,6 +71,51 @@ except Exception:  # pragma: no cover - if alpaca-py is not installed
 NY_TZ = ZoneInfo("America/New_York")
 
 
+# ============================================================================
+# STRUCTURED LOGGING SETUP
+# ============================================================================
+
+def _setup_logging(log_dir: Optional[str] = None) -> logging.Logger:
+    """
+    Initialize structured logging for live trading.
+    Logs to both console and a rotating daily log file.
+    """
+    if log_dir is None:
+        log_dir = os.path.dirname(os.path.abspath(__file__))
+
+    os.makedirs(log_dir, exist_ok=True)
+
+    # Create logger
+    logger_obj = logging.getLogger("live_trading")
+    logger_obj.setLevel(logging.DEBUG)
+
+    # Only add handlers if they don't already exist (prevent duplicates)
+    if not logger_obj.handlers:
+        # Console handler (INFO level)
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(logging.INFO)
+        console_formatter = logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
+        console_handler.setFormatter(console_formatter)
+
+        # File handler (DEBUG level)
+        log_file = os.path.join(log_dir, "live_trading.log")
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(logging.DEBUG)
+        file_formatter = logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(funcName)s:%(lineno)d - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
+        file_handler.setFormatter(file_formatter)
+
+        logger_obj.addHandler(console_handler)
+        logger_obj.addHandler(file_handler)
+
+    return logger_obj
+
+
 @dataclass
 class PortfolioState:
     """
@@ -111,6 +158,226 @@ class PortfolioState:
         )
 
 
+# ============================================================================
+# RETRY DECORATOR FOR API CALLS
+# ============================================================================
+
+def _retry_on_exception(max_retries: int = 3, wait_seconds: float = 2.0, backoff: float = 2.0):
+    """
+    Decorator for retrying failed API calls with exponential backoff.
+
+    Args:
+        max_retries: Maximum number of retry attempts
+        wait_seconds: Initial wait time between retries (in seconds)
+        backoff: Multiplier for wait time each retry (e.g., 2.0 = exponential backoff)
+    """
+    def decorator(func):
+        async def async_wrapper(*args, **kwargs):
+            last_exception = None
+            wait_time = wait_seconds
+
+            for attempt in range(max_retries):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    if attempt < max_retries - 1:
+                        _logger.warning(
+                            f"Attempt {attempt + 1}/{max_retries} failed for {func.__name__}: {e}. "
+                            f"Retrying in {wait_time:.1f}s..."
+                        )
+                        await asyncio.sleep(wait_time)
+                        wait_time *= backoff
+                    else:
+                        _logger.error(f"All {max_retries} attempts failed for {func.__name__}: {e}")
+
+            raise last_exception
+
+        def sync_wrapper(*args, **kwargs):
+            last_exception = None
+            wait_time = wait_seconds
+
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    if attempt < max_retries - 1:
+                        _logger.warning(
+                            f"Attempt {attempt + 1}/{max_retries} failed for {func.__name__}: {e}. "
+                            f"Retrying in {wait_time:.1f}s..."
+                        )
+                        time.sleep(wait_time)
+                        wait_time *= backoff
+                    else:
+                        _logger.error(f"All {max_retries} attempts failed for {func.__name__}: {e}")
+
+            raise last_exception
+
+        # Return appropriate wrapper based on function type
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        else:
+            return sync_wrapper
+
+    return decorator
+
+
+# ============================================================================
+# WATERFALL ALLOCATION (for multi-stock portfolio management)
+# ============================================================================
+
+def _waterfall_allocation(
+    decisions_list: List[Dict[str, Any]],
+    portfolio_state: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Waterfall allocation: Process decisions sequentially, updating cash after each trade.
+    Enforces strict 25% of remaining cash cap per trade.
+    Blocks new SHORT positions when cash < 25% of initial value.
+
+    Args:
+        decisions_list: List of trade decisions (each with symbol, action, amount_usd, etc.)
+        portfolio_state: Current portfolio state dict with cash, positions, last_prices, market_caps, etc.
+
+    Returns:
+        List of adjusted decisions with capped amounts and waterfall reasoning
+    """
+    available_cash = portfolio_state.get('cash', 0)
+    initial_value = portfolio_state.get('initial_value', 100000)
+    last_prices = portfolio_state.get('last_prices', {}) or {}
+    max_short_per_stock_pct = portfolio_state.get('max_short_per_stock_pct', 25)
+    short_cap_pct = min(0.25, (max_short_per_stock_pct or 25) / 100.0)
+
+    # Calculate 25% of initial value threshold
+    cash_threshold = initial_value * 0.25
+
+    # Separate decisions by action type for priority processing
+    close_decisions = [d for d in decisions_list if d.get('action', '').upper() in ('CLOSE', 'COVER', 'SELL')]
+    short_decisions = [d for d in decisions_list if d.get('action', '').upper() == 'SHORT']
+    buy_decisions = [d for d in decisions_list if d.get('action', '').upper() == 'BUY']
+    other_decisions = [d for d in decisions_list if d.get('action', '').upper() not in ('CLOSE', 'COVER', 'SELL', 'SHORT', 'BUY')]
+
+    # Build confidence map from decisions
+    confidence_map = {d.get('symbol'): d.get('confidence', 0.5) for d in decisions_list}
+    short_confidence_map = {d.get('symbol'): d.get('short_confidence', d.get('confidence', 0.5)) for d in decisions_list}
+
+    # Sort BUY and SHORT by confidence (higher first) - highest conviction trades first
+    buy_decisions.sort(key=lambda x: confidence_map.get(x.get('symbol'), 0.5), reverse=True)
+    short_decisions.sort(key=lambda x: short_confidence_map.get(x.get('symbol'), 0.5), reverse=True)
+
+    remaining_cash = available_cash
+    final_decisions = []
+
+    # Process CLOSE/COVER/SELL first (these generate cash)
+    for decision in close_decisions:
+        final_decisions.append(decision)
+
+    # Process SHORT decisions
+    if available_cash < cash_threshold:
+        # Block all SHORT decisions when cash is below threshold
+        for decision in short_decisions:
+            decision['amount_usd'] = 0
+            decision['reasoning'] = f"{decision.get('reasoning', '')} (blocked: cash ${available_cash:,.2f} < 25% of initial ${cash_threshold:,.2f})"
+            decision['action'] = 'NEUTRAL'
+        final_decisions.extend(short_decisions)
+    else:
+        # Normal SHORT processing with waterfall capping
+        for decision in short_decisions:
+            symbol = decision.get('symbol')
+            requested_amount = abs(float(decision.get('amount_usd', 0) or 0))
+            price = last_prices.get(symbol, 0)
+
+            if price <= 0:
+                continue
+
+            # Calculate cap: 25% of remaining cash (further limited by max_short_per_stock_pct)
+            cap = min(remaining_cash * 0.25, remaining_cash * short_cap_pct)
+            capped_amount = min(requested_amount, cap)
+
+            if capped_amount < price:
+                continue  # Skip if can't afford 1 share
+
+            shares = int(capped_amount // price)
+            if shares < 1:
+                continue
+
+            final_amount = shares * price
+
+            # Calculate spread fee (matching execute_trade formula)
+            market_cap_bil = 10  # fallback
+            mcaps = portfolio_state.get('market_caps', {})
+            if symbol in mcaps:
+                try:
+                    mcval = float(mcaps[symbol])
+                    if mcval > 0:
+                        market_cap_bil = mcval
+                except Exception:
+                    pass
+
+            # Spread rate: 0.0006 + 0.0010 + (1.0 / sqrt(market_cap_bil))
+            base_rate = 0.0006 + 0.0010
+            spread_rate = base_rate + (1.0 / math.sqrt(market_cap_bil))
+            spread_fee = final_amount * spread_rate
+
+            # If trade would cause overspend, reduce or skip
+            if final_amount + spread_fee > remaining_cash:
+                shares = int(remaining_cash // (price * (1 + spread_rate)))
+                if shares < 1:
+                    continue
+                final_amount = shares * price
+                spread_fee = final_amount * spread_rate
+
+            decision['amount_usd'] = final_amount
+            decision['reasoning'] = f"{decision.get('reasoning', '')} (waterfall: ${final_amount:,.2f}, {shares} shares, spread_fee: ${spread_fee:,.2f})"
+            final_decisions.append(decision)
+
+            # Deduct from remaining cash
+            remaining_cash -= (final_amount + spread_fee)
+
+    # Process BUY decisions
+    for decision in buy_decisions:
+        symbol = decision.get('symbol')
+        requested_amount = abs(float(decision.get('amount_usd', 0) or 0))
+        price = last_prices.get(symbol, 0)
+
+        if price <= 0:
+            continue
+
+        # Calculate cap: 25% of remaining cash
+        buy_cap = remaining_cash * 0.25
+
+        # Cap the requested amount
+        capped_amount = min(requested_amount, buy_cap)
+
+        # Ensure at least 1 share
+        if capped_amount < price:
+            continue  # Skip if can't afford 1 share
+
+        # Round down to whole shares
+        shares = int(capped_amount // price)
+        if shares < 1:
+            continue
+
+        final_amount = shares * price
+
+        # Update remaining cash
+        remaining_cash -= final_amount
+
+        decision['amount_usd'] = final_amount
+        decision['reasoning'] = f"{decision.get('reasoning', '')} (waterfall: ${final_amount:,.2f}, {shares} shares)"
+        final_decisions.append(decision)
+
+    # Add other decisions (NEUTRAL, MAINTAIN, etc.)
+    final_decisions.extend(other_decisions)
+
+    return final_decisions
+
+
+# Initialize global logger
+_logger = _setup_logging()
+
+
 _ALPACA_CLIENT: Optional["TradingClient"] = None
 
 
@@ -139,15 +406,15 @@ def _get_alpaca_client() -> Optional["TradingClient"]:
     api_secret = os.getenv("ALPACA_API_SECRET")
 
     if not api_key or not api_secret:
-        print("⚠️  ALPACA_ENABLED is true but ALPACA_API_KEY / ALPACA_API_SECRET are missing; skipping Alpaca execution.")
+        _logger.warning("⚠️  ALPACA_ENABLED is true but ALPACA_API_KEY / ALPACA_API_SECRET are missing; skipping Alpaca execution.")
         return None
-    
+
     # Check if user accidentally put the base URL in ALPACA_API_KEY
     if api_key.startswith("http://") or api_key.startswith("https://"):
-        print("⚠️  ALPACA_API_KEY appears to be a URL, not an API key token.")
-        print("   ALPACA_API_KEY should be your actual API key (token string), not the base URL.")
-        print("   The base URL is automatically set based on ALPACA_PAPER setting.")
-        print("   Skipping Alpaca execution.")
+        _logger.warning("⚠️  ALPACA_API_KEY appears to be a URL, not an API key token.")
+        _logger.warning("   ALPACA_API_KEY should be your actual API key (token string), not the base URL.")
+        _logger.warning("   The base URL is automatically set based on ALPACA_PAPER setting.")
+        _logger.warning("   Skipping Alpaca execution.")
         return None
 
     # Default to paper trading unless explicitly set to a live-like value
@@ -157,22 +424,22 @@ def _get_alpaca_client() -> Optional["TradingClient"]:
     try:
         _ALPACA_CLIENT = TradingClient(api_key=api_key, secret_key=api_secret, paper=paper)
         mode = "paper" if paper else "live"
-        
+
         # Test the connection by fetching account info
         try:
             account = _ALPACA_CLIENT.get_account()
-            print(f"🦙 Alpaca client initialised ({mode} mode).")
-            print(f"   Account: {account.account_number} | Buying Power: ${float(account.buying_power):,.2f}")
+            _logger.info(f"🦙 Alpaca client initialised ({mode} mode).")
+            _logger.info(f"   Account: {account.account_number} | Buying Power: ${float(account.buying_power):,.2f}")
         except Exception as auth_exc:  # noqa: BLE001
-            print(f"❌ Alpaca authentication failed: {auth_exc}")
-            print(f"   Please verify your API keys are correct for {mode} trading.")
-            print(f"   Paper trading keys are different from live trading keys.")
-            print(f"   Get your keys from: https://app.alpaca.markets/paper/dashboard/overview")
+            _logger.error(f"❌ Alpaca authentication failed: {auth_exc}")
+            _logger.error(f"   Please verify your API keys are correct for {mode} trading.")
+            _logger.error(f"   Paper trading keys are different from live trading keys.")
+            _logger.error(f"   Get your keys from: https://app.alpaca.markets/paper/dashboard/overview")
             _ALPACA_CLIENT = None
             return None
-            
+
     except Exception as exc:  # noqa: BLE001
-        print(f"❌ Failed to create Alpaca TradingClient: {exc}")
+        _logger.error(f"❌ Failed to create Alpaca TradingClient: {exc}")
         _ALPACA_CLIENT = None
 
     return _ALPACA_CLIENT
@@ -211,7 +478,7 @@ def _maybe_execute_with_alpaca(
     trade_details = trade_exec.get("trade_details") or {}
     current_price = trade_details.get("price")
 
-    print(
+    _logger.info(
         f"🦙 Alpaca hook | date={trade_date.isoformat()} symbol={symbol} "
         f"decision={decision} amount_usd={amount_usd} price={current_price}"
     )
@@ -219,12 +486,12 @@ def _maybe_execute_with_alpaca(
     # BUY / SHORT: simple market order, sized by amount_usd
     if decision in {"BUY", "SHORT"}:
         if amount_usd <= 0 or not current_price or current_price <= 0:
-            print("⚠️  Alpaca: missing amount or price for BUY/SHORT; skipping broker order.")
+            _logger.warning("⚠️  Alpaca: missing amount or price for BUY/SHORT; skipping broker order.")
             return
 
         qty = int(amount_usd // float(current_price))
         if qty <= 0:
-            print("⚠️  Alpaca: computed quantity is 0; skipping broker order.")
+            _logger.warning("⚠️  Alpaca: computed quantity is 0; skipping broker order.")
             return
 
         side = OrderSide.BUY if decision == "BUY" else OrderSide.SELL
@@ -237,23 +504,23 @@ def _maybe_execute_with_alpaca(
                 time_in_force=TimeInForce.DAY,
             )
             order = client.submit_order(order_data=order_req)
-            print(f"✅ Alpaca market {decision} submitted: {order}")
+            _logger.info(f"✅ Alpaca market {decision} submitted: {order}")
         except Exception as exc:  # noqa: BLE001
             error_msg = str(exc)
-            print(f"❌ Alpaca {decision} order failed: {error_msg}")
+            _logger.error(f"❌ Alpaca {decision} order failed: {error_msg}")
             if "401" in error_msg or "not authorized" in error_msg.lower():
-                print("   ⚠️  Authentication error - please verify your API keys are correct.")
-                print("   ⚠️  Make sure you're using PAPER trading keys (not live trading keys).")
-                print("   ⚠️  Get paper keys from: https://app.alpaca.markets/paper/dashboard/overview")
+                _logger.error("   ⚠️  Authentication error - please verify your API keys are correct.")
+                _logger.error("   ⚠️  Make sure you're using PAPER trading keys (not live trading keys).")
+                _logger.error("   ⚠️  Get paper keys from: https://app.alpaca.markets/paper/dashboard/overview")
         return
 
     # SELL / CLOSE: let Alpaca work out the size by closing the position
     if decision in {"SELL", "CLOSE"}:
         try:
             order = client.close_position(symbol)
-            print(f"✅ Alpaca close position submitted for {symbol}: {order}")
+            _logger.info(f"✅ Alpaca close position submitted for {symbol}: {order}")
         except Exception as exc:  # noqa: BLE001
-            print(f"❌ Alpaca close_position failed for {symbol}: {exc}")
+            _logger.error(f"❌ Alpaca close_position failed for {symbol}: {exc}")
         return
 
 
@@ -270,38 +537,63 @@ def _portfolio_history_path() -> str:
     return os.path.join(_get_live_trade_dir(), "portfolio_history.jsonl")
 
 
+@_retry_on_exception(max_retries=3, wait_seconds=1.0)
 def load_portfolio_state(starting_capital: Optional[float] = None) -> PortfolioState:
+    """Load portfolio state from disk with retry logic."""
     path = _portfolio_state_path()
     if not os.path.exists(path):
         # First run: start with provided starting_capital or default
         initial_cash = starting_capital if starting_capital is not None else 50.0
         state = PortfolioState(cash=initial_cash)
-        print(f"📁 No existing portfolio_state.json found. Initializing new state with cash={state.cash}.")
+        _logger.info(f"📁 No existing portfolio_state.json found. Initializing new state with cash={state.cash}.")
         save_portfolio_state(state)
         return state
 
     with open(path, "r") as f:
         data = json.load(f)
     state = PortfolioState.from_dict(data)
-    
+
     # If starting_capital provided and current cash is default (50.0), update it
     if starting_capital is not None and state.cash == 50.0 and not state.positions and not state.short_positions:
         state.cash = starting_capital
         save_portfolio_state(state)
-        print(f"📁 Updated portfolio_state.json with starting_capital={starting_capital:.2f}")
-    
-    print(
+        _logger.info(f"📁 Updated portfolio_state.json with starting_capital={starting_capital:.2f}")
+
+    _logger.info(
         f"📁 Loaded portfolio_state.json | cash={state.cash:.2f}, "
         f"positions={len(state.positions)}, shorts={len(state.short_positions)}"
     )
     return state
 
 
+@_retry_on_exception(max_retries=3, wait_seconds=1.0)
 def save_portfolio_state(state: PortfolioState) -> None:
+    """
+    Atomically save portfolio state to disk using a temporary file + rename pattern.
+    This prevents data corruption if the process crashes mid-write.
+    """
     path = _portfolio_state_path()
-    with open(path, "w") as f:
-        json.dump(state.to_dict(), f, indent=2)
-    print(f"💾 Saved portfolio_state.json | cash={state.cash:.2f}")
+    temp_path = f"{path}.tmp"
+
+    try:
+        # Write to temporary file first
+        with open(temp_path, "w") as f:
+            json.dump(state.to_dict(), f, indent=2)
+
+        # Atomic rename (works on all platforms)
+        import shutil
+        shutil.move(temp_path, path)
+
+        _logger.info(f"💾 Saved portfolio_state.json | cash={state.cash:.2f}")
+    except Exception as e:
+        _logger.error(f"❌ Failed to save portfolio_state.json: {e}")
+        # Clean up temp file if it exists
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except Exception:
+            pass
+        raise
 
 
 def compute_portfolio_equity(state: PortfolioState) -> float:
@@ -347,7 +639,7 @@ def append_portfolio_history(
 
     equity = compute_portfolio_equity(state)
     record = {
-        "timestamp_utc": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "timestamp_utc": datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "trade_date": trade_date.isoformat(),
         "symbol": symbol,
         "total_equity": equity,
@@ -365,7 +657,7 @@ def append_portfolio_history(
     with open(path, "a") as f:
         f.write(json.dumps(record) + "\n")
 
-    print(
+    _logger.info(
         f"📈 Logged portfolio history for {symbol} on {trade_date} | "
         f"equity={equity:.2f}, cash={state.cash:.2f}"
     )
@@ -403,9 +695,9 @@ async def run_single_trading_cycle(
     """
     Execute one full decision + trade cycle for a single symbol on a given date.
     """
-    print("=" * 80)
-    print(f"🚀 Live trading cycle for {symbol} on {trade_date.isoformat()}")
-    print("=" * 80)
+    _logger.info("=" * 80)
+    _logger.info(f"🚀 Live trading cycle for {symbol} on {trade_date.isoformat()}")
+    _logger.info("=" * 80)
 
     # 1. Load portfolio state (initialize with starting_capital if provided)
     state = load_portfolio_state(starting_capital=starting_capital)
@@ -448,13 +740,13 @@ async def run_single_trading_cycle(
     # 8. Optionally mirror the trade to Alpaca (paper account)
     _maybe_execute_with_alpaca(symbol, trade_date, decision_result)
 
-    print("=" * 80)
-    print(
+    _logger.info("=" * 80)
+    _logger.info(
         f"✅ Trading cycle complete for {symbol} on {trade_date.isoformat()} | "
         f"decision={decision_result.get('decision')} "
         f"amount={decision_result.get('amount_usd')}"
     )
-    print("=" * 80)
+    _logger.info("=" * 80)
 
 
 def run_daemon(
@@ -470,14 +762,14 @@ def run_daemon(
     - Runs one trading cycle.
     - Repeats indefinitely.
     """
-    print(f"📡 Live trading daemon starting for symbol={symbol}")
-    print("   Schedule: once per trading day at 15:00 America/New_York (1 hour before US close)")
+    _logger.info(f"📡 Live trading daemon starting for symbol={symbol}")
+    _logger.info("   Schedule: once per trading day at 15:00 America/New_York (1 hour before US close)")
     while True:
         now = datetime.now(tz=NY_TZ)
         next_run = get_next_run_time(now)
         seconds_until = (next_run - now).total_seconds()
 
-        print(
+        _logger.info(
             f"⏰ Current NY time: {now.isoformat(timespec='seconds')}, "
             f"next run at: {next_run.isoformat(timespec='seconds')} "
             f"({seconds_until:.0f}s from now)"
@@ -506,7 +798,7 @@ def run_once(
     uses the current America/New_York calendar date.
     """
     trade_date = datetime.now(tz=NY_TZ).date()
-    print(
+    _logger.info(
         f"🏁 One‑shot mode: running trading cycle for {symbol} on "
         f"{trade_date.isoformat()} (NY date)"
     )

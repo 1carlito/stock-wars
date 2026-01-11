@@ -22,6 +22,8 @@ import json
 import time
 import threading
 import contextlib
+import subprocess
+import asyncio
 from dataclasses import dataclass, asdict
 from datetime import date, datetime
 from typing import List, Literal, Dict, Any
@@ -40,17 +42,26 @@ from rich.progress import track, Progress, SpinnerColumn, TextColumn
 
 console = Console()
 
-
-# Wire in the core ReasoningAgent (non-live_trade) so this CLI can drive analysis
+# Wire in the live_trade module for accessing functions
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CORE_AGENT_DIR = PROJECT_ROOT / "custom_TradingBot"
+LIVE_TRADE_DIR = CORE_AGENT_DIR / "live_trade"
+
 if str(CORE_AGENT_DIR) not in sys.path:
     sys.path.insert(0, str(CORE_AGENT_DIR))
+if str(LIVE_TRADE_DIR) not in sys.path:
+    sys.path.insert(0, str(LIVE_TRADE_DIR))
 
 try:
     from ReasoningAgent import ReasoningAgent  # type: ignore
 except Exception as import_exc:  # pragma: no cover - defensive import
     ReasoningAgent = None  # type: ignore[assignment]
+
+try:
+    from live_trading_loop import run_once, run_daemon  # type: ignore
+    LIVE_TRADING_AVAILABLE = True
+except Exception:  # pragma: no cover
+    LIVE_TRADING_AVAILABLE = False
 
 
 RiskLevel = Literal["low", "medium", "high"]
@@ -147,12 +158,17 @@ def _render_header() -> Panel:
 
 def _render_footer() -> Panel:
     footer_text = Text()
-    footer_text.append("Tip: ", style="bold cyan")
-    footer_text.append(
-        "This interface is UI-only right now.\n"
-        "Once wired up, these settings will feed directly into the live agent.",
-        style="dim",
-    )
+    footer_text.append("Status: ", style="bold cyan")
+    if LIVE_TRADING_AVAILABLE:
+        footer_text.append(
+            "Connected to live trading backend. Settings will feed directly into the live agent.",
+            style="dim green",
+        )
+    else:
+        footer_text.append(
+            "Live trading backend not available. Analysis mode only.",
+            style="dim yellow",
+        )
     return Panel(footer_text, border_style="grey42")
 
 
@@ -301,6 +317,32 @@ def _suppress_prints() -> None:
     finally:
         sys.stdout = original_stdout
         sys.stderr = original_stderr
+
+
+def _config_file_path() -> Path:
+    """Path to saved configuration file."""
+    return LIVE_TRADE_DIR / "session_config.json"
+
+
+def _save_config(cfg: SessionConfig) -> None:
+    """Save configuration to disk."""
+    config_path = _config_file_path()
+    with open(config_path, "w") as f:
+        json.dump(asdict(cfg), f, indent=2)
+    console.print(f"[dim]Configuration saved to {config_path}[/dim]")
+
+
+def _load_config() -> SessionConfig | None:
+    """Load configuration from disk if it exists."""
+    config_path = _config_file_path()
+    if not config_path.exists():
+        return None
+    try:
+        with open(config_path, "r") as f:
+            data = json.load(f)
+        return SessionConfig(**data)
+    except Exception:
+        return None
 
 
 def _reasoning_decisions_dir() -> Path:
@@ -473,6 +515,7 @@ def _run_analysis_for_symbol(cfg: SessionConfig, symbol: str) -> None:
 
 
 def _simulate_launch(cfg: SessionConfig) -> None:
+    """Launch the live trading agent with the configured settings."""
     console.print()
     console.print(
         Panel(
@@ -495,9 +538,87 @@ def _simulate_launch(cfg: SessionConfig) -> None:
 
     console.print()
 
-    # Run analysis for each symbol with a spinner and compact summary.
-    for sym in cfg.symbols:
-        _run_analysis_for_symbol(cfg, sym)
+    # Save configuration for the live trading backend
+    _save_config(cfg)
+
+    if not LIVE_TRADING_AVAILABLE:
+        console.print(
+            Panel(
+                "[red]Live trading backend not available.[/red]\n"
+                "Running analysis mode only (no actual trading).",
+                border_style="yellow",
+            )
+        )
+        # Run analysis for each symbol with a spinner and compact summary.
+        for sym in cfg.symbols:
+            _run_analysis_for_symbol(cfg, sym)
+        return
+
+    console.print()
+    console.print(
+        Panel(
+            f"[bold cyan]Configuration Summary:[/bold cyan]\n"
+            f"• Symbols: {', '.join(cfg.symbols)}\n"
+            f"• Risk Level: {cfg.risk_level}\n"
+            f"• Starting Capital: ${cfg.starting_capital:,.2f}\n"
+            f"• Trade Mode: {cfg.trade_mode}\n"
+            f"• Run Mode: {cfg.run_mode}",
+            border_style="cyan",
+            title="Live Trading Configuration",
+        )
+    )
+
+    # Launch the live trading backend
+    try:
+        # Run the first symbol in once mode for preview
+        if cfg.symbols:
+            first_symbol = cfg.symbols[0]
+            console.print()
+            console.print(
+                f"[bold yellow]Launching live trading for: {first_symbol}[/bold yellow]"
+            )
+
+            if cfg.run_mode == "daemon":
+                console.print(
+                    Panel(
+                        "[bold cyan]Daemon Mode:[/bold cyan]\n"
+                        f"The agent will trade {first_symbol} once per trading day at 15:00 ET.\n"
+                        "[yellow]Press Ctrl+C to stop the daemon.[/yellow]",
+                        border_style="cyan",
+                    )
+                )
+                run_daemon(
+                    symbol=first_symbol,
+                    starting_capital=cfg.starting_capital,
+                    risk_level=cfg.risk_level,
+                    notes=cfg.notes,
+                )
+            else:  # once mode
+                console.print("[bold cyan]Running one-shot trading cycle...[/bold cyan]")
+                run_once(
+                    symbol=first_symbol,
+                    starting_capital=cfg.starting_capital,
+                    risk_level=cfg.risk_level,
+                    notes=cfg.notes,
+                )
+                console.print(
+                    Panel(
+                        "[bold green]One-shot trading cycle complete![/bold green]\n"
+                        f"Check the [cyan]live_trade/[/cyan] folder for results.",
+                        border_style="green",
+                    )
+                )
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Daemon interrupted by user.[/yellow]")
+    except Exception as exc:
+        console.print(
+            Panel(
+                f"[red]Error launching live trading:[/red]\n{str(exc)}",
+                border_style="red",
+                title="Launch Error",
+            )
+        )
 
 
 def run_interactive() -> None:
