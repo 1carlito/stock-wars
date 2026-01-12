@@ -1,0 +1,12 @@
+{
+  "symbols": [
+    "AAPL",
+    "MSFT",
+    "AVGO"
+  ],
+  "risk_level": "high",
+  "starting_capital": 100000.0,
+  "trade_mode": "paper",
+  "run_mode": "once",
+  "notes": ""
+}

@@ -22,7 +22,7 @@ import asyncio
 import math
 import logging
 from dataclasses import dataclass, asdict
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from typing import Dict, Any, Optional, List
 
 from dotenv import load_dotenv
@@ -639,7 +639,7 @@ def append_portfolio_history(
 
     equity = compute_portfolio_equity(state)
     record = {
-        "timestamp_utc": datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "trade_date": trade_date.isoformat(),
         "symbol": symbol,
         "total_equity": equity,

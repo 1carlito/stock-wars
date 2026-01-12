@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-01-11T22:55:40.648602",
+  "data": {
+    "id": "069642a6-ca5c-7886-8000-3228b75c72b3",
+    "results": [
+      {
+        "date": "2026-01-02",
+        "open": 272.05,
+        "high": 277.84,
+        "low": 269.0,
+        "close": 271.01,
+        "volume": 37838054,
+        "vwap": null,
+        "calls_volume": null,
+        "puts_volume": null,
+        "total_options_volume": null
+      },
+      {
+        "date": "2026-01-05",
+        "open": 270.64,
+        "high": 271.51,
+        "low": 266.14,
+        "close": 267.26,
+        "volume": 45647190,
+        "vwap": null,
+        "calls_volume": null,
+        "puts_volume": null,
+        "total_options_volume": null
+      },
+      {
+        "date": "2026-01-06",
+        "open": 267.0,
+        "high": 267.55,
+        "low": 262.12,
+        "close": 262.36,
+        "volume": 52352090,
+        "vwap": null,
+        "calls_volume": null,
+        "puts_volume": null,
+        "total_options_volume": null
+      },
+      {
+        "date": "2026-01-07",
+        "open": 263.25,
+        "high": 263.68,
+        "low": 259.81,
+        "close": 260.33,
+        "volume": 48309804,
+        "vwap": null,
+        "calls_volume": null,
+        "puts_volume": null,
+        "total_options_volume": null
+      },
+      {
+        "date": "2026-01-08",
+        "open": 257.02,
+        "high": 259.29,
+        "low": 255.7,
+        "close": 259.04,
+        "volume": 50419337,
+        "vwap": null,
+        "calls_volume": null,
+        "puts_volume": null,
+        "total_options_volume": null
+      }
+    ],
+    "provider": "cboe",
+    "warnings": null,
+    "chart": null,
+    "extra": {
+      "metadata": {
+        "arguments": {
+          "provider_choices": {
+            "provider": "cboe"
+          },
+          "standard_params": {
+            "symbol": "AAPL",
+            "start_date": "2026-01-01",
+            "end_date": "2026-01-10"
+          },
+          "extra_params": {}
+        },
+        "duration": 246939250,
+        "route": "/equity/price/historical",
+        "timestamp": "2026-01-11 22:55:40.400698"
+      }
+    }
+  }
+}
