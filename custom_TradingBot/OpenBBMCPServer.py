@@ -84,20 +84,24 @@ try:
     fundamental_tools_path = os.path.join(tools_dir, "Fundamental_Tools.py")
     technical_tools_path = os.path.join(tools_dir, "Technical_Tools.py")
     news_tools_path = os.path.join(tools_dir, "News_Tools.py")
-    
+    sector_tools_path = os.path.join(tools_dir, "Sector_Tools.py")
+
     Fundamental_Tools = load_module_from_path("Fundamental_Tools", fundamental_tools_path)
     Technical_Tools = load_module_from_path("Technical_Tools", technical_tools_path)
     News_Tools = load_module_from_path("News_Tools", news_tools_path)
-    
+    Sector_Tools = load_module_from_path("Sector_Tools", sector_tools_path)
+
     register_fundamental_tools = Fundamental_Tools.register_fundamental_tools
     register_technical_tools = Technical_Tools.register_technical_tools
     register_news_tools = News_Tools.register_news_tools
+    register_sector_tools = Sector_Tools.register_sector_tools
 
 except Exception as e:
     print(f"⚠️  Tool modules not available: {e}")
     register_fundamental_tools = None
     register_technical_tools = None
     register_news_tools = None
+    register_sector_tools = None
 # ============================================================================
 # TRADE EXECUTION TOOL - Extracted from ParallelOrchestrator
 # MCP tool for executing trades and updating portfolio state
@@ -377,10 +381,11 @@ if mcp:
         except Exception as e:  # noqa: BLE001 - surface registration issues in logs
             print(f"⚠️  Failed to register {module_name}: {e}")
         
-    # Register fundamental, technical, and news tools
+    # Register fundamental, technical, news, and sector tools
     _register_tool_module(register_fundamental_tools, "fundamental analysis tools")
     _register_tool_module(register_technical_tools, "technical analysis tools")
     _register_tool_module(register_news_tools, "news tools")
+    _register_tool_module(register_sector_tools, "sector analysis tools")
 
 
 if __name__ == "__main__":

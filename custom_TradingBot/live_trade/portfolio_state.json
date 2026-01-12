@@ -1,0 +1,17 @@
+{
+  "cash": -22483.28,
+  "positions": {
+    "AAPL": {
+      "shares": 100,
+      "avg_price": 250.0
+    }
+  },
+  "short_positions": {},
+  "last_prices": {
+    "AAPL": 267.26
+  },
+  "market_caps": {},
+  "realized_short_pnl": 0.0,
+  "unrealized_pnl": 0.0,
+  "last_run_date": "2026-01-12"
+}
