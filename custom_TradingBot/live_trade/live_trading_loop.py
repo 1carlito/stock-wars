@@ -786,7 +786,8 @@ def run_daemon(
 
 
 def run_once(
-    symbol: str,
+    symbol: Optional[str] = None,
+    symbols: Optional[List[str]] = None,
     starting_capital: Optional[float] = None,
     risk_level: str = "medium",
     notes: str = "",
@@ -794,15 +795,41 @@ def run_once(
     """
     Run a single trading cycle "now" for today's NY date.
 
+    Supports both single-stock (backward compatible) and multi-stock modes.
+    - If symbols list provided, uses PortfolioOrchestrator for parallel processing
+    - If single symbol provided, uses single-stock trading cycle
+
     Useful for cron or manual testing. Does not check the clock, it just
     uses the current America/New_York calendar date.
     """
+    from portfolio_orchestrator import PortfolioOrchestrator
+
     trade_date = datetime.now(tz=NY_TZ).date()
-    _logger.info(
-        f"🏁 One‑shot mode: running trading cycle for {symbol} on "
-        f"{trade_date.isoformat()} (NY date)"
-    )
-    asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, risk_level, notes))
+
+    # Determine which symbols to trade
+    symbols_to_trade = symbols if symbols else ([symbol] if symbol else ["AAPL"])
+
+    if len(symbols_to_trade) > 1:
+        # Multi-stock mode: use PortfolioOrchestrator
+        _logger.info(
+            f"🏁 One‑shot mode: running multi-stock portfolio cycle for "
+            f"{', '.join(symbols_to_trade)} on {trade_date.isoformat()} (NY date)"
+        )
+        orchestrator = PortfolioOrchestrator(
+            symbols=symbols_to_trade,
+            starting_capital=starting_capital or 50000,
+            risk_level=risk_level,
+            max_parallel=min(5, len(symbols_to_trade))
+        )
+        asyncio.run(orchestrator.process_portfolio(trade_date))
+    else:
+        # Single-stock mode: backward compatible
+        single_symbol = symbols_to_trade[0]
+        _logger.info(
+            f"🏁 One‑shot mode: running trading cycle for {single_symbol} on "
+            f"{trade_date.isoformat()} (NY date)"
+        )
+        asyncio.run(run_single_trading_cycle(single_symbol, trade_date, starting_capital, risk_level, notes))
 
 
 def _parse_args(argv: Optional[list] = None):

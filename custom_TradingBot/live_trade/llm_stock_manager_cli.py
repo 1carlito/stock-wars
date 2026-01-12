@@ -570,19 +570,22 @@ def _simulate_launch(cfg: SessionConfig) -> None:
 
     # Launch the live trading backend
     try:
-        # Run the first symbol in once mode for preview
+        # Run all symbols (multi-stock or single-stock)
         if cfg.symbols:
-            first_symbol = cfg.symbols[0]
+            symbols_str = ", ".join(cfg.symbols)
             console.print()
             console.print(
-                f"[bold yellow]Launching live trading for: {first_symbol}[/bold yellow]"
+                f"[bold yellow]Launching live trading for: {symbols_str}[/bold yellow]"
             )
 
             if cfg.run_mode == "daemon":
+                # Daemon mode: only trade first symbol (scheduler limitation)
+                first_symbol = cfg.symbols[0]
                 console.print(
                     Panel(
                         "[bold cyan]Daemon Mode:[/bold cyan]\n"
                         f"The agent will trade {first_symbol} once per trading day at 15:00 ET.\n"
+                        "[yellow]Note: Daemon mode supports single stock. For multi-stock, use 'once' mode.[/yellow]\n"
                         "[yellow]Press Ctrl+C to stop the daemon.[/yellow]",
                         border_style="cyan",
                     )
@@ -596,7 +599,7 @@ def _simulate_launch(cfg: SessionConfig) -> None:
             else:  # once mode
                 console.print("[bold cyan]Running one-shot trading cycle...[/bold cyan]")
                 run_once(
-                    symbol=first_symbol,
+                    symbols=cfg.symbols,
                     starting_capital=cfg.starting_capital,
                     risk_level=cfg.risk_level,
                     notes=cfg.notes,

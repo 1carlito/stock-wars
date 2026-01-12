@@ -74,3 +74,15 @@
 2026-01-12 22:21:47 [INFO] run_single_trading_cycle:743 - ================================================================================
 2026-01-12 22:21:47 [INFO] run_single_trading_cycle:744 - ✅ Trading cycle complete for AAPL on 2026-01-12 | decision=HOLD amount=0.0
 2026-01-12 22:21:47 [INFO] run_single_trading_cycle:749 - ================================================================================
+2026-01-12 22:43:50 [INFO] run_once:801 - 🏁 One‑shot mode: running trading cycle for AAPL on 2026-01-12 (NY date)
+2026-01-12 22:43:50 [INFO] run_single_trading_cycle:698 - ================================================================================
+2026-01-12 22:43:50 [INFO] run_single_trading_cycle:699 - 🚀 Live trading cycle for AAPL on 2026-01-12
+2026-01-12 22:43:50 [INFO] run_single_trading_cycle:700 - ================================================================================
+2026-01-12 22:43:50 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-12 22:44:32 [INFO] save_portfolio_state:587 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-12 22:44:32 [INFO] append_portfolio_history:660 - 📈 Logged portfolio history for AAPL on 2026-01-12 | equity=4242.72, cash=-22483.28
+2026-01-12 22:44:33 [INFO] _get_alpaca_client:431 - 🦙 Alpaca client initialised (paper mode).
+2026-01-12 22:44:33 [INFO] _get_alpaca_client:432 -    Account: PA3TTUN9XOP2 | Buying Power: $192,547.77
+2026-01-12 22:44:33 [INFO] run_single_trading_cycle:743 - ================================================================================
+2026-01-12 22:44:33 [INFO] run_single_trading_cycle:744 - ✅ Trading cycle complete for AAPL on 2026-01-12 | decision=HOLD amount=0.0
+2026-01-12 22:44:33 [INFO] run_single_trading_cycle:749 - ================================================================================
