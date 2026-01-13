@@ -674,3 +674,30 @@ def register_technical_tools(mcp):
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
 
+    @mcp.tool(name="get_real_time_quote")
+    def get_real_time_quote(symbol: str) -> Dict[str, Any]:
+        """
+        Get real-time stock quote with current price and key market data.
+
+        Returns current price, bid/ask spread, volume, market cap, PE ratio, and other metrics.
+        Updated in real-time during market hours.
+
+        Args:
+            symbol: Stock ticker symbol
+
+        Returns:
+            Dict with real-time quote data including price, change, volume, market cap, PE ratio
+        """
+        tool_name = "get_real_time_quote"
+        try:
+            if not symbol:
+                raise ValueError("get_real_time_quote requires a non-empty symbol")
+
+            params: Dict[str, Any] = {
+                "symbol": symbol.upper(),
+            }
+            data = _fmp_get("/quote", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:  # noqa: BLE001
+            return format_tool_result(tool_name, error=e)
+
