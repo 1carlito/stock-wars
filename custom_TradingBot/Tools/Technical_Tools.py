@@ -629,3 +629,48 @@ def register_technical_tools(mcp):
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
 
+    @mcp.tool(name="get_4hour_chart")
+    def get_4hour_chart(
+        symbol: str,
+        start_date: str,
+        end_date: str,
+    ) -> Dict[str, Any]:
+        """
+        Get 4-hour OHLCV chart data from FMP for intraday analysis.
+
+        Perfect for 4-hour interval trading and twice-daily portfolio cycles.
+        Returns: Open, High, Low, Close, Volume for each 4-hour candle.
+
+        Args:
+            symbol: Stock ticker symbol
+            start_date: Start date (YYYY-MM-DD)
+            end_date: End date (YYYY-MM-DD)
+
+        Returns:
+            Dict with 4-hour OHLCV bars
+        """
+        tool_name = "get_4hour_chart"
+        try:
+            if not symbol:
+                raise ValueError("get_4hour_chart requires a non-empty symbol")
+
+            sd = datetime.strptime(start_date, "%Y-%m-%d")
+            ed = datetime.strptime(end_date, "%Y-%m-%d")
+
+            if ed < sd:
+                sd, ed = ed, sd
+
+            # Clamp to max 120 days for performance
+            if (ed - sd).days > 120:
+                sd = ed - timedelta(days=120)
+
+            params: Dict[str, Any] = {
+                "symbol": symbol.upper(),
+                "from": sd.strftime("%Y-%m-%d"),
+                "to": ed.strftime("%Y-%m-%d"),
+            }
+            data = _fmp_get("/historical-chart/4hour", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:  # noqa: BLE001
+            return format_tool_result(tool_name, error=e)
+
