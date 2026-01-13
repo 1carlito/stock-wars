@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git commit:*)",
       "Bash(python:*)",
-      "Bash(timeout 5 python:*)"
+      "Bash(timeout 5 python:*)",
+      "WebFetch(domain:site.financialmodelingprep.com)"
     ]
   }
 }
