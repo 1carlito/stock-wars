@@ -4,13 +4,13 @@ Live trading orchestrator
 =========================
 
 Runs the ReasoningAgent twice per trading day for intraday portfolio management:
-- 13:00 ET (1 PM) - Morning cycle
-- 19:00 ET (7 PM) - Evening cycle
+- 10:00 ET (10 AM) - Gap analysis + morning cycle
+- 15:00 ET (3 PM) - Afternoon cycle (5 hours separation)
 Uses the OpenBB MCP server as a data + execution provider and persists portfolio state to disk.
 
 Modes:
 - Daemon mode (default): long‑running scheduler that waits until the next
-  scheduled time (13:00 or 19:00 ET) on a trading day, then runs the decision + trade flow.
+  scheduled time (10:00 or 15:00 ET) on a trading day, then runs the decision + trade flow.
 - One‑shot mode (--once): run the flow immediately for "today" and exit;
   useful for cron or manual testing.
 """
@@ -667,8 +667,8 @@ def append_portfolio_history(
 def get_next_run_time(now: datetime) -> datetime:
     """
     Compute the next scheduled run time for twice-daily trading:
-    - 13:00 (1 PM) America/New_York - Morning cycle
-    - 19:00 (7 PM) America/New_York - Evening cycle
+    - 10:00 (10 AM) America/New_York - Gap analysis + morning cycle
+    - 15:00 (3 PM) America/New_York - Afternoon cycle (5 hours after morning)
 
     Returns the next upcoming scheduled time (whichever comes first).
     Weekends are skipped; holidays are not modeled here.
@@ -677,16 +677,16 @@ def get_next_run_time(now: datetime) -> datetime:
         now = now.replace(tzinfo=NY_TZ)
 
     # Define the two trading times each day
-    morning_time = now.replace(hour=13, minute=0, second=0, microsecond=0)  # 1 PM
-    evening_time = now.replace(hour=19, minute=0, second=0, microsecond=0)   # 7 PM
+    morning_time = now.replace(hour=10, minute=0, second=0, microsecond=0)  # 10 AM
+    afternoon_time = now.replace(hour=15, minute=0, second=0, microsecond=0)   # 3 PM
 
     # Check if it's a trading day (weekday)
     if now.weekday() < 5:  # 0-4 = Mon-Fri
-        # Return the next upcoming time (morning or evening)
+        # Return the next upcoming time (morning or afternoon)
         if now <= morning_time:
             return morning_time
-        elif now <= evening_time:
-            return evening_time
+        elif now <= afternoon_time:
+            return afternoon_time
 
     # If past both times today, or if it's a weekend, move to next weekday
     next_day = now + timedelta(days=1)
@@ -694,7 +694,7 @@ def get_next_run_time(now: datetime) -> datetime:
         next_day += timedelta(days=1)
 
     # Return morning time on the next trading day
-    return next_day.replace(hour=13, minute=0, second=0, microsecond=0)
+    return next_day.replace(hour=10, minute=0, second=0, microsecond=0)
 
 
 async def run_single_trading_cycle(
@@ -731,6 +731,8 @@ async def run_single_trading_cycle(
         execute_trade_after=True,
         current_price=None,
         max_tool_iterations=5,
+        risk_level=risk_level,
+        notes=notes,
     )
 
     # 5. Close MCP session cleanly
@@ -769,13 +771,13 @@ def run_daemon(
 ) -> None:
     """
     Long‑running scheduler:
-    - Computes next trading time (13:00 or 19:00 ET).
+    - Computes next trading time (10:00 or 15:00 ET).
     - Sleeps until then.
     - Runs one trading cycle.
     - Repeats indefinitely.
     """
     _logger.info(f"📡 Live trading daemon starting for symbol={symbol}")
-    _logger.info("   Schedule: twice per trading day at 13:00 (1 PM) and 19:00 (7 PM) America/New_York")
+    _logger.info("   Schedule: twice per trading day at 10:00 (10 AM) and 15:00 (3 PM) America/New_York")
     while True:
         now = datetime.now(tz=NY_TZ)
         next_run = get_next_run_time(now)
@@ -831,6 +833,7 @@ def run_once(
             symbols=symbols_to_trade,
             starting_capital=starting_capital or 50000,
             risk_level=risk_level,
+            notes=notes,
             max_parallel=min(5, len(symbols_to_trade))
         )
         asyncio.run(orchestrator.process_portfolio(trade_date))

@@ -701,3 +701,103 @@ def register_technical_tools(mcp):
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
 
+    @mcp.tool(name="get_premarket_context")
+    def get_premarket_context(symbol: str, trade_date: str) -> Dict[str, Any]:
+        """
+        Analyze gap and early morning momentum for pre-market context.
+
+        Provides market gap (previous close to market open) and early morning
+        price action (9:30am-10am) to inform trading decisions at 10am ET.
+
+        Args:
+            symbol: Stock ticker symbol
+            trade_date: Trading date (YYYY-MM-DD format)
+
+        Returns:
+            Dict with gap percentage, direction, early momentum, and key price levels
+        """
+        tool_name = "get_premarket_context"
+        try:
+            if not symbol:
+                raise ValueError("get_premarket_context requires a non-empty symbol")
+
+            symbol = symbol.upper()
+
+            # 1. Get yesterday's close (date before trade_date)
+            try:
+                yesterday = (datetime.strptime(trade_date, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+
+                # Try to fetch historical data for yesterday
+                hist_params: Dict[str, Any] = {
+                    "symbol": symbol,
+                    "from": yesterday,
+                    "to": yesterday,
+                }
+                hist_data = _fmp_get("/historical-price-full", hist_params)
+
+                if not hist_data or len(hist_data) == 0:
+                    # If no data, use OpenBB as fallback
+                    hist_data = obb.equity.price.historical(
+                        symbol=symbol,
+                        start_date=yesterday,
+                        end_date=yesterday,
+                    )
+
+                prev_close = hist_data[0].get("close", 0) if hist_data else 0
+            except Exception:
+                prev_close = 0
+
+            # 2. Get today's opening (from real-time quote or 4-hour chart)
+            try:
+                quote_params: Dict[str, Any] = {"symbol": symbol}
+                quote_data = _fmp_get("/quote", quote_params)
+                market_open = quote_data[0].get("open", 0) if quote_data else 0
+                current_price = quote_data[0].get("price", 0) if quote_data else 0
+            except Exception:
+                market_open = 0
+                current_price = 0
+
+            # 3. Calculate gap
+            if prev_close != 0:
+                gap_pct = ((market_open - prev_close) / prev_close) * 100
+                gap_usd = market_open - prev_close
+            else:
+                gap_pct = 0
+                gap_usd = 0
+
+            gap_direction = "UP" if gap_usd > 0 else "DOWN" if gap_usd < 0 else "FLAT"
+
+            # 4. Determine early momentum (9:30am open to current 10am price)
+            if market_open != 0:
+                move_from_open = current_price - market_open
+                move_pct = (move_from_open / market_open) * 100
+                momentum_direction = "CONTINUATION" if (move_from_open > 0 and gap_usd > 0) or (move_from_open < 0 and gap_usd < 0) else "REVERSAL"
+            else:
+                move_from_open = 0
+                move_pct = 0
+                momentum_direction = "UNKNOWN"
+
+            return format_tool_result(
+                tool_name,
+                data={
+                    "trade_date": trade_date,
+                    "symbol": symbol,
+                    "gap_analysis": {
+                        "previous_close": round(prev_close, 2),
+                        "market_open": round(market_open, 2),
+                        "gap_usd": round(gap_usd, 2),
+                        "gap_percent": round(gap_pct, 2),
+                        "gap_direction": gap_direction,
+                    },
+                    "early_momentum": {
+                        "current_price": round(current_price, 2),
+                        "move_from_open_usd": round(move_from_open, 2),
+                        "move_from_open_percent": round(move_pct, 2),
+                        "momentum_type": momentum_direction,
+                    },
+                    "interpretation": f"Gap {gap_direction} {abs(gap_pct):.2f}% with {momentum_direction.lower()} momentum"
+                }
+            )
+        except Exception as e:  # noqa: BLE001
+            return format_tool_result(tool_name, error=str(e))
+

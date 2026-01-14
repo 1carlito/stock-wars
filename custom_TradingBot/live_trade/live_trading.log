@@ -86,3 +86,6 @@
 2026-01-12 22:44:33 [INFO] run_single_trading_cycle:743 - ================================================================================
 2026-01-12 22:44:33 [INFO] run_single_trading_cycle:744 - ✅ Trading cycle complete for AAPL on 2026-01-12 | decision=HOLD amount=0.0
 2026-01-12 22:44:33 [INFO] run_single_trading_cycle:749 - ================================================================================
+2026-01-13 22:09:42 [INFO] run_once:826 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, AVGO on 2026-01-13 (NY date)
+2026-01-13 22:09:42 [INFO] load_portfolio_state:563 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-13 22:09:42 [INFO] save_portfolio_state:588 - 💾 Saved portfolio_state.json | cash=-22483.28

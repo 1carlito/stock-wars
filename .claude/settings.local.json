@@ -4,7 +4,8 @@
       "Bash(git commit:*)",
       "Bash(python:*)",
       "Bash(timeout 5 python:*)",
-      "WebFetch(domain:site.financialmodelingprep.com)"
+      "WebFetch(domain:site.financialmodelingprep.com)",
+      "Bash(python3:*)"
     ]
   }
 }

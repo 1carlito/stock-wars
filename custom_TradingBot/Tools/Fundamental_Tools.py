@@ -188,32 +188,3 @@ def register_fundamental_tools(mcp):
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
-
-    @mcp.tool(name="get_financial_scores")
-    def get_financial_scores(symbol: str) -> Dict[str, Any]:
-        """
-        Get financial health scores for company valuation and risk assessment.
-
-        Returns Altman Z-Score and Piotroski Score:
-        - Altman Z-Score: Bankruptcy prediction (>2.99=Safe, 1.81-2.99=Gray, <1.81=Distress)
-        - Piotroski Score: Financial strength assessment (0-9 scale, >5=Strong)
-
-        Args:
-            symbol: Stock ticker symbol
-
-        Returns:
-            Dict with Altman Z-Score, Piotroski Score, and interpretation
-        """
-        tool_name = "get_financial_scores"
-        try:
-            if not symbol:
-                raise ValueError("get_financial_scores requires a non-empty symbol")
-
-            params: Dict[str, Any] = {
-                "symbol": symbol.upper(),
-            }
-            data = _fmp_get("/financial-score", params)
-            return format_tool_result(tool_name, data=data)
-        except Exception as e:  # noqa: BLE001
-            return format_tool_result(tool_name, error=e)
-

@@ -1,0 +1,24 @@
+{
+  "date": "2026-01-13",
+  "decisions": [],
+  "trades": [],
+  "token_summary": {
+    "total_decisions": 2,
+    "total_tokens": 5000,
+    "total_input_tokens": 4000,
+    "total_output_tokens": 1000,
+    "total_cost_usd": 0.00218,
+    "avg_tokens_per_decision": 2500.0,
+    "avg_cost_per_decision": 0.00109,
+    "date": "2026-01-13",
+    "budget": {
+      "within_budget": true,
+      "total_tokens": 5000,
+      "remaining": 95000,
+      "pct_used": 5.0,
+      "limit": 100000,
+      "warning": false,
+      "critical": false
+    }
+  }
+}
