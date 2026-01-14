@@ -5,7 +5,8 @@
       "Bash(python:*)",
       "Bash(timeout 5 python:*)",
       "WebFetch(domain:site.financialmodelingprep.com)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(ls:*)"
     ]
   }
 }

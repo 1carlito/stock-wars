@@ -68,6 +68,7 @@ RiskLevel = Literal["low", "medium", "high"]
 TradeMode = Literal["paper", "live"]
 RunMode = Literal["once", "daemon"]
 PortfolioMode = Literal["new", "current"]
+AnalysisMode = Literal["analysis", "paper", "alpaca_live"]
 
 
 @dataclass
@@ -140,9 +141,14 @@ class SessionConfig:
     starting_capital: float
     trade_mode: TradeMode
     run_mode: RunMode
+    analysis_mode: AnalysisMode = "paper"
     portfolio_mode: PortfolioMode = "new"
     portfolio: PortfolioSnapshot | None = None
     notes: str = ""
+    alpaca_api_key: str = ""
+    alpaca_api_secret: str = ""
+    alpaca_paper_trading: bool = True
+    force_reset_portfolio: bool = False
 
 
 def _render_header() -> Panel:
@@ -344,6 +350,64 @@ def _prompt_notes() -> str:
     return Prompt.ask("Notes", default="")
 
 
+def _prompt_analysis_mode() -> AnalysisMode:
+    """Prompt user to select analysis/trading mode."""
+    prompt_text = (
+        "Select your trading mode:\n\n"
+        "- [bold green]Investment Analysis Only[/bold green]: Test strategies without actual trades\n"
+        "  (Theoretical portfolio, one-shot runs only)\n"
+        "- [bold yellow]Paper Trading[/bold yellow]: Simulate trades with virtual capital\n"
+        "  (Supports daemon scheduling)\n"
+        "- [bold cyan]Live Trading (Alpaca)[/bold cyan]: Execute trades on Alpaca broker account\n"
+        "  (Requires API credentials)"
+    )
+    console.print(Panel(prompt_text, title="Step 2A • Mode Selection", border_style="cyan"))
+
+    choice = Prompt.ask(
+        "Select mode",
+        choices=["analysis", "paper", "alpaca_live"],
+        default="paper",
+        show_choices=False,
+    )
+    return choice  # type: ignore[return-value]
+
+
+def _prompt_alpaca_credentials() -> tuple[str, str, bool]:
+    """Prompt user for Alpaca API credentials."""
+    prompt_text = (
+        "Enter your Alpaca API credentials.\n"
+        "[dim]These are stored temporarily and cleared after the session.[/dim]"
+    )
+    console.print(Panel(prompt_text, title="Alpaca Credentials", border_style="cyan"))
+
+    api_key = Prompt.ask("API Key", password=True)
+    api_secret = Prompt.ask("API Secret", password=True)
+    paper_trading = Confirm.ask("Use paper trading (recommended)?", default=True)
+
+    return api_key, api_secret, paper_trading
+
+
+def _prompt_portfolio_reset() -> bool:
+    """Prompt user if they want to reset theoretical portfolio."""
+    if not Path(os.path.join(_get_live_trade_dir(), "theoretical_portfolio.json")).exists():
+        return False
+
+    console.print(
+        Panel(
+            "You have an existing theoretical portfolio.\n"
+            "Reset it to start fresh with new starting capital?",
+            title="Portfolio Reset (Optional)",
+            border_style="cyan",
+        )
+    )
+    return Confirm.ask("Reset portfolio?", default=False)
+
+
+def _get_live_trade_dir() -> str:
+    """Get live trade directory."""
+    return str(LIVE_TRADE_DIR)
+
+
 def _prompt_portfolio_mode() -> tuple[PortfolioMode, PortfolioSnapshot | None]:
     """Prompt user to choose between new or current portfolio."""
     console.print(
@@ -409,21 +473,19 @@ def _collect_portfolio_details() -> PortfolioSnapshot:
         except ValueError:
             holding_days = 0
 
-        # Current price (user provides or defaults to avg)
-        current_price = float(Prompt.ask("  Current price (leave blank for avg)", default=str(avg_price)))
-
-        # Calculate current value
-        current_value = shares * current_price
-
+        # Note: Current price will be fetched automatically from OpenBB/FMP
+        # Don't ask user for it
         position = PortfolioPosition(
             ticker=ticker,
             avg_price=avg_price,
             shares=shares,
             holding_period_days=holding_days,
-            current_price=current_price,
-            current_value=current_value,
+            current_price=0.0,  # Will be fetched later
+            current_value=0.0,  # Will be calculated later
         )
         positions.append(position)
+
+    console.print("\n[dim]ℹ️  Current prices will be fetched automatically from market data.[/dim]")
 
     # Create portfolio snapshot
     portfolio = PortfolioSnapshot(
@@ -737,6 +799,13 @@ def _simulate_launch(cfg: SessionConfig) -> None:
         )
     )
 
+    # Set environment variables for Alpaca if needed
+    if cfg.analysis_mode == "alpaca_live":
+        os.environ["ALPACA_ENABLED"] = "true"
+        os.environ["ALPACA_API_KEY"] = cfg.alpaca_api_key
+        os.environ["ALPACA_API_SECRET"] = cfg.alpaca_api_secret
+        os.environ["ALPACA_PAPER"] = "true" if cfg.alpaca_paper_trading else "false"
+
     # Launch the live trading backend
     try:
         # Run all symbols (multi-stock or single-stock)
@@ -744,7 +813,7 @@ def _simulate_launch(cfg: SessionConfig) -> None:
             symbols_str = ", ".join(cfg.symbols)
             console.print()
             console.print(
-                f"[bold yellow]Launching live trading for: {symbols_str}[/bold yellow]"
+                f"[bold yellow]Launching for: {symbols_str} ({cfg.analysis_mode})[/bold yellow]"
             )
 
             if cfg.run_mode == "daemon":
@@ -764,6 +833,7 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                     starting_capital=cfg.starting_capital,
                     risk_level=cfg.risk_level,
                     notes=cfg.notes,
+                    mode=cfg.analysis_mode,
                 )
             else:  # once mode
                 console.print("[bold cyan]Running one-shot trading cycle...[/bold cyan]")
@@ -772,6 +842,8 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                     starting_capital=cfg.starting_capital,
                     risk_level=cfg.risk_level,
                     notes=cfg.notes,
+                    mode=cfg.analysis_mode,
+                    force_reset=cfg.force_reset_portfolio,
                 )
                 console.print(
                     Panel(
@@ -797,13 +869,63 @@ def run_interactive() -> None:
     os.system("clear" if os.name != "nt" else "cls")
     _banner()
 
+    # Step 1: Symbols
     symbols = _prompt_symbols()
+
+    # Step 2A: Mode Selection (NEW)
+    analysis_mode = _prompt_analysis_mode()
+
+    # Step 3: Risk Level
     risk = _prompt_risk_level()
+
+    # Step 4: Starting Capital
     capital = _prompt_starting_capital()
-    trade_mode = _prompt_trade_mode()
-    run_mode = _prompt_run_mode()
-    portfolio_mode, portfolio = _prompt_portfolio_mode()
+
+    # Step 2B: Alpaca Credentials (if alpaca_live mode)
+    alpaca_api_key = ""
+    alpaca_api_secret = ""
+    alpaca_paper_trading = True
+    if analysis_mode == "alpaca_live":
+        alpaca_api_key, alpaca_api_secret, alpaca_paper_trading = _prompt_alpaca_credentials()
+
+    # Step 5: Portfolio Reset (if analysis mode only)
+    force_reset = False
+    if analysis_mode == "analysis":
+        force_reset = _prompt_portfolio_reset()
+
+    # Step 6: Run Mode (skip for analysis mode, default to "once")
+    run_mode: RunMode = "once"  # type: ignore
+    if analysis_mode != "analysis":
+        console.print(
+            Panel(
+                "How should the agent run?\n"
+                "- [bold]once[/bold]: run a single decision cycle and exit\n"
+                "- [bold]daemon[/bold]: schedule one run per trading day (15:00 NY time)",
+                title="Step 6 • Schedule",
+                border_style="cyan",
+            )
+        )
+        choice = Prompt.ask(
+            "Run mode",
+            choices=["once", "daemon"],
+            default="once",
+            show_choices=True,
+        )
+        run_mode = choice  # type: ignore[assignment]
+
+    # Step 7: Portfolio Mode (skip for alpaca_live, get context for paper/analysis)
+    portfolio_mode: PortfolioMode = "new"
+    portfolio = None
+    if analysis_mode != "alpaca_live":
+        portfolio_mode, portfolio = _prompt_portfolio_mode()
+
+    # Step 8: Notes
     notes = _prompt_notes()
+
+    # Trade mode is inferred from analysis_mode
+    trade_mode: TradeMode = "paper"  # type: ignore
+    if analysis_mode == "alpaca_live":
+        trade_mode = "live"
 
     cfg = SessionConfig(
         symbols=symbols,
@@ -811,9 +933,14 @@ def run_interactive() -> None:
         starting_capital=capital,
         trade_mode=trade_mode,
         run_mode=run_mode,
+        analysis_mode=analysis_mode,
         portfolio_mode=portfolio_mode,
         portfolio=portfolio,
         notes=notes,
+        alpaca_api_key=alpaca_api_key,
+        alpaca_api_secret=alpaca_api_secret,
+        alpaca_paper_trading=alpaca_paper_trading,
+        force_reset_portfolio=force_reset,
     )
 
     console.print()

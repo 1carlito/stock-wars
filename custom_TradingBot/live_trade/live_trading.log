@@ -89,3 +89,16 @@
 2026-01-13 22:09:42 [INFO] run_once:826 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, AVGO on 2026-01-13 (NY date)
 2026-01-13 22:09:42 [INFO] load_portfolio_state:563 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
 2026-01-13 22:09:42 [INFO] save_portfolio_state:588 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 15:27:07 [INFO] run_once:828 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
+2026-01-14 15:27:07 [INFO] load_portfolio_state:563 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:27:11 [INFO] save_portfolio_state:588 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 15:35:12 [INFO] run_once:868 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
+2026-01-14 15:35:12 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:35:16 [INFO] save_portfolio_state:628 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 15:38:08 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:39:15 [INFO] run_once:868 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
+2026-01-14 15:39:15 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:40:31 [INFO] save_portfolio_state:628 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 15:50:09 [INFO] run_once:868 - 🏁 One‑shot mode: running multi-stock portfolio cycle for OKLO, ONDS on 2026-01-14 (NY date)
+2026-01-14 15:50:09 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:51:35 [INFO] save_portfolio_state:628 - 💾 Saved portfolio_state.json | cash=-22483.28

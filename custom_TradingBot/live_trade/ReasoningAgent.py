@@ -630,14 +630,37 @@ REASONING: [Detailed analysis explaining: signals found, portfolio impact, posit
 
     def _build_user_prompt(self, symbol, current_date, portfolio_state, notes: str = "") -> str:
         notes_section = f"\n\nAdditional Instructions:\n{notes}" if notes else ""
-        
+
+        # Build summary-only portfolio context (minimal tokens)
+        portfolio_context = f"Portfolio State:\n- Cash: ${portfolio_state.get('cash', 0):,.2f}\n"
+
+        # Long positions summary (symbol: shares @ avg_price)
+        positions = portfolio_state.get('positions', {})
+        if positions:
+            portfolio_context += "- Long Positions:\n"
+            for pos_symbol, pos_data in positions.items():
+                shares = pos_data.get('shares', 0)
+                avg_price = pos_data.get('avg_price', 0)
+                portfolio_context += f"  * {pos_symbol}: {shares} shares @ ${avg_price:.2f} avg\n"
+        else:
+            portfolio_context += "- Long Positions: None\n"
+
+        # Short positions summary
+        short_positions = portfolio_state.get('short_positions', {})
+        if short_positions:
+            portfolio_context += "- Short Positions:\n"
+            for pos_symbol, pos_data in short_positions.items():
+                shares = pos_data.get('shares', 0)
+                avg_price = pos_data.get('avg_price', 0)
+                portfolio_context += f"  * {pos_symbol}: {shares} shares @ ${avg_price:.2f} avg\n"
+        else:
+            portfolio_context += "- Short Positions: None\n"
+
+        portfolio_context += f"- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}"
+
         return f"""Analyze {symbol} for trading date {current_date}.
 
-Portfolio State:
-- Cash: ${portfolio_state.get('cash', 0):,.2f}
-- Long Positions: {portfolio_state.get('positions', {})}
-- Short Positions: {portfolio_state.get('short_positions', {})}
-- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}
+{portfolio_context}
 {notes_section}
 
 Please use the available tools to gather data and make a decision.
@@ -710,6 +733,37 @@ Avoid lookahead bias: do not use data from after {current_date}.
         filename = f"{decision['symbol']}_{decision['date']}_decision.json"
         with open(os.path.join(self.decision_save_dir, filename), "w") as f:
             json.dump(decision, f, indent=2)
+
+        # Extract and save news findings separately
+        if "tool_results" in decision:
+            self._save_news_findings(decision["symbol"], decision["date"], decision["tool_results"])
+
+    def _extract_news_results(self, tool_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Extract only news tool results."""
+        news_tools = ["get_company_news", "get_world_news"]
+        return [r for r in tool_results if r.get("tool_name") in news_tools]
+
+    def _save_news_findings(self, symbol: str, date: str, tool_results: List[Dict[str, Any]]) -> None:
+        """Save raw news findings to dedicated folder."""
+        news_results = self._extract_news_results(tool_results)
+        if not news_results:
+            return  # No news to save
+
+        news_dir = os.path.join(self.data_dir, "news_decisions")
+        os.makedirs(news_dir, exist_ok=True)
+
+        filename = f"{symbol}_{date}_news.json"
+        filepath = os.path.join(news_dir, filename)
+
+        news_data = {
+            "symbol": symbol,
+            "date": date,
+            "news_findings": news_results,
+            "timestamp_utc": datetime.now().isoformat(),
+        }
+
+        with open(filepath, "w") as f:
+            json.dump(news_data, f, indent=2)
 
     def _save_raw_prompt(self, symbol: str, date: str, messages: List[Dict[str, Any]]) -> None:
         os.makedirs(self.decision_save_dir, exist_ok=True)
