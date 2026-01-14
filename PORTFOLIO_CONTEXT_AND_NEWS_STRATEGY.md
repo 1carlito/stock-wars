@@ -221,51 +221,73 @@ Make a decision: BUY, SELL, HOLD, REDUCE (trim position), ADD (increase)"
 
 ### How News is Currently Being Captured
 
-Your system uses **OpenBB News API** via `get_company_news()` tool:
+Your system uses **FMP General News Endpoint** as PRIMARY via `get_world_news()` tool:
+
+```python
+@mcp.tool
+def get_world_news() -> Dict:
+    """Get major market headlines from FMP (PRIMARY)"""
+    # Returns general market news, macro headlines, commodities
+    # Example: "Maduro captured", "Gold prices surge", "Fed policy shift"
+```
+
+**Fallback to OpenBB** for company-specific news:
 
 ```python
 @mcp.tool
 def get_company_news(symbol: str) -> Dict:
-    """Get company-specific news from OpenBB"""
+    """Get company-specific news from OpenBB (FALLBACK)"""
     # Returns news articles filtered by stock ticker
     # Example: AAPL → articles mentioning Apple
+    # Used if FMP general news lacks ticker-specific details
 ```
 
-**Current limitations**:
+**Architecture**:
+- ✅ **FMP General News**: Macro headlines (geopolitics, commodities, Fed policy)
+- ✅ **OpenBB Company News**: Stock-specific details (earnings, layoffs, partnerships)
+- ✅ **Design**: FMP primary for broad context, OpenBB fallback for specifics
+- ✅ **Open-Source**: OpenBB fallback ensures coverage if users don't have FMP
+
+**Current coverage**:
+- ✅ Gets macro news (Maduro, precious metals, Fed policy)
 - ✅ Gets company-specific news (Apple earnings, layoffs, etc.)
-- ❌ Limited to that specific ticker
-- ❌ May miss macro news affecting stock (e.g., "Fed cuts rates")
-- ❌ No sector-wide news (e.g., "chip shortage affects semiconductors")
+- ✅ Gets sector-wide news (e.g., "chip shortage affects semiconductors")
+- ✅ FMP provides real-time headlines
+- ✅ OpenBB provides detailed company context
 
 ### Verification: Can It Capture Global Events?
 
 **Test: Does system see Maduro capture + precious metals moves?**
 
-**For precious metals** (GOLD, SILVER, COPPER):
+**Direct capture path (FMP Primary)**:
 ```
-Indirect capture path:
-1. User analyzes mining stocks (GLD, SLV, FVV, etc.)
-2. get_company_news("GLD") → returns articles mentioning "gold prices"
-3. Articles mention "geopolitical tensions" or "Maduro"
-4. LLM sees correlation: geopolitics → gold up → mining stocks buy signal
+1. Call get_world_news() → FMP general headlines
+2. Returns: "Maduro captured in Venezuela", "Gold prices surge 3%", etc.
+3. LLM immediately sees geopolitical context
+4. LLM recommends: Buy GLD, SLV, or commodity-related ETFs
+5. Direct macro news without needing ticker connection
 
-Result: ✅ PARTIAL CAPTURE - works if analyzing commodity ETFs/miners
-        ❌ DIRECT CAPTURE - system won't see raw "Maduro arrested" headline
+Result: ✅ DIRECT CAPTURE - FMP general news provides macro headlines
 ```
 
-**For Maduro capture specifically**:
+**Fallback for specifics (OpenBB)**:
 ```
-Current capability:
-- get_company_news("ANY_TICKER") returns general market news
-- If news articles mention "Venezuelan political crisis"
-- LLM could infer: emerging market volatility → flight to gold
+1. For deeper ticker context, call get_company_news("GLD")
+2. Returns detailed articles about gold mining, commodity ETFs
+3. LLM sees both macro (Maduro) + specific (commodity stocks)
+4. Better informed decision with dual context
 
-Challenge:
-- OpenBB news is ticker-filtered
-- May not return macro headlines unless stock is affected
-- Missing: direct access to "macro news feeds" (Fed, elections, wars, etc.)
+Result: ✅ COMPREHENSIVE - FMP macro + OpenBB specific
+```
 
-Result: ❌ INDIRECT/UNRELIABLE - depends on article mentioning ticker
+**For precious metals specifically**:
+```
+Path:
+1. get_world_news() → "Geopolitical crisis pushing precious metals higher"
+2. get_company_news("GLD") → "Gold ETF performance analysis"
+3. LLM sees: Crisis → precious metals rally → buy GLD
+
+Result: ✅ STRONG CAPTURE - macro headline + company-specific confirmation
 ```
 
 ---
@@ -274,47 +296,57 @@ Result: ❌ INDIRECT/UNRELIABLE - depends on article mentioning ticker
 
 ### Current Approach Assessment
 
-**OpenBB get_company_news() is**:
+**FMP get_world_news() (PRIMARY) is**:
 ```
-✅ GOOD FOR: Company-specific events (earnings, layoffs, FDA approvals)
-✅ GOOD FOR: Stock-specific sentiment (analyst upgrades, insider trading)
-❌ POOR FOR: Macro events (geopolitics, central bank policy, commodities)
-❌ POOR FOR: Sector-wide trends (unless analyzing ETF)
-❌ POOR FOR: Breaking news (5-10 min delay typical)
+✅ EXCELLENT FOR: Macro events (geopolitics, central bank, commodities, war/politics)
+✅ EXCELLENT FOR: Breaking news (real-time headlines)
+✅ GOOD FOR: Sector-wide trends (market movements, policy shifts)
+✅ INCLUDED: Starter tier (included in FMP $30/month)
 ```
 
-### Recommendation: Dual News Strategy
-
-**For current MVP (Analysis-only mode)**:
+**OpenBB get_company_news() (FALLBACK) is**:
 ```
-✅ ACCEPT LIMITED NEWS COVERAGE
-- System captures company-specific news well
-- For macro/commodities, LLM uses historical patterns
-- Works fine for educational/analysis use
+✅ EXCELLENT FOR: Company-specific events (earnings, layoffs, FDA approvals)
+✅ EXCELLENT FOR: Stock-specific sentiment (analyst upgrades, insider trading)
+✅ GOOD FOR: Detailed company research
+✅ FREE: Open-source, always available
+```
+
+### Recommendation: Dual News Strategy (Dual Primary)
+
+**For current MVP (Analysis + Trading modes)**:
+```
+✅ USE BOTH NEWS SOURCES (not redundant, complementary)
+
+Data Flow:
+1. LLM calls get_world_news() → gets Maduro, gold prices, Fed policy
+2. LLM calls get_company_news("GLD") → gets gold mining outlook, investor moves
+3. LLM has FULL context: macro + specific
+4. Superior decision quality
 
 Example:
-- "AAPL news shows chip supplier shortage"
-- LLM understands: supply chain risk → downside risk
-- Even without "Maduro" headline, LLM can infer geopolitical risks
+- "Maduro captured" (world news) + "Gold futures rally" (world news)
+- + "GLD options activity spike" (company news)
+- = Strong BUY signal with full macro+specific context
 ```
 
-**If/When Upgrading to Premium News**:
+**Cost & Coverage**:
 ```
-OPTION 1: Add NewsAPI Premium integration
-- Cost: $30-100/month
-- Benefit: Global news feeds (politics, macro, commodities)
-- Capability: "Maduro captured" → system sees immediately
-- Example feeds: Reuters, Bloomberg, CNBC headlines
+FMP General News: ✅ Included in Starter ($30/month base cost)
+OpenBB News: ✅ Free/open-source (always available)
 
-OPTION 2: Add Financial News Aggregator
-- Tools: Finnhub (free tier), NewsAPI (paid), AlphaVantage (included)
-- Benefit: Sentiment analysis + macro headlines
-- Cost: $0-50/month (free tier available)
+Total additional cost: $0 (already paid for FMP)
+Coverage: Comprehensive (macro + specific)
+Quality: Excellent (both real-time headline + detailed analysis)
+```
 
-OPTION 3: Keep current + Add ticker comments section
-- User can manually add context: "Venezuelan crisis → commodity play"
-- Passed to LLM in "notes" parameter you already support
-- Zero cost, maximum flexibility
+**Design Philosophy**:
+```
+- FMP primary for macro headlines
+- OpenBB fallback for company depth
+- Both available → complementary, not redundant
+- Open-source users lose FMP but keep OpenBB (acceptable fallback)
+- Paid users get best of both worlds
 ```
 
 ---
