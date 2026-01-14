@@ -270,7 +270,9 @@ class ReasoningAgent:
         portfolio_state: Dict,
         execute_trade_after: bool,
         current_price: Optional[float],
-        max_tool_iterations: int
+        max_tool_iterations: int,
+        risk_level: str = "medium",
+        notes: str = ""
     ) -> Dict:
         """Async version of make_decision with MCP tool calling"""
         try:
@@ -278,8 +280,8 @@ class ReasoningAgent:
             mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
             
             # 2. Build initial prompts
-            system_prompt = self._build_system_prompt(mcp_session)
-            user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state)
+            system_prompt = self._build_system_prompt(mcp_session, risk_level)
+            user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, risk_level, notes)
             
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -567,9 +569,9 @@ class ReasoningAgent:
             # await self._close_mcp_session()  # Commented out to preserve cache
             return self._create_error_decision(symbol, current_date, str(e))
 
-    def _build_system_prompt(self, mcp_session=None) -> str:
+    def _build_system_prompt(self, mcp_session=None, risk_level: str = "medium") -> str:
         """Build system prompt with available tools.
-        
+
         Design:
         - First LLM call is a PLANNING call: choose specific tools and tightly bounded
           date ranges / limits. Do NOT make a final decision in the first call.
@@ -645,14 +647,16 @@ REASONING: [Detailed analysis]
 Note: If you decide to execute a trade, specify the AMOUNT_USD based on your confidence level and available cash.
 """
 
-    def _build_user_prompt(self, symbol, current_date, portfolio_state) -> str:
+    def _build_user_prompt(self, symbol, current_date, portfolio_state, risk_level: str = "medium", notes: str = "") -> str:
+        notes_section = f"\nAdditional Notes: {notes}" if notes else ""
         return f"""Analyze {symbol} for trading date {current_date}.
 
+Risk Level: {risk_level}
 Portfolio State:
 - Cash: ${portfolio_state.get('cash', 0):,.2f}
 - Long Positions: {portfolio_state.get('positions', {})}
 - Short Positions: {portfolio_state.get('short_positions', {})}
-- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}
+- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}{notes_section}
 
 Please use the available tools to gather data and make a decision.
 Avoid lookahead bias: do not use data from after {current_date}.

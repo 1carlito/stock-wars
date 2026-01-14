@@ -53,6 +53,7 @@ class PortfolioOrchestrator:
         symbols: List[str],
         starting_capital: float,
         risk_level: str = "medium",
+        notes: str = "",
         data_dir: str = ".",
         max_parallel: int = 5,
     ):
@@ -63,12 +64,14 @@ class PortfolioOrchestrator:
             symbols: List of stock ticker symbols to analyze
             starting_capital: Starting capital for portfolio
             risk_level: Risk level for all stocks (low/medium/high)
+            notes: Additional notes for context
             data_dir: Directory for saving state and logs
             max_parallel: Maximum parallel stock analyses (default: 5)
         """
         self.symbols = symbols
         self.starting_capital = starting_capital
         self.risk_level = risk_level
+        self.notes = notes
         self.data_dir = Path(data_dir)
         self.max_parallel = max_parallel
 
@@ -241,6 +244,7 @@ class PortfolioOrchestrator:
                 current_price=None,
                 max_tool_iterations=5,
                 risk_level=self.risk_level,
+                notes=self.notes,
             )
 
             # Extract token usage from response (if available)
