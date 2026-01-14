@@ -67,6 +67,70 @@ except Exception:  # pragma: no cover
 RiskLevel = Literal["low", "medium", "high"]
 TradeMode = Literal["paper", "live"]
 RunMode = Literal["once", "daemon"]
+PortfolioMode = Literal["new", "current"]
+
+
+@dataclass
+class PortfolioPosition:
+    """Represents a single stock position in the portfolio."""
+    ticker: str
+    avg_price: float
+    shares: float  # or total_value if value-based
+    holding_period_days: int = 0
+    current_price: float = 0.0
+    current_value: float = 0.0
+
+    def calculate_return(self) -> Dict[str, float]:
+        """Calculate P&L and return % for this position."""
+        if self.current_price == 0:
+            self.current_price = self.avg_price  # fallback
+        if self.current_value == 0:
+            self.current_value = self.shares * self.current_price
+
+        cost_basis = self.shares * self.avg_price
+        unrealized_pnl = self.current_value - cost_basis
+        return_pct = (unrealized_pnl / cost_basis * 100) if cost_basis != 0 else 0.0
+
+        return {
+            "ticker": self.ticker,
+            "cost_basis": cost_basis,
+            "current_value": self.current_value,
+            "unrealized_pnl": unrealized_pnl,
+            "return_pct": return_pct,
+        }
+
+
+@dataclass
+class PortfolioSnapshot:
+    """Complete portfolio snapshot with positions and aggregated metrics."""
+    portfolio_value: float
+    num_stocks: int
+    positions: List[PortfolioPosition]
+    created_at: str = ""  # ISO datetime
+
+    def calculate_total_return(self) -> Dict[str, Any]:
+        """Calculate total portfolio return from individual positions."""
+        total_cost_basis = 0.0
+        total_current_value = 0.0
+        total_pnl = 0.0
+        position_returns = []
+
+        for pos in self.positions:
+            ret = pos.calculate_return()
+            position_returns.append(ret)
+            total_cost_basis += ret["cost_basis"]
+            total_current_value += ret["current_value"]
+            total_pnl += ret["unrealized_pnl"]
+
+        total_return_pct = (total_pnl / total_cost_basis * 100) if total_cost_basis != 0 else 0.0
+
+        return {
+            "total_cost_basis": total_cost_basis,
+            "total_current_value": total_current_value,
+            "total_unrealized_pnl": total_pnl,
+            "total_return_pct": total_return_pct,
+            "position_returns": position_returns,
+        }
 
 
 @dataclass
@@ -76,6 +140,8 @@ class SessionConfig:
     starting_capital: float
     trade_mode: TradeMode
     run_mode: RunMode
+    portfolio_mode: PortfolioMode = "new"
+    portfolio: PortfolioSnapshot | None = None
     notes: str = ""
 
 
@@ -278,6 +344,98 @@ def _prompt_notes() -> str:
     return Prompt.ask("Notes", default="")
 
 
+def _prompt_portfolio_mode() -> tuple[PortfolioMode, PortfolioSnapshot | None]:
+    """Prompt user to choose between new or current portfolio."""
+    console.print(
+        Panel(
+            "Provide your portfolio context for better trading decisions.\n"
+            "- [bold]new[/bold]: This is your first portfolio (optional setup)\n"
+            "- [bold]current[/bold]: You have existing positions (recommended)",
+            title="Step 7 • Portfolio Context",
+            border_style="cyan",
+        )
+    )
+
+    mode_choice = Prompt.ask(
+        "Portfolio mode",
+        choices=["new", "current"],
+        default="new",
+        show_choices=True,
+    )
+    mode = mode_choice  # type: ignore[assignment]
+
+    if mode == "new":
+        console.print("[dim]Portfolio context skipped. Trading decisions will be stock-specific.[/dim]")
+        return mode, None
+    else:
+        # Collect existing portfolio info
+        portfolio = _collect_portfolio_details()
+        return mode, portfolio
+
+
+def _collect_portfolio_details() -> PortfolioSnapshot:
+    """Collect portfolio details via natural language input."""
+    console.print(
+        Panel(
+            "[bold]Enter your portfolio details[/bold]\n"
+            "Questions will guide you through each stock position.",
+            title="Portfolio Details",
+            border_style="cyan",
+        )
+    )
+
+    # Get overall portfolio info
+    portfolio_value = float(Prompt.ask("Total portfolio value (USD)", default="100000"))
+    num_stocks_str = Prompt.ask("Number of stocks you own", default="1")
+
+    try:
+        num_stocks = int(num_stocks_str)
+    except ValueError:
+        num_stocks = 1
+
+    # Collect individual positions
+    positions: List[PortfolioPosition] = []
+
+    for i in range(num_stocks):
+        console.print(f"\n[bold cyan]Stock {i+1} of {num_stocks}[/bold cyan]")
+
+        ticker = Prompt.ask("  Ticker symbol").upper()
+        avg_price = float(Prompt.ask("  Average purchase price", default="0.0"))
+        shares = float(Prompt.ask("  Number of shares (or total value)", default="0.0"))
+        holding_days_str = Prompt.ask("  Days held (e.g., 30, 180, 365)", default="0")
+
+        try:
+            holding_days = int(holding_days_str)
+        except ValueError:
+            holding_days = 0
+
+        # Current price (user provides or defaults to avg)
+        current_price = float(Prompt.ask("  Current price (leave blank for avg)", default=str(avg_price)))
+
+        # Calculate current value
+        current_value = shares * current_price
+
+        position = PortfolioPosition(
+            ticker=ticker,
+            avg_price=avg_price,
+            shares=shares,
+            holding_period_days=holding_days,
+            current_price=current_price,
+            current_value=current_value,
+        )
+        positions.append(position)
+
+    # Create portfolio snapshot
+    portfolio = PortfolioSnapshot(
+        portfolio_value=portfolio_value,
+        num_stocks=num_stocks,
+        positions=positions,
+        created_at=datetime.now().isoformat(),
+    )
+
+    return portfolio
+
+
 def _review_config(cfg: SessionConfig) -> bool:
     table = Table(
         title="Session Summary",
@@ -293,6 +451,17 @@ def _review_config(cfg: SessionConfig) -> bool:
     table.add_row("Starting capital", f"${cfg.starting_capital:,.2f}")
     table.add_row("Trading mode", cfg.trade_mode)
     table.add_row("Run mode", cfg.run_mode)
+    table.add_row("Portfolio mode", cfg.portfolio_mode)
+    if cfg.portfolio:
+        returns = cfg.portfolio.calculate_total_return()
+        table.add_row(
+            "Portfolio value",
+            f"${cfg.portfolio.portfolio_value:,.2f} ({cfg.portfolio.num_stocks} positions)"
+        )
+        table.add_row(
+            "Portfolio return",
+            f"{returns['total_return_pct']:+.2f}% (${returns['total_unrealized_pnl']:+,.2f})"
+        )
     table.add_row("Notes", cfg.notes or "—")
 
     panel = Panel(
@@ -633,6 +802,7 @@ def run_interactive() -> None:
     capital = _prompt_starting_capital()
     trade_mode = _prompt_trade_mode()
     run_mode = _prompt_run_mode()
+    portfolio_mode, portfolio = _prompt_portfolio_mode()
     notes = _prompt_notes()
 
     cfg = SessionConfig(
@@ -641,6 +811,8 @@ def run_interactive() -> None:
         starting_capital=capital,
         trade_mode=trade_mode,
         run_mode=run_mode,
+        portfolio_mode=portfolio_mode,
+        portfolio=portfolio,
         notes=notes,
     )
 
