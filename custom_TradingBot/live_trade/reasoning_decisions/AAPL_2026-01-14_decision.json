@@ -1,20 +1,25 @@
 {
   "symbol": "AAPL",
-  "date": "2026-01-12",
+  "date": "2026-01-14",
   "decision": "HOLD",
   "confidence": 0.65,
   "amount_usd": 0.0,
-  "reasoning": "Based on my analysis of AAPL as of January 12, 2026:\n\n**Technical Analysis:**\n- The stock has been in a downtrend from early December highs around $288 to current levels around $277-278\n- RSI shows declining momentum from overbought levels (75+ in early December) to more neutral levels around 58, suggesting the selling pressure is moderating\n- Price is trading above the 20-day EMA (around $265), indicating the longer-term trend remains intact despite recent weakness\n- Volume patterns show normal trading activity without significant distribution\n\n**Fundamental Analysis:**\n- Strong balance sheet with $33.5B in cash and equivalents, healthy current ratio\n- Analyst consensus target of $299.08 suggests ~7.5% upside potential from current levels\n- No immediate earnings catalyst - next quarterly report likely in late January/early February\n\n**Catalyst Analysis:**\n- Major positive news today about Apple's AI partnership with Google Gemini for Siri, which could be a significant long-term growth driver\n- This partnership addresses concerns about Apple falling behind in AI and could drive future revenue growth\n\n**Portfolio Context:**\n- Currently hold 100 shares at $250 average cost, giving us a ~11% unrealized gain\n- Portfolio has negative cash balance, limiting ability to add to position\n\n**Risk Assessment:**\nThe AI partnership news is positive but the market reaction appears muted in the short term. Given the technical consolidation and strong fundamental backdrop, holding the position makes sense to capture potential upside from the AI catalyst while maintaining our profitable position.\n\nThe HOLD decision balances the positive long-term catalyst with the short-term technical consolidation and our portfolio constraints.",
-  "raw_response": "DECISION: HOLD\nCONFIDENCE: 0.65\nREASONING: \n\nBased on my analysis of AAPL as of January 12, 2026:\n\n**Technical Analysis:**\n- The stock has been in a downtrend from early December highs around $288 to current levels around $277-278\n- RSI shows declining momentum from overbought levels (75+ in early December) to more neutral levels around 58, suggesting the selling pressure is moderating\n- Price is trading above the 20-day EMA (around $265), indicating the longer-term trend remains intact despite recent weakness\n- Volume patterns show normal trading activity without significant distribution\n\n**Fundamental Analysis:**\n- Strong balance sheet with $33.5B in cash and equivalents, healthy current ratio\n- Analyst consensus target of $299.08 suggests ~7.5% upside potential from current levels\n- No immediate earnings catalyst - next quarterly report likely in late January/early February\n\n**Catalyst Analysis:**\n- Major positive news today about Apple's AI partnership with Google Gemini for Siri, which could be a significant long-term growth driver\n- This partnership addresses concerns about Apple falling behind in AI and could drive future revenue growth\n\n**Portfolio Context:**\n- Currently hold 100 shares at $250 average cost, giving us a ~11% unrealized gain\n- Portfolio has negative cash balance, limiting ability to add to position\n\n**Risk Assessment:**\nThe AI partnership news is positive but the market reaction appears muted in the short term. Given the technical consolidation and strong fundamental backdrop, holding the position makes sense to capture potential upside from the AI catalyst while maintaining our profitable position.\n\nThe HOLD decision balances the positive long-term catalyst with the short-term technical consolidation and our portfolio constraints.",
+  "reasoning": "Based on my analysis of AAPL as of 2026-01-14:\n\n**Technical Analysis:**\n- The stock shows a clear downtrend from early December highs around $286 to current levels around $277-278\n- RSI has declined from overbought levels (75+) in early December to more neutral territory (56-57), suggesting momentum has weakened but not oversold\n- Price is trading above the 20-day EMA (around $266), indicating the longer-term trend may still be intact despite recent weakness\n- Volume patterns show normal trading activity without significant capitulation\n\n**Fundamental Analysis:**\n- Strong balance sheet with $33.5B cash and equivalents, healthy current ratio\n- Analyst consensus target of $299.08 suggests 7-8% upside potential from current levels\n- No recent earnings catalyst found in the calendar (no AAPL earnings around this date)\n\n**News/Sentiment:**\n- Negative sentiment with headlines like \"Apple Stock: Why The iPhone Giant Could Fall\" creating headwinds\n- However, these appear to be opinion pieces rather than fundamental news\n\n**Portfolio Context:**\n- Currently holding 100 shares at $250 average cost (unrealized gain of ~$2,700)\n- Negative cash balance indicates leveraged position, making additional buying risky\n- The stock has pulled back from recent highs but remains above our cost basis\n\n**Risk Assessment:**\nGiven the high risk tolerance and leveraged position, the prudent move is to HOLD. The technical pullback appears to be a normal correction within an uptrend rather than a trend reversal. The negative news sentiment may create short-term pressure, but fundamentals remain solid. Waiting for a clearer technical signal or improved sentiment would be wise before adding to the position or taking profits.",
+  "raw_response": "DECISION: HOLD\nCONFIDENCE: 0.65\nREASONING: \n\nBased on my analysis of AAPL as of 2026-01-14:\n\n**Technical Analysis:**\n- The stock shows a clear downtrend from early December highs around $286 to current levels around $277-278\n- RSI has declined from overbought levels (75+) in early December to more neutral territory (56-57), suggesting momentum has weakened but not oversold\n- Price is trading above the 20-day EMA (around $266), indicating the longer-term trend may still be intact despite recent weakness\n- Volume patterns show normal trading activity without significant capitulation\n\n**Fundamental Analysis:**\n- Strong balance sheet with $33.5B cash and equivalents, healthy current ratio\n- Analyst consensus target of $299.08 suggests 7-8% upside potential from current levels\n- No recent earnings catalyst found in the calendar (no AAPL earnings around this date)\n\n**News/Sentiment:**\n- Negative sentiment with headlines like \"Apple Stock: Why The iPhone Giant Could Fall\" creating headwinds\n- However, these appear to be opinion pieces rather than fundamental news\n\n**Portfolio Context:**\n- Currently holding 100 shares at $250 average cost (unrealized gain of ~$2,700)\n- Negative cash balance indicates leveraged position, making additional buying risky\n- The stock has pulled back from recent highs but remains above our cost basis\n\n**Risk Assessment:**\nGiven the high risk tolerance and leveraged position, the prudent move is to HOLD. The technical pullback appears to be a normal correction within an uptrend rather than a trend reversal. The negative news sentiment may create short-term pressure, but fundamentals remain solid. Waiting for a clearer technical signal or improved sentiment would be wise before adding to the position or taking profits.",
   "tool_calls_made": 9,
   "tool_results": [
     {
-      "tool_name": "get_current_price",
-      "data": []
-    },
-    {
       "tool_name": "get_fmp_rsi",
       "data": [
+        {
+          "date": "2025-12-09 00:00:00",
+          "open": 278.16,
+          "high": 280.03,
+          "low": 276.92,
+          "close": 277.18,
+          "volume": 32193300,
+          "rsi": 56.36260193175752
+        },
         {
           "date": "2025-12-08 00:00:00",
           "open": 278.13,
@@ -545,23 +550,23 @@
           "close": 238.15,
           "volume": 63421100,
           "rsi": 61.47238579652719
-        },
-        {
-          "date": "2025-09-15 00:00:00",
-          "open": 237,
-          "high": 238.19,
-          "low": 235.03,
-          "close": 236.7,
-          "volume": 42699524,
-          "rsi": 59.969887771574804
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 83"
+      "truncated_note": "Trimmed data to last 60 items out of 84"
     },
     {
       "tool_name": "get_fmp_ema",
       "data": [
+        {
+          "date": "2025-12-09 00:00:00",
+          "open": 278.16,
+          "high": 280.03,
+          "low": 276.92,
+          "close": 277.18,
+          "volume": 32193300,
+          "ema": 266.13947774167474
+        },
         {
           "date": "2025-12-08 00:00:00",
           "open": 278.13,
@@ -569,7 +574,7 @@
           "low": 276.15,
           "close": 277.89,
           "volume": 38211832,
-          "ema": 265.6817621574913
+          "ema": 265.68884418011044
         },
         {
           "date": "2025-12-05 00:00:00",
@@ -578,7 +583,7 @@
           "low": 278.05,
           "close": 278.78,
           "volume": 47265845,
-          "ema": 265.1834667353481
+          "ema": 265.19083782011495
         },
         {
           "date": "2025-12-04 00:00:00",
@@ -587,7 +592,7 @@
           "low": 278.59,
           "close": 280.7,
           "volume": 43989100,
-          "ema": 264.62850619393373
+          "ema": 264.6361781393033
         },
         {
           "date": "2025-12-03 00:00:00",
@@ -596,7 +601,7 @@
           "low": 283.3,
           "close": 284.15,
           "volume": 43538700,
-          "ema": 263.9725268549106
+          "ema": 263.9805119409075
         },
         {
           "date": "2025-12-02 00:00:00",
@@ -605,7 +610,7 @@
           "low": 282.63,
           "close": 286.19,
           "volume": 53669532,
-          "ema": 263.148956522458
+          "ema": 263.15726753033226
         },
         {
           "date": "2025-12-01 00:00:00",
@@ -614,7 +619,7 @@
           "low": 276.14,
           "close": 283.1,
           "volume": 46587722,
-          "ema": 262.2085057682726
+          "ema": 262.217156000958
         },
         {
           "date": "2025-11-28 00:00:00",
@@ -623,7 +628,7 @@
           "low": 275.99,
           "close": 278.85,
           "volume": 20135620,
-          "ema": 261.355791717998
+          "ema": 261.36479502140526
         },
         {
           "date": "2025-11-26 00:00:00",
@@ -632,7 +637,7 @@
           "low": 276.63,
           "close": 277.55,
           "volume": 33431423,
-          "ema": 260.6417424003653
+          "ema": 260.65111318554426
         },
         {
           "date": "2025-11-25 00:00:00",
@@ -641,7 +646,7 @@
           "low": 275.25,
           "close": 276.97,
           "volume": 46914220,
-          "ema": 259.9516094371149
+          "ema": 259.9613627033216
         },
         {
           "date": "2025-11-24 00:00:00",
@@ -650,7 +655,7 @@
           "low": 270.9,
           "close": 275.92,
           "volume": 65585800,
-          "ema": 259.2569812508747
+          "ema": 259.2671326095796
         },
         {
           "date": "2025-11-21 00:00:00",
@@ -659,7 +664,7 @@
           "low": 265.67,
           "close": 271.49,
           "volume": 59030832,
-          "ema": 258.5768580366246
+          "ema": 258.58742373650125
         },
         {
           "date": "2025-11-20 00:00:00",
@@ -668,7 +673,7 @@
           "low": 265.92,
           "close": 266.25,
           "volume": 45823600,
-          "ema": 258.04979101771136
+          "ema": 258.0607879706442
         },
         {
           "date": "2025-11-19 00:00:00",
@@ -677,7 +682,7 @@
           "low": 265.5,
           "close": 268.56,
           "volume": 40424500,
-          "ema": 257.715088610271
+          "ema": 257.72653441842556
         },
         {
           "date": "2025-11-18 00:00:00",
@@ -686,7 +691,7 @@
           "low": 265.32,
           "close": 267.44,
           "volume": 45677300,
-          "ema": 257.2724391657922
+          "ema": 257.28435214978987
         },
         {
           "date": "2025-11-17 00:00:00",
@@ -695,7 +700,7 @@
           "low": 265.73,
           "close": 267.46,
           "volume": 45018300,
-          "ema": 256.8574366827633
+          "ema": 256.8698359110058
         },
         {
           "date": "2025-11-14 00:00:00",
@@ -704,7 +709,7 @@
           "low": 269.6,
           "close": 272.41,
           "volume": 47431331,
-          "ema": 256.4246789963455
+          "ema": 256.43758431553664
         },
         {
           "date": "2025-11-13 00:00:00",
@@ -713,7 +718,7 @@
           "low": 272.09,
           "close": 272.95,
           "volume": 49602800,
-          "ema": 255.77221691456367
+          "ema": 255.78564898147692
         },
         {
           "date": "2025-11-12 00:00:00",
@@ -722,7 +727,7 @@
           "low": 271.7,
           "close": 273.47,
           "volume": 48398000,
-          "ema": 255.07108291107645
+          "ema": 255.08506322561885
         },
         {
           "date": "2025-11-11 00:00:00",
@@ -731,7 +736,7 @@
           "low": 269.8,
           "close": 275.25,
           "volume": 46208318,
-          "ema": 254.32010670336527
+          "ema": 254.33465764299106
         },
         {
           "date": "2025-11-10 00:00:00",
@@ -740,7 +745,7 @@
           "low": 267.46,
           "close": 269.43,
           "volume": 41312412,
-          "ema": 253.46582534431894
+          "ema": 253.48097019984783
         },
         {
           "date": "2025-11-07 00:00:00",
@@ -749,7 +754,7 @@
           "low": 266.77,
           "close": 268.47,
           "volume": 48227400,
-          "ema": 252.81422637878094
+          "ema": 252.82998939167834
         },
         {
           "date": "2025-11-06 00:00:00",
@@ -758,7 +763,7 @@
           "low": 267.89,
           "close": 269.77,
           "volume": 51204045,
-          "ema": 252.1752152105679
+          "ema": 252.19162161174683
         },
         {
           "date": "2025-11-05 00:00:00",
@@ -767,7 +772,7 @@
           "low": 266.93,
           "close": 270.14,
           "volume": 43683100,
-          "ema": 251.4570607293666
+          "ema": 251.4741367795732
         },
         {
           "date": "2025-11-04 00:00:00",
@@ -776,7 +781,7 @@
           "low": 267.62,
           "close": 270.04,
           "volume": 49274846,
-          "ema": 250.69449177954482
+          "ema": 250.71226481139252
         },
         {
           "date": "2025-11-03 00:00:00",
@@ -785,7 +790,7 @@
           "low": 266.25,
           "close": 269.05,
           "volume": 50194600,
-          "ema": 249.90487919911806
+          "ema": 249.9233776608371
         },
         {
           "date": "2025-10-31 00:00:00",
@@ -794,7 +799,7 @@
           "low": 269.16,
           "close": 270.37,
           "volume": 86167123,
-          "ema": 249.12344569704123
+          "ema": 249.1426991980141
         },
         {
           "date": "2025-10-30 00:00:00",
@@ -803,7 +808,7 @@
           "low": 268.48,
           "close": 271.4,
           "volume": 69886534,
-          "ema": 248.2562393989613
+          "ema": 248.27627875711673
         },
         {
           "date": "2025-10-29 00:00:00",
@@ -812,7 +817,7 @@
           "low": 267.11,
           "close": 269.7,
           "volume": 51086742,
-          "ema": 247.31159610912297
+          "ema": 247.33245340026434
         },
         {
           "date": "2025-10-28 00:00:00",
@@ -821,7 +826,7 @@
           "low": 268.15,
           "close": 269,
           "volume": 41534800,
-          "ema": 246.3977837054137
+          "ema": 246.41949231456084
         },
         {
           "date": "2025-10-27 00:00:00",
@@ -830,7 +835,7 @@
           "low": 264.65,
           "close": 268.81,
           "volume": 44888200,
-          "ema": 245.47524426481831
+          "ema": 245.49783893964494
         },
         {
           "date": "2025-10-24 00:00:00",
@@ -839,7 +844,7 @@
           "low": 259.18,
           "close": 262.82,
           "volume": 38253717,
-          "ema": 244.52280525521905
+          "ema": 244.54632216167127
         },
         {
           "date": "2025-10-23 00:00:00",
@@ -848,7 +853,7 @@
           "low": 258.01,
           "close": 259.58,
           "volume": 32754941,
-          "ema": 243.77598097992185
+          "ema": 243.8004577601068
         },
         {
           "date": "2025-10-22 00:00:00",
@@ -857,7 +862,7 @@
           "low": 255.43,
           "close": 258.45,
           "volume": 45015300,
-          "ema": 243.13091897910232
+          "ema": 243.1563948115397
         },
         {
           "date": "2025-10-21 00:00:00",
@@ -866,7 +871,7 @@
           "low": 261.83,
           "close": 262.77,
           "volume": 46695948,
-          "ema": 242.50565036600446
+          "ema": 242.53216602833726
         },
         {
           "date": "2025-10-20 00:00:00",
@@ -875,7 +880,7 @@
           "low": 255.63,
           "close": 262.24,
           "volume": 90483029,
-          "ema": 241.67853405441278
+          "ema": 241.70613198867753
         },
         {
           "date": "2025-10-17 00:00:00",
@@ -884,7 +889,7 @@
           "low": 247.27,
           "close": 252.29,
           "volume": 49147000,
-          "ema": 240.83929054642962
+          "ema": 240.8680149269909
         },
         {
           "date": "2025-10-16 00:00:00",
@@ -893,7 +898,7 @@
           "low": 245.13,
           "close": 247.45,
           "volume": 39777000,
-          "ema": 240.3719146503655
+          "ema": 240.40181145462316
         },
         {
           "date": "2025-10-15 00:00:00",
@@ -902,7 +907,7 @@
           "low": 247.47,
           "close": 249.34,
           "volume": 33893611,
-          "ema": 240.0830132075233
+          "ema": 240.11413028950574
         },
         {
           "date": "2025-10-14 00:00:00",
@@ -911,7 +916,7 @@
           "low": 244.7,
           "close": 247.77,
           "volume": 35478000,
-          "ema": 239.70517701191199
+          "ema": 239.7375641788733
         },
         {
           "date": "2025-10-13 00:00:00",
@@ -920,7 +925,7 @@
           "low": 245.56,
           "close": 247.66,
           "volume": 38142942,
-          "ema": 239.3760005634186
+          "ema": 239.40970965556198
         },
         {
           "date": "2025-10-10 00:00:00",
@@ -929,7 +934,7 @@
           "low": 244,
           "close": 245.27,
           "volume": 61999100,
-          "ema": 239.03787813743565
+          "ema": 239.07296311089104
         },
         {
           "date": "2025-10-09 00:00:00",
@@ -938,7 +943,7 @@
           "low": 253.14,
           "close": 254.04,
           "volume": 38322012,
-          "ema": 238.78350581651463
+          "ema": 238.8200228297029
         },
         {
           "date": "2025-10-08 00:00:00",
@@ -947,7 +952,7 @@
           "low": 256.11,
           "close": 258.06,
           "volume": 36496900,
-          "ema": 238.1607917682091
+          "ema": 238.1987992717316
         },
         {
           "date": "2025-10-07 00:00:00",
@@ -956,7 +961,7 @@
           "low": 255.43,
           "close": 256.48,
           "volume": 31955800,
-          "ema": 237.34857918731967
+          "ema": 237.38813801751655
         },
         {
           "date": "2025-10-06 00:00:00",
@@ -965,7 +970,7 @@
           "low": 255.05,
           "close": 256.69,
           "volume": 44664118,
-          "ema": 236.56770486843476
+          "ema": 236.6088783447621
         },
         {
           "date": "2025-10-03 00:00:00",
@@ -974,7 +979,7 @@
           "low": 253.95,
           "close": 258.02,
           "volume": 49155614,
-          "ema": 235.74638669979944
+          "ema": 235.78924072618096
         },
         {
           "date": "2025-10-02 00:00:00",
@@ -983,7 +988,7 @@
           "low": 254.15,
           "close": 257.13,
           "volume": 42630239,
-          "ema": 234.83725962632187
+          "ema": 234.8818627966373
         },
         {
           "date": "2025-10-01 00:00:00",
@@ -992,7 +997,7 @@
           "low": 254.93,
           "close": 255.45,
           "volume": 48713940,
-          "ema": 233.92735185596763
+          "ema": 233.97377556384697
         },
         {
           "date": "2025-09-30 00:00:00",
@@ -1001,7 +1006,7 @@
           "low": 253.11,
           "close": 254.63,
           "volume": 37704300,
-          "ema": 233.04887642151732
+          "ema": 233.09719497461623
         },
         {
           "date": "2025-09-29 00:00:00",
@@ -1010,7 +1015,7 @@
           "low": 253.01,
           "close": 254.43,
           "volume": 40127700,
-          "ema": 232.16801423464045
+          "ema": 232.21830497358013
         },
         {
           "date": "2025-09-26 00:00:00",
@@ -1019,7 +1024,7 @@
           "low": 253.78,
           "close": 255.46,
           "volume": 46076300,
-          "ema": 231.2593617544217
+          "ema": 231.31170517658342
         },
         {
           "date": "2025-09-25 00:00:00",
@@ -1028,7 +1033,7 @@
           "low": 251.71,
           "close": 256.87,
           "volume": 55202100,
-          "ema": 230.27158060154093
+          "ema": 230.32606048991335
         },
         {
           "date": "2025-09-24 00:00:00",
@@ -1037,7 +1042,7 @@
           "low": 251.04,
           "close": 252.31,
           "volume": 42303710,
-          "ema": 229.18593083017527
+          "ema": 229.24263438746084
         },
         {
           "date": "2025-09-23 00:00:00",
@@ -1046,7 +1051,7 @@
           "low": 253.58,
           "close": 254.43,
           "volume": 60275200,
-          "ema": 228.2420912722232
+          "ema": 228.3011092604184
         },
         {
           "date": "2025-09-22 00:00:00",
@@ -1055,7 +1060,7 @@
           "low": 248.12,
           "close": 256.08,
           "volume": 105517416,
-          "ema": 227.1731970384364
+          "ema": 227.23462392410894
         },
         {
           "date": "2025-09-19 00:00:00",
@@ -1064,7 +1069,7 @@
           "low": 240.21,
           "close": 245.5,
           "volume": 163741314,
-          "ema": 225.99332752980115
+          "ema": 226.05726163529707
         },
         {
           "date": "2025-09-18 00:00:00",
@@ -1073,7 +1078,7 @@
           "low": 236.65,
           "close": 237.88,
           "volume": 44249600,
-          "ema": 225.1971368167318
+          "ema": 225.2636804775541
         },
         {
           "date": "2025-09-17 00:00:00",
@@ -1082,7 +1087,7 @@
           "low": 237.73,
           "close": 238.99,
           "volume": 46508017,
-          "ema": 224.67946893170046
+          "ema": 224.7487286603114
         },
         {
           "date": "2025-09-16 00:00:00",
@@ -1091,20 +1096,11 @@
           "low": 236.32,
           "close": 238.15,
           "volume": 63421100,
-          "ema": 224.09536562279027
-        },
-        {
-          "date": "2025-09-15 00:00:00",
-          "open": 237,
-          "high": 238.19,
-          "low": 235.03,
-          "close": 236.7,
-          "volume": 42699524,
-          "ema": 223.5217070767817
+          "ema": 224.16745227909962
         }
       ],
       "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 83"
+      "truncated_note": "Trimmed data to last 60 items out of 84"
     },
     {
       "tool_name": "get_balance_sheet",
@@ -1307,502 +1303,734 @@
       ]
     },
     {
+      "result": "Error executing tool get_earnings_calendar: 2 validation errors for get_earnings_calendarArguments\nstart_date\n  Field required [type=missing, input_value={'symbol': 'AAPL', 'limit...ent_date': '2026-01-14'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\nend_date\n  Field required [type=missing, input_value={'symbol': 'AAPL', 'limit...ent_date': '2026-01-14'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing",
+      "tool_name": "get_earnings_calendar"
+    },
+    {
       "tool_name": "get_company_news",
       "data": [
         {
           "symbol": "AAPL",
-          "publishedDate": "2026-01-12 17:28:11",
-          "publisher": "CNBC Television",
-          "title": "Apple needs to partner with Google in AI arms race, says Wedbush's Dan Ives",
-          "image": null,
-          "site": "youtube.com",
-          "text": "Dan Ives, Wedbush, joins 'Closing Bell Overtime' to weigh in on what he calls a 'prove it' year for Apple.",
-          "url": "https://www.youtube.com/watch?v=N-o7otzpt9I"
+          "publishedDate": "2026-01-14 09:20:23",
+          "publisher": "Forbes",
+          "title": "Apple Stock: Why The iPhone Giant Could Fall",
+          "image": "https://images.financialmodelingprep.com/news/apple-stock-why-the-iphone-giant-could-fall-20260114.jpg",
+          "site": "forbes.com",
+          "text": "Apple (AAPL) has faced challenges in the past. Its stock fell over 30% within a period of less than two months in 2018, resulting in billions lost in market value and eliminating substantial gains in a single correction.",
+          "url": "https://www.forbes.com/sites/greatspeculations/2026/01/14/apple-stock-why-the-iphone-giant-could-fall/"
         },
         {
           "symbol": "AAPL",
-          "publishedDate": "2026-01-12 17:25:15",
-          "publisher": "Zacks Investment Research",
-          "title": "Apple & Google: A New AI Superteam?",
-          "image": "https://images.financialmodelingprep.com/news/apple-google-a-new-ai-superteam-20260112.jpg",
-          "site": "zacks.com",
-          "text": "Apple and Google have entered into a multi-year collaboration under which the next generation of Apple Foundation Models will be based on Google's Gemini models and cloud technology.",
-          "url": "https://www.zacks.com/commentary/2816024/apple-google-a-new-ai-superteam?cid=CS-STOCKNEWSAPI-FT-investment_ideas-2816024"
+          "publishedDate": "2026-01-14 07:52:40",
+          "publisher": "24/7 Wall Street",
+          "title": "Opinion: Why It's Time to Follow Tim Cook and CEO Elliott Hill Into Nike Stock",
+          "image": "https://images.financialmodelingprep.com/news/opinion-why-its-time-to-follow-tim-cook-and-20260114.jpg",
+          "site": "247wallst.com",
+          "text": "Shares of Nike (NASDAQ:NKE) have been flying higher ever since Apple (NASDAQ:AAPL) CEO Tim Cook, who's also on Nike's board of directors (and has been for quite some time), backed up the truck on shares of the sneaker giant, picking up around $3 million worth of shares.",
+          "url": "https://247wallst.com/investing/2026/01/14/opinion-why-its-time-to-follow-tim-cook-and-ceo-elliott-hill-into-nike-stock/"
         },
         {
           "symbol": "AAPL",
-          "publishedDate": "2026-01-12 17:08:47",
-          "publisher": "Bloomberg Technology",
-          "title": "Apple Picks Gemini to Run AI-Powered Siri | Bloomberg Tech 1/12/2026",
-          "image": "https://images.financialmodelingprep.com/news/apple-picks-gemini-to-run-aipowered-siri-bloomberg-tech-20260112.jpg",
-          "site": "youtube.com",
-          "text": "Bloomberg's Caroline Hyde and Ed Ludlow discuss Apple's decision to use Alphabet's Gemini to power Siri in a multiyear deal. Plus, Nvidia plans to invest $1 billion over five years in a new lab with Eli Lilly & Co. to speed up the use of AI in the pharmaceutical industry.",
-          "url": "https://www.youtube.com/watch?v=71jOb3lzymM"
+          "publishedDate": "2026-01-14 07:39:00",
+          "publisher": "GuruFocus",
+          "title": "First Look: Alphabet $4T, Nvidia China OK, Boeing Tops Airbus",
+          "image": "https://images.financialmodelingprep.com/news/first-look-alphabet-4t-nvidia-china-ok-boeing-tops-20260114.png",
+          "site": "gurufocus.com",
+          "text": "Stock News Saks Global files Chapter 11: Saks Global (private) sought Chapter 11 protection, citing heavy debt from its 2024 Neiman Marcus deal and inventory st",
+          "url": "https://www.gurufocus.com/news/4110439/first-look-alphabet-4t-nvidia-china-ok-boeing-tops-airbus"
         },
         {
           "symbol": "AAPL",
-          "publishedDate": "2026-01-12 16:27:51",
-          "publisher": "Benzinga",
-          "title": "Apple May Break Q1 Records: Will A Foldable iPhone Outweigh Looming Memory Costs?",
-          "image": "https://images.financialmodelingprep.com/news/apple-may-break-q1-records-will-a-foldable-iphone-20260112.jpg",
-          "site": "benzinga.com",
-          "text": "Apple Inc (NASDAQ: AAPL) stock traded higher on Monday on the heels of a new partnership with Google. An analyst sees a strong setup for Apple stock ahead of first-quarter financial results expected later this month.",
-          "url": "https://www.benzinga.com/analyst-stock-ratings/analyst-color/26/01/49861112/apple-may-break-q1-records-will-a-foldable-iphone-outweigh-looming-memory-costs"
+          "publishedDate": "2026-01-14 07:00:01",
+          "publisher": "TechXplore",
+          "title": "Apple bundles creative apps into $13-a-month subscription",
+          "image": "https://images.financialmodelingprep.com/news/apple-bundles-creative-apps-into-13amonth-subscription-20260114.jpg",
+          "site": "techxplore.com",
+          "text": "On Jan. 13, Apple Inc. announced a new subscription bundle of creative apps called Creator Studio, an attempt to give its photo- and video-editing software fresh momentum in the face of intensifying competition.",
+          "url": "https://techxplore.com/news/2026-01-apple-bundles-creative-apps-month.html"
         },
         {
           "symbol": "AAPL",
-          "publishedDate": "2026-01-12 16:00:52",
-          "publisher": "Schwab Network",
-          "title": "AAPL Taps GOOGL for AI Support After Stock's Stumble",
-          "image": "https://images.financialmodelingprep.com/news/aapl-taps-googl-for-ai-support-after-stocks-stumble-20260112.jpg",
-          "site": "youtube.com",
-          "text": "Apple (AAPL) will tap another Mag 7 giant in Alphabet (GOOGL) by using Google Gemini models to power Siri. Alex Coffey analyzes Apple's price action and why investors may be more wary around the company in 2026's opening trading sessions.",
-          "url": "https://www.youtube.com/watch?v=jTl5m5d4_lk"
-        },
-        {
-          "symbol": "AAPL",
-          "publishedDate": "2026-01-12 15:09:58",
-          "publisher": "NYTimes",
-          "title": "Apple Teams Up With Google for A.I. in Its Products",
-          "image": "https://images.financialmodelingprep.com/news/apple-teams-up-with-google-for-ai-in-its-20260112.jpg",
-          "site": "nytimes.com",
-          "text": "Apple was facing increasing questions about its plans for artificial intelligence as other big tech companies invested tens of billions in the technology.",
-          "url": "https://www.nytimes.com/2026/01/12/technology/apple-google-ai-partnership.html"
-        },
-        {
-          "symbol": "AAPL",
-          "publishedDate": "2026-01-12 14:32:56",
-          "publisher": "CNBC Television",
-          "title": "Apple bets big on Google's Gemini AI",
-          "image": "https://images.financialmodelingprep.com/news/apple-bets-big-on-googles-gemini-ai-20260112.jpg",
-          "site": "youtube.com",
-          "text": "CNBC's Deirdre Bosa reports on news regarding Apple and Google.",
-          "url": "https://www.youtube.com/watch?v=IjdUw9cvrr4"
-        },
-        {
-          "symbol": "AAPL",
-          "publishedDate": "2026-01-12 14:21:29",
-          "publisher": "CNET",
-          "title": "Apple Picks Google Gemini to Power Siri",
-          "image": "https://images.financialmodelingprep.com/news/apple-picks-google-gemini-to-power-siri-20260112.jpg",
-          "site": "cnet.com",
-          "text": "Apple has chosen Google's Gemini to power its next iteration of Siri, coming later this year, both companies said in a joint statement on Monday.",
-          "url": "https://www.cnet.com/tech/services-and-software/apple-picks-google-gemini-to-power-siri/"
-        },
-        {
-          "symbol": "AAPL",
-          "publishedDate": "2026-01-12 13:44:53",
-          "publisher": "Proactive Investors",
-          "title": "Apple taps Google AI to power Siri in multi-year deal",
-          "image": "https://images.financialmodelingprep.com/news/apple-taps-google-ai-to-power-siri-in-multiyear-20260112.jpg",
-          "site": "proactiveinvestors.com",
-          "text": "Alphabet Inc (NASDAQ:GOOG)'s Google confirmed on Monday that it has entered a multi-year agreement with Apple Inc (NASDAQ:AAPL, XETRA:APC) to power the iPhone-maker's artificial intelligence technology, including its Siri voice assistant. \u201cAfter careful evaluation, Apple determined that Google's AI technology provides the most capable foundation for Apple Foundation Models and is excited about the innovative new experiences it will unlock for Apple users,\u201d Google said in a post on X, the social media platform formerly known as Twitter.",
-          "url": "https://www.proactiveinvestors.com/companies/news/1085507"
-        },
-        {
-          "symbol": "AAPL",
-          "publishedDate": "2026-01-12 13:21:30",
-          "publisher": "Benzinga",
-          "title": "Apple Accelerates 5x Past The Smartphone Market \u2014 Samsung Gets Outrun",
-          "image": "https://images.financialmodelingprep.com/news/apple-accelerates-5x-past-the-smartphone-market-samsung-gets-20260112.jpg",
-          "site": "benzinga.com",
-          "text": "Technology giant Apple Inc (NASDAQ: AAPL) saw its stock gain in 2025 with shares up 11.5%. That gain underperformed against several of the leading broad stock market indexes.",
-          "url": "https://www.benzinga.com/trading-ideas/long-ideas/26/01/49854623/apple-accelerates-5x-past-the-smartphone-market-samsung-gets-outrun"
+          "publishedDate": "2026-01-14 06:31:14",
+          "publisher": "TechXplore",
+          "title": "How bits of Apple history can be yours",
+          "image": "https://images.financialmodelingprep.com/news/how-bits-of-apple-history-can-be-yours-20260114.jpg",
+          "site": "techxplore.com",
+          "text": "In March 1976, Apple cofounders Steve Jobs and Steve Wozniak both signed a $500 check weeks before the official creation of a California company that would transform personal computing and become a global powerhouse.",
+          "url": "https://techxplore.com/news/2026-01-bits-apple-history.html"
         }
       ]
     },
     {
-      "tool_name": "get_price_history",
-      "data": {
-        "id": "069656f5-0f81-7322-8000-9fda09b1540f",
-        "results": [
-          {
-            "date": "2025-12-01",
-            "open": 278.2,
-            "high": 283.42,
-            "low": 276.14,
-            "close": 283.1,
-            "volume": 46587722,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-02",
-            "open": 282.99,
-            "high": 287.4,
-            "low": 282.63,
-            "close": 286.19,
-            "volume": 53669532,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-03",
-            "open": 286.19,
-            "high": 288.62,
-            "low": 283.3,
-            "close": 284.15,
-            "volume": 43538687,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-04",
-            "open": 284.1,
-            "high": 284.73,
-            "low": 278.59,
-            "close": 280.7,
-            "volume": 43989056,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-05",
-            "open": 280.54,
-            "high": 281.14,
-            "low": 278.05,
-            "close": 278.78,
-            "volume": 47265845,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-08",
-            "open": 278.02,
-            "high": 279.67,
-            "low": 276.15,
-            "close": 277.89,
-            "volume": 38211832,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-09",
-            "open": 278.16,
-            "high": 280.03,
-            "low": 276.92,
-            "close": 277.18,
-            "volume": 32193256,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-10",
-            "open": 277.75,
-            "high": 279.75,
-            "low": 276.44,
-            "close": 278.78,
-            "volume": 33038318,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-11",
-            "open": 279.02,
-            "high": 279.59,
-            "low": 273.81,
-            "close": 278.03,
-            "volume": 33247986,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-12",
-            "open": 277.82,
-            "high": 279.22,
-            "low": 276.82,
-            "close": 278.28,
-            "volume": 39532887,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-15",
-            "open": 279.94,
-            "high": 280.15,
-            "low": 272.84,
-            "close": 274.11,
-            "volume": 50409078,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-16",
-            "open": 272.85,
-            "high": 275.5,
-            "low": 271.79,
-            "close": 274.61,
-            "volume": 37648628,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-17",
-            "open": 275.02,
-            "high": 276.16,
-            "low": 271.64,
-            "close": 271.84,
-            "volume": 50138743,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-18",
-            "open": 273.57,
-            "high": 273.63,
-            "low": 266.95,
-            "close": 272.19,
-            "volume": 51630721,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-19",
-            "open": 272.39,
-            "high": 274.6,
-            "low": 269.9,
-            "close": 273.67,
-            "volume": 144632048,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-22",
-            "open": 272.81,
-            "high": 273.88,
-            "low": 270.51,
-            "close": 270.97,
-            "volume": 36571827,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-23",
-            "open": 270.85,
-            "high": 272.5,
-            "low": 269.56,
-            "close": 272.36,
-            "volume": 29641999,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-24",
-            "open": 272.33,
-            "high": 275.43,
-            "low": 272.2,
-            "close": 273.81,
-            "volume": 17910574,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-26",
-            "open": 274.06,
-            "high": 275.37,
-            "low": 272.86,
-            "close": 273.4,
-            "volume": 21521802,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-29",
-            "open": 272.69,
-            "high": 274.36,
-            "low": 272.35,
-            "close": 273.76,
-            "volume": 23715213,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-30",
-            "open": 272.9,
-            "high": 274.08,
-            "low": 272.28,
-            "close": 273.08,
-            "volume": 22139617,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-31",
-            "open": 273.08,
-            "high": 273.68,
-            "low": 271.75,
-            "close": 271.86,
-            "volume": 27293639,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-31",
-            "open": 273.08,
-            "high": 273.68,
-            "low": 271.75,
-            "close": 271.86,
-            "volume": 27293639,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2025-12-31",
-            "open": 273.08,
-            "high": 273.68,
-            "low": 271.75,
-            "close": 271.86,
-            "volume": 27293639,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2026-01-02",
-            "open": 272.05,
-            "high": 277.84,
-            "low": 269.0,
-            "close": 271.01,
-            "volume": 37838054,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2026-01-05",
-            "open": 270.64,
-            "high": 271.51,
-            "low": 266.14,
-            "close": 267.26,
-            "volume": 45647190,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2026-01-06",
-            "open": 267.0,
-            "high": 267.55,
-            "low": 262.12,
-            "close": 262.36,
-            "volume": 52352090,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2026-01-07",
-            "open": 263.25,
-            "high": 263.68,
-            "low": 259.81,
-            "close": 260.33,
-            "volume": 48309804,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2026-01-08",
-            "open": 257.02,
-            "high": 259.29,
-            "low": 255.7,
-            "close": 259.04,
-            "volume": 50419337,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          },
-          {
-            "date": "2026-01-09",
-            "open": 258.97,
-            "high": 260.21,
-            "low": 256.22,
-            "close": 259.37,
-            "volume": 39996967,
-            "vwap": null,
-            "calls_volume": null,
-            "puts_volume": null,
-            "total_options_volume": null
-          }
-        ],
-        "provider": "cboe",
-        "warnings": null,
-        "chart": null,
-        "extra": {
-          "metadata": {
-            "arguments": {
-              "provider_choices": {
-                "provider": "cboe"
-              },
-              "standard_params": {
-                "symbol": "AAPL",
-                "start_date": "2025-12-01",
-                "end_date": "2026-01-12"
-              },
-              "extra_params": {}
-            },
-            "duration": 347653708,
-            "route": "/equity/price/historical",
-            "timestamp": "2026-01-12 22:01:52.621436"
-          }
+      "tool_name": "get_earnings_calendar",
+      "data": [
+        {
+          "report_date": "2026-01-07",
+          "symbol": "SAZ",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.591,
+          "eps_actual": 0.745,
+          "revenue_consensus": 31067051.0,
+          "revenue_actual": 34716086.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "SAJ",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.591,
+          "eps_actual": 0.745,
+          "revenue_consensus": 31067051.0,
+          "revenue_actual": 34716086.0,
+          "last_updated": "2026-01-13"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "CALM",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 1.75,
+          "eps_actual": 2.13,
+          "revenue_consensus": 846398400.0,
+          "revenue_actual": 769498000.0,
+          "last_updated": "2026-01-13"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "SAR",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.59,
+          "eps_actual": 0.61,
+          "revenue_consensus": 30723690.0,
+          "revenue_actual": 27250227.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "DSKIF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.00204,
+          "revenue_consensus": 112040277.0,
+          "revenue_actual": 755523.96,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "UNF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 2.05,
+          "eps_actual": 1.98,
+          "revenue_consensus": 614678470.0,
+          "revenue_actual": 621318000.0,
+          "last_updated": "2026-01-13"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "SAT",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.591,
+          "eps_actual": 0.745,
+          "revenue_consensus": 31067051.0,
+          "revenue_actual": 34716086.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "HTSUY",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.1136,
+          "revenue_consensus": null,
+          "revenue_actual": 261684031.0,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "APLD",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": -0.09,
+          "eps_actual": -0.11,
+          "revenue_consensus": 78428800.0,
+          "revenue_actual": 126589000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "AMLLF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "PCYO",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.19,
+          "revenue_consensus": null,
+          "revenue_actual": 9135000.0,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "ACI",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.67,
+          "eps_actual": 0.72,
+          "revenue_consensus": 20464203680.0,
+          "revenue_actual": 19123700000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "PSMT",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 1.28,
+          "eps_actual": 1.29,
+          "revenue_consensus": 1356607000.0,
+          "revenue_actual": 1382729000.0,
+          "last_updated": "2026-01-07"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "RELL",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": -0.01,
+          "eps_actual": -0.01,
+          "revenue_consensus": 54085000.0,
+          "revenue_actual": 52288000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "AZZ",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 1.43,
+          "eps_actual": 1.52,
+          "revenue_consensus": 383218750.0,
+          "revenue_actual": 425746000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "MSM",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.95,
+          "eps_actual": 0.99,
+          "revenue_consensus": 931837120.0,
+          "revenue_actual": 965684000.0,
+          "last_updated": "2026-01-13"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "STZ",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 2.63,
+          "eps_actual": 3.06,
+          "revenue_consensus": 2154851371.0,
+          "revenue_actual": 2222800000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "JEF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.876,
+          "eps_actual": 0.96,
+          "revenue_consensus": 2017072164.0,
+          "revenue_actual": 2948824000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "FEEXY",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "TSUSF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.1703,
+          "eps_actual": 0.00111,
+          "revenue_consensus": 539112750000.0,
+          "revenue_actual": 11340967.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "RGP",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": -0.02,
+          "eps_actual": 0.06,
+          "revenue_consensus": 108188670.0,
+          "revenue_actual": 117732000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "FC",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.03,
+          "eps_actual": -0.27,
+          "revenue_consensus": 64769250.0,
+          "revenue_actual": 64045000.0,
+          "last_updated": "2026-01-07"
+        },
+        {
+          "report_date": "2026-01-07",
+          "symbol": "KRUS",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": -0.17,
+          "eps_actual": -0.23,
+          "revenue_consensus": 76511830.0,
+          "revenue_actual": 73455000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "CHSCM",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "ANGO",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": -0.1,
+          "eps_actual": -0.15337,
+          "revenue_consensus": 76150000.0,
+          "revenue_actual": 79433000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "CHSCO",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "CHSCP",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 21.19,
+          "revenue_consensus": null,
+          "revenue_actual": 8864104000.0,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "FRFTF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": 240602161.0,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "AIR",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 1.02,
+          "eps_actual": 1.18,
+          "revenue_consensus": 763610000.0,
+          "revenue_actual": 795300000.0,
+          "last_updated": "2026-01-06"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "CHSCL",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "BOTY",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-13"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "CHSCN",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "CCG",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "HTSUF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.00283,
+          "revenue_consensus": null,
+          "revenue_actual": 1628634.23,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "PENG",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": 0.41,
+          "eps_actual": 0.49,
+          "revenue_consensus": 341938430.0,
+          "revenue_actual": 343071000.0,
+          "last_updated": "2026-01-06"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "TKSHF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": 138472333330.0,
+          "revenue_actual": 4875448.74,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "REE",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": -0.54,
+          "eps_actual": -1.24,
+          "revenue_consensus": 100000.0,
+          "revenue_actual": 100000.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "NOBH",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.72,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-06",
+          "symbol": "BHP",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "NEA",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.641,
+          "revenue_consensus": null,
+          "revenue_actual": 102658023.0,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "NZF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.739,
+          "revenue_consensus": null,
+          "revenue_actual": 154105641.0,
+          "last_updated": "2026-01-13"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "NUV",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.3851,
+          "revenue_consensus": null,
+          "revenue_actual": 44745807.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "NAD",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.647,
+          "revenue_consensus": null,
+          "revenue_actual": 148135993.0,
+          "last_updated": "2026-01-13"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "NMZ",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": 0.553,
+          "revenue_consensus": null,
+          "revenue_actual": 49917378.0,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "SRAX",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "CBULF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-05"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "BRW",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-05",
+          "symbol": "SIREF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-12"
+        },
+        {
+          "report_date": "2026-01-04",
+          "symbol": "CAIAF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-11"
+        },
+        {
+          "report_date": "2026-01-02",
+          "symbol": "ADAPY",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": 9029000.0,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-02",
+          "symbol": "YZCAY",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-02",
+          "symbol": "FRSX",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-08"
+        },
+        {
+          "report_date": "2026-01-02",
+          "symbol": "NAMM",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-08"
+        },
+        {
+          "report_date": "2026-01-01",
+          "symbol": "GAMI",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-01",
+          "symbol": "SEHKF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": -0.00083,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-01",
+          "symbol": "NYMXF",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-01",
+          "symbol": "ILLR",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": -0.29,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-01",
+          "symbol": "ISOU",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": -0.06,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-01",
+          "symbol": "CTSO",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": null,
+          "revenue_consensus": null,
+          "revenue_actual": null,
+          "last_updated": "2026-01-14"
+        },
+        {
+          "report_date": "2026-01-01",
+          "symbol": "MOBX",
+          "name": null,
+          "eps_previous": null,
+          "eps_consensus": null,
+          "eps_actual": -0.35,
+          "revenue_consensus": null,
+          "revenue_actual": 1882000.0,
+          "last_updated": "2026-01-14"
         }
-      }
+      ],
+      "truncated": true,
+      "truncated_note": "Trimmed data to last 60 items out of 302"
     },
     {
-      "result": "Error executing tool get_earnings_calendar: 2 validation errors for get_earnings_calendarArguments\nstart_date\n  Field required [type=missing, input_value={'symbol': 'AAPL', 'limit...ent_date': '2026-01-12'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\nend_date\n  Field required [type=missing, input_value={'symbol': 'AAPL', 'limit...ent_date': '2026-01-12'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.12/v/missing",
-      "tool_name": "get_earnings_calendar"
+      "tool_name": "get_current_price",
+      "data": []
     },
     {
       "tool_name": "get_analyst_estimates",
@@ -1818,671 +2046,393 @@
       ]
     },
     {
-      "tool_name": "get_earnings_calendar",
+      "tool_name": "get_price_history",
       "data": [
         {
-          "report_date": "2025-12-01",
-          "symbol": "SRCRF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.02541,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-01",
+          "open": 278.2,
+          "high": 283.42,
+          "low": 276.14,
+          "close": 283.1,
+          "volume": 46587722,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "GELGF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00079,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2025-12-29"
+          "date": "2025-12-02",
+          "open": 282.99,
+          "high": 287.4,
+          "low": 282.63,
+          "close": 286.19,
+          "volume": 53669532,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "DUVNF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.00093,
-          "revenue_consensus": null,
-          "revenue_actual": 404489.29,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-03",
+          "open": 286.19,
+          "high": 288.62,
+          "low": 283.3,
+          "close": 284.15,
+          "volume": 43538687,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "DFMTF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00194,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2025-12-28"
+          "date": "2025-12-04",
+          "open": 284.1,
+          "high": 284.73,
+          "low": 278.59,
+          "close": 280.7,
+          "volume": 43989056,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "MDSQF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00036,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2025-12-29"
+          "date": "2025-12-05",
+          "open": 280.54,
+          "high": 281.14,
+          "low": 278.05,
+          "close": 278.78,
+          "volume": 47265845,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "FDOGF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00076,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-08",
+          "open": 278.02,
+          "high": 279.67,
+          "low": 276.15,
+          "close": 277.89,
+          "volume": 38211832,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "FKMCF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00181,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-09",
+          "open": 278.16,
+          "high": 280.03,
+          "low": 276.92,
+          "close": 277.18,
+          "volume": 32193256,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "RKMSF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00078,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-10",
+          "open": 277.75,
+          "high": 279.75,
+          "low": 276.44,
+          "close": 278.78,
+          "volume": 33038318,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "LNCLF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.01716,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-11",
+          "open": 279.02,
+          "high": 279.59,
+          "low": 273.81,
+          "close": 278.03,
+          "volume": 33247986,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "NGMDF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.0059,
-          "revenue_consensus": null,
-          "revenue_actual": 24863.43,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-12",
+          "open": 277.82,
+          "high": 279.22,
+          "low": 276.82,
+          "close": 278.28,
+          "volume": 39532887,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "MUNMF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.0028,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-15",
+          "open": 279.94,
+          "high": 280.15,
+          "low": 272.84,
+          "close": 274.11,
+          "volume": 50409078,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "VXTRF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": null,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-16",
+          "open": 272.85,
+          "high": 275.5,
+          "low": 271.79,
+          "close": 274.61,
+          "volume": 37648628,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "FYMNF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": null,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-17",
+          "open": 275.02,
+          "high": 276.16,
+          "low": 271.64,
+          "close": 271.84,
+          "volume": 50138743,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "GSSRF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.00099,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-18",
+          "open": 273.57,
+          "high": 273.63,
+          "low": 266.95,
+          "close": 272.19,
+          "volume": 51630721,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "SJRNF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.00167,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-05"
+          "date": "2025-12-19",
+          "open": 272.39,
+          "high": 274.6,
+          "low": 269.9,
+          "close": 273.67,
+          "volume": 144632048,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "FSXLF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": null,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-22",
+          "open": 272.81,
+          "high": 273.88,
+          "low": 270.51,
+          "close": 270.97,
+          "volume": 36571827,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "ALTPF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.0029,
-          "revenue_consensus": null,
-          "revenue_actual": 259294.38,
-          "last_updated": "2026-01-04"
+          "date": "2025-12-23",
+          "open": 270.85,
+          "high": 272.5,
+          "low": 269.56,
+          "close": 272.36,
+          "volume": 29641999,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "TAKOF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00622,
-          "revenue_consensus": 9750000.0,
-          "revenue_actual": 7603886.94,
-          "last_updated": "2026-01-08"
+          "date": "2025-12-24",
+          "open": 272.33,
+          "high": 275.43,
+          "low": 272.2,
+          "close": 273.81,
+          "volume": 17910574,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "KOREF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00513,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-26",
+          "open": 274.06,
+          "high": 275.37,
+          "low": 272.86,
+          "close": 273.4,
+          "volume": 21521802,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "TIGCF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00547,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2025-12-29",
+          "open": 272.69,
+          "high": 274.36,
+          "low": 272.35,
+          "close": 273.76,
+          "volume": 23715213,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "CNUCF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00238,
-          "revenue_consensus": null,
-          "revenue_actual": 18604.2,
-          "last_updated": "2025-12-29"
+          "date": "2025-12-30",
+          "open": 272.9,
+          "high": 274.08,
+          "low": 272.28,
+          "close": 273.08,
+          "volume": 22139617,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "WLDPF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.22317,
-          "revenue_consensus": null,
-          "revenue_actual": 16608809.0,
-          "last_updated": "2026-01-08"
+          "date": "2025-12-31",
+          "open": 273.08,
+          "high": 273.68,
+          "low": 271.75,
+          "close": 271.86,
+          "volume": 27293639,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "PLGNF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00308,
-          "revenue_consensus": null,
-          "revenue_actual": 3174.07,
-          "last_updated": "2026-01-08"
+          "date": "2025-12-31",
+          "open": 273.08,
+          "high": 273.68,
+          "low": 271.75,
+          "close": 271.86,
+          "volume": 27293639,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "MDNGF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00982,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-08"
+          "date": "2025-12-31",
+          "open": 273.08,
+          "high": 273.68,
+          "low": 271.75,
+          "close": 271.86,
+          "volume": 27293639,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "EGMCF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.00759,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-08"
+          "date": "2026-01-02",
+          "open": 272.05,
+          "high": 277.84,
+          "low": 269.0,
+          "close": 271.01,
+          "volume": 37838054,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "MKNGF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.038,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2026-01-05",
+          "open": 270.64,
+          "high": 271.51,
+          "low": 266.14,
+          "close": 267.26,
+          "volume": 45647190,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "ZTLLF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00021,
-          "revenue_consensus": null,
-          "revenue_actual": 2939.62,
-          "last_updated": "2026-01-08"
+          "date": "2026-01-06",
+          "open": 267.0,
+          "high": 267.55,
+          "low": 262.12,
+          "close": 262.36,
+          "volume": 52352090,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "NVRVF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00178,
-          "revenue_consensus": null,
-          "revenue_actual": 623693.73,
-          "last_updated": "2026-01-08"
+          "date": "2026-01-07",
+          "open": 263.25,
+          "high": 263.68,
+          "low": 259.81,
+          "close": 260.33,
+          "volume": 48309804,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "RDGMF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.00744,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2026-01-08",
+          "open": 257.02,
+          "high": 259.29,
+          "low": 255.7,
+          "close": 259.04,
+          "volume": 50419337,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "STLNF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.00749,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2025-12-28"
+          "date": "2026-01-09",
+          "open": 258.97,
+          "high": 260.21,
+          "low": 256.22,
+          "close": 259.37,
+          "volume": 39996967,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "CCWOF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.01109,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
+          "date": "2026-01-12",
+          "open": 259.3,
+          "high": 261.3,
+          "low": 256.8,
+          "close": 260.25,
+          "volume": 45263767,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         },
         {
-          "report_date": "2025-12-01",
-          "symbol": "OMMSF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00131,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "CRDO",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": 0.4918,
-          "eps_actual": 0.67,
-          "revenue_consensus": 234989177.0,
-          "revenue_actual": 268027000.0,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "DCSX",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.21001,
-          "revenue_consensus": null,
-          "revenue_actual": 1978951.0,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "DPXCF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00159,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2025-12-28"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "VSTS",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": 0.05733,
-          "eps_actual": 0.03,
-          "revenue_consensus": 678319500.0,
-          "revenue_actual": 712011000.0,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "SLP",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": 0.1,
-          "eps_actual": 0.1,
-          "revenue_consensus": 17388830.0,
-          "revenue_actual": 17460000.0,
-          "last_updated": "2026-01-08"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "AACTF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00077,
-          "revenue_consensus": null,
-          "revenue_actual": 710943.75,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "IPXAF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": null,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "AGRDF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00716,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "MDB",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": 0.805,
-          "eps_actual": 1.32,
-          "revenue_consensus": 593933257.0,
-          "revenue_actual": 628309000.0,
-          "last_updated": "2026-01-08"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "BHOOY",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.39469,
-          "revenue_consensus": null,
-          "revenue_actual": 534817839.0,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "MMTMF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.03019,
-          "revenue_consensus": null,
-          "revenue_actual": 32400000.0,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "TELHF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": null,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2025-11-30"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "ITOEF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": 0.3052,
-          "eps_actual": 0.00131,
-          "revenue_consensus": 112022000000.0,
-          "revenue_actual": 5539139.87,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "EFRMF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": null,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "HAFN",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": 0.22,
-          "eps_actual": 0.18,
-          "revenue_consensus": 265478000.0,
-          "revenue_actual": 586882000.0,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "MYIDF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00209,
-          "revenue_consensus": null,
-          "revenue_actual": 788221.28,
-          "last_updated": "2025-12-25"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "XXMMF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00752,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "NZERF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": 0.01656,
-          "revenue_consensus": null,
-          "revenue_actual": 323533.64,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "SBMCF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.0102,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "TRUFF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00203,
-          "revenue_consensus": null,
-          "revenue_actual": 540663.15,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "VIZNF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00112,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "CSPUF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": null,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-05"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "IAALF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.01,
-          "revenue_consensus": null,
-          "revenue_actual": 4171000.0,
-          "last_updated": "2026-01-04"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "ATBHF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00189,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-04"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "GMVMF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00371,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "ADBRF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.00706,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-08"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "ENAFF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.30297,
-          "revenue_consensus": null,
-          "revenue_actual": 836000.0,
-          "last_updated": "2026-01-12"
-        },
-        {
-          "report_date": "2025-12-01",
-          "symbol": "SGCPF",
-          "name": null,
-          "eps_previous": null,
-          "eps_consensus": null,
-          "eps_actual": -0.0006,
-          "revenue_consensus": null,
-          "revenue_actual": null,
-          "last_updated": "2026-01-08"
+          "date": "2026-01-13",
+          "open": 258.72,
+          "high": 261.81,
+          "low": 258.39,
+          "close": 261.05,
+          "volume": 45730847,
+          "vwap": null,
+          "calls_volume": null,
+          "puts_volume": null,
+          "total_options_volume": null
         }
-      ],
-      "truncated": true,
-      "truncated_note": "Trimmed data to last 60 items out of 1132"
+      ]
     }
   ]
 }

@@ -80,6 +80,7 @@ def _setup_logging(log_dir: Optional[str] = None) -> logging.Logger:
     """
     Initialize structured logging for live trading.
     Logs to both console and a rotating daily log file.
+    Also suppresses non-fatal MCP shutdown errors during asyncio cleanup.
     """
     if log_dir is None:
         log_dir = os.path.dirname(os.path.abspath(__file__))
@@ -114,7 +115,46 @@ def _setup_logging(log_dir: Optional[str] = None) -> logging.Logger:
         logger_obj.addHandler(console_handler)
         logger_obj.addHandler(file_handler)
 
+    # Suppress non-fatal MCP shutdown error logging
+    asyncio_logger = logging.getLogger("asyncio")
+    asyncio_logger.addFilter(_MCPShutdownFilter())
+
     return logger_obj
+
+
+# Suppress MCP shutdown errors (non-fatal asyncio task context issues)
+import contextlib
+
+class _MCPShutdownFilter(logging.Filter):
+    """Filter to suppress non-fatal MCP shutdown errors"""
+    def filter(self, record):
+        """Suppress known MCP shutdown error messages"""
+        msg = record.getMessage()
+        # Suppress these specific asyncio task group shutdown errors from MCP
+        if ("unhandled exception during asyncio.run() shutdown" in msg or
+            "Attempted to exit cancel scope in a different task" in msg):
+            return False  # Don't log this
+        return True  # Log everything else
+
+
+@contextlib.contextmanager
+def _suppress_mcp_shutdown_errors():
+    """
+    Context manager to suppress MCP shutdown errors during asyncio.run() cleanup.
+
+    The MCP client may raise RuntimeError about cancel scope task context mismatch
+    during event loop shutdown. This is non-fatal - the cleanup happens anyway.
+    We suppress these by filtering the asyncio logger.
+    """
+    # Get the asyncio logger and add our filter
+    asyncio_logger = logging.getLogger("asyncio")
+    filter_obj = _MCPShutdownFilter()
+    asyncio_logger.addFilter(filter_obj)
+
+    try:
+        yield
+    finally:
+        asyncio_logger.removeFilter(filter_obj)
 
 
 @dataclass
@@ -530,50 +570,193 @@ def _get_live_trade_dir() -> str:
     return os.path.dirname(os.path.abspath(__file__))
 
 
-def _portfolio_state_path() -> str:
-    return os.path.join(_get_live_trade_dir(), "portfolio_state.json")
+def _portfolio_state_path(mode: str = "paper") -> str:
+    """Get portfolio state file path based on mode."""
+    live_trade_dir = _get_live_trade_dir()
+    if mode == "analysis":
+        return os.path.join(live_trade_dir, "theoretical_portfolio.json")
+    elif mode == "alpaca_live":
+        # Alpaca mode doesn't use a file
+        return None
+    else:  # paper
+        return os.path.join(live_trade_dir, "portfolio_state.json")
 
 
 def _portfolio_history_path() -> str:
     return os.path.join(_get_live_trade_dir(), "portfolio_history.jsonl")
 
 
+def validate_portfolio_state(state: PortfolioState) -> None:
+    """
+    Validate portfolio state and log warnings for suspicious states.
+
+    Args:
+        state: Portfolio state to validate
+    """
+    if state.cash < 0:
+        _logger.warning(f"⚠️  Portfolio has negative cash: ${state.cash:,.2f}")
+
+    # Validate positions have required fields
+    for symbol, pos in (state.positions or {}).items():
+        if "shares" not in pos or "avg_price" not in pos:
+            _logger.warning(f"⚠️  Position {symbol} missing required fields: {pos}")
+
+    for symbol, pos in (state.short_positions or {}).items():
+        if "shares" not in pos or "avg_price" not in pos:
+            _logger.warning(f"⚠️  Short position {symbol} missing required fields: {pos}")
+
+    # Check last_prices exist for positions
+    for symbol in (state.positions or {}):
+        if symbol not in (state.last_prices or {}):
+            _logger.warning(f"⚠️  Position {symbol} missing last_price")
+
+
+def _fetch_alpaca_portfolio() -> PortfolioState:
+    """
+    Fetch live portfolio state from Alpaca account.
+
+    Returns:
+        PortfolioState object with current Alpaca positions
+
+    Raises:
+        Exception if Alpaca credentials not configured or API call fails
+    """
+    client = _get_alpaca_client()
+    if client is None:
+        raise ValueError("Alpaca client not available. Check ALPACA_ENABLED and credentials.")
+
+    _logger.info("🦙 Fetching portfolio from Alpaca...")
+
+    # Get account info for cash
+    account = client.get_account()
+    cash = float(account.cash)
+
+    # Get all positions
+    positions_data = client.get_all_positions()
+
+    positions = {}
+    last_prices = {}
+    market_caps = {}
+
+    for pos in positions_data:
+        symbol = pos.symbol
+        shares = float(pos.qty)
+        avg_price = float(pos.avg_entry_price)
+        current_price = float(pos.current_price)
+
+        if shares > 0:
+            # Long position
+            positions[symbol] = {
+                "shares": shares,
+                "avg_price": avg_price,
+                "entry_date": pos.created_at.isoformat() if hasattr(pos, 'created_at') else None
+            }
+        elif shares < 0:
+            # Short position (if supported)
+            positions[symbol] = {
+                "shares": abs(shares),
+                "avg_price": avg_price,
+                "entry_date": pos.created_at.isoformat() if hasattr(pos, 'created_at') else None,
+                "is_short": True
+            }
+
+        last_prices[symbol] = current_price
+
+    state = PortfolioState(
+        cash=cash,
+        positions=positions,
+        short_positions={},  # Alpaca positions are in positions dict
+        last_prices=last_prices,
+        market_caps=market_caps
+    )
+
+    _logger.info(f"🦙 Synced Alpaca portfolio: cash=${cash:,.2f}, positions={len(positions)}")
+    return state
+
+
 @_retry_on_exception(max_retries=3, wait_seconds=1.0)
-def load_portfolio_state(starting_capital: Optional[float] = None) -> PortfolioState:
-    """Load portfolio state from disk with retry logic."""
-    path = _portfolio_state_path()
-    if not os.path.exists(path):
-        # First run: start with provided starting_capital or default
-        initial_cash = starting_capital if starting_capital is not None else 50.0
-        state = PortfolioState(cash=initial_cash)
-        _logger.info(f"📁 No existing portfolio_state.json found. Initializing new state with cash={state.cash}.")
-        save_portfolio_state(state)
+def load_portfolio_state(
+    starting_capital: Optional[float] = None,
+    mode: str = "paper",
+    force_reset: bool = False
+) -> PortfolioState:
+    """
+    Load portfolio state based on mode.
+
+    Args:
+        starting_capital: Initial capital amount
+        mode: "paper" (portfolio_state.json), "analysis" (theoretical_portfolio.json),
+              or "alpaca_live" (fetch from Alpaca API)
+        force_reset: Force reset to starting_capital (analysis mode only)
+
+    Returns:
+        PortfolioState object
+    """
+    # If Alpaca mode, always fetch from API (no file)
+    if mode == "alpaca_live":
+        try:
+            return _fetch_alpaca_portfolio()
+        except Exception as e:
+            _logger.error(f"❌ Failed to fetch portfolio from Alpaca: {e}")
+            raise
+
+    # Get appropriate file path
+    path = _portfolio_state_path(mode)
+
+    # Handle force reset (analysis mode only)
+    if force_reset and mode == "analysis":
+        if os.path.exists(path):
+            timestamp = datetime.now(tz=NY_TZ).strftime("%Y%m%d_%H%M%S")
+            backup_path = path.replace(".json", f"_backup_{timestamp}.json")
+            import shutil
+            shutil.copy(path, backup_path)
+            _logger.info(f"📁 Backed up theoretical portfolio to {backup_path}")
+
+        state = PortfolioState(cash=starting_capital or 10000.0)
+        save_portfolio_state(state, mode=mode)
+        _logger.info(f"📁 Reset theoretical portfolio with cash=${state.cash:,.2f}")
         return state
 
+    # Load existing or create new
+    if not os.path.exists(path):
+        initial_cash = starting_capital if starting_capital is not None else 50.0
+        state = PortfolioState(cash=initial_cash)
+        _logger.info(f"📁 No existing portfolio found. Initializing new state with cash=${state.cash:,.2f}.")
+        save_portfolio_state(state, mode=mode)
+        return state
+
+    # Load and validate existing state
     with open(path, "r") as f:
         data = json.load(f)
     state = PortfolioState.from_dict(data)
-
-    # If starting_capital provided and current cash is default (50.0), update it
-    if starting_capital is not None and state.cash == 50.0 and not state.positions and not state.short_positions:
-        state.cash = starting_capital
-        save_portfolio_state(state)
-        _logger.info(f"📁 Updated portfolio_state.json with starting_capital={starting_capital:.2f}")
+    validate_portfolio_state(state)
 
     _logger.info(
-        f"📁 Loaded portfolio_state.json | cash={state.cash:.2f}, "
+        f"📁 Loaded portfolio | cash=${state.cash:,.2f}, "
         f"positions={len(state.positions)}, shorts={len(state.short_positions)}"
     )
     return state
 
 
 @_retry_on_exception(max_retries=3, wait_seconds=1.0)
-def save_portfolio_state(state: PortfolioState) -> None:
+def save_portfolio_state(state: PortfolioState, mode: str = "paper") -> None:
     """
     Atomically save portfolio state to disk using a temporary file + rename pattern.
     This prevents data corruption if the process crashes mid-write.
+
+    Args:
+        state: Portfolio state to save
+        mode: "paper" or "analysis" (alpaca_live doesn't use files)
     """
-    path = _portfolio_state_path()
+    # Alpaca mode doesn't save to file
+    if mode == "alpaca_live":
+        _logger.debug("🦙 Alpaca mode - not saving to file")
+        return
+
+    path = _portfolio_state_path(mode)
+    if path is None:
+        return
+
     temp_path = f"{path}.tmp"
 
     try:
@@ -585,9 +768,11 @@ def save_portfolio_state(state: PortfolioState) -> None:
         import shutil
         shutil.move(temp_path, path)
 
-        _logger.info(f"💾 Saved portfolio_state.json | cash={state.cash:.2f}")
+        mode_label = "theoretical" if mode == "analysis" else "paper"
+        _logger.info(f"💾 Saved {mode_label} portfolio | cash=${state.cash:.2f}")
     except Exception as e:
-        _logger.error(f"❌ Failed to save portfolio_state.json: {e}")
+        mode_label = "theoretical" if mode == "analysis" else "paper"
+        _logger.error(f"❌ Failed to save {mode_label} portfolio: {e}")
         # Clean up temp file if it exists
         try:
             if os.path.exists(temp_path):
@@ -703,16 +888,27 @@ async def run_single_trading_cycle(
     starting_capital: Optional[float] = None,
     risk_level: str = "medium",
     notes: str = "",
+    mode: str = "paper",
+    force_reset: bool = False,
 ) -> None:
     """
     Execute one full decision + trade cycle for a single symbol on a given date.
+
+    Args:
+        symbol: Ticker symbol
+        trade_date: Date for trading
+        starting_capital: Initial capital
+        risk_level: "low", "medium", or "high"
+        notes: Additional notes
+        mode: "paper", "analysis", or "alpaca_live"
+        force_reset: Force reset portfolio (analysis mode only)
     """
     _logger.info("=" * 80)
     _logger.info(f"🚀 Live trading cycle for {symbol} on {trade_date.isoformat()}")
     _logger.info("=" * 80)
 
     # 1. Load portfolio state (initialize with starting_capital if provided)
-    state = load_portfolio_state(starting_capital=starting_capital)
+    state = load_portfolio_state(starting_capital=starting_capital, mode=mode, force_reset=force_reset)
 
     # 2. Initialize ReasoningAgent (MCP client connects lazily on first use)
     agent = ReasoningAgent(
@@ -746,7 +942,7 @@ async def run_single_trading_cycle(
     updated_state_dict = decision_result.get("portfolio_state_updated") or portfolio_state_dict
     updated_state = PortfolioState.from_dict(updated_state_dict)
     updated_state.last_run_date = trade_date.isoformat()
-    save_portfolio_state(updated_state)
+    save_portfolio_state(updated_state, mode=mode)
 
     # 7. Append portfolio history record
     append_portfolio_history(updated_state, symbol, trade_date, decision_result)
@@ -768,6 +964,7 @@ def run_daemon(
     starting_capital: Optional[float] = None,
     risk_level: str = "medium",
     notes: str = "",
+    mode: str = "paper",
 ) -> None:
     """
     Long‑running scheduler:
@@ -775,8 +972,19 @@ def run_daemon(
     - Sleeps until then.
     - Runs one trading cycle.
     - Repeats indefinitely.
+
+    Args:
+        symbol: Ticker symbol
+        starting_capital: Initial capital
+        risk_level: "low", "medium", or "high"
+        notes: Additional notes
+        mode: "paper" or "alpaca_live" (NOT "analysis" - analysis is one-shot only)
     """
-    _logger.info(f"📡 Live trading daemon starting for symbol={symbol}")
+    if mode == "analysis":
+        _logger.error("❌ Analysis mode only supports one-shot runs, not daemon mode")
+        return
+
+    _logger.info(f"📡 Live trading daemon starting for symbol={symbol} (mode={mode})")
     _logger.info("   Schedule: twice per trading day at 10:00 (10 AM) and 15:00 (3 PM) America/New_York")
     while True:
         now = datetime.now(tz=NY_TZ)
@@ -796,7 +1004,7 @@ def run_daemon(
 
         # At/after scheduled time, run trading cycle for "today" in NY
         trade_date = datetime.now(tz=NY_TZ).date()
-        asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, risk_level, notes))
+        asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, risk_level, notes, mode=mode))
 
 
 def run_once(
@@ -805,6 +1013,8 @@ def run_once(
     starting_capital: Optional[float] = None,
     risk_level: str = "medium",
     notes: str = "",
+    mode: str = "paper",
+    force_reset: bool = False,
 ) -> None:
     """
     Run a single trading cycle "now" for today's NY date.
@@ -812,6 +1022,15 @@ def run_once(
     Supports both single-stock (backward compatible) and multi-stock modes.
     - If symbols list provided, uses PortfolioOrchestrator for parallel processing
     - If single symbol provided, uses single-stock trading cycle
+
+    Args:
+        symbol: Single symbol (backward compatible)
+        symbols: List of symbols for multi-stock mode
+        starting_capital: Initial capital
+        risk_level: "low", "medium", or "high"
+        notes: Additional notes
+        mode: "paper", "analysis", or "alpaca_live"
+        force_reset: Force reset portfolio (analysis mode only)
 
     Useful for cron or manual testing. Does not check the clock, it just
     uses the current America/New_York calendar date.
@@ -823,10 +1042,12 @@ def run_once(
     # Determine which symbols to trade
     symbols_to_trade = symbols if symbols else ([symbol] if symbol else ["AAPL"])
 
+    _logger.info(f"🏁 One‑shot mode: mode={mode}, force_reset={force_reset}")
+
     if len(symbols_to_trade) > 1:
         # Multi-stock mode: use PortfolioOrchestrator
         _logger.info(
-            f"🏁 One‑shot mode: running multi-stock portfolio cycle for "
+            f"🏁 Running multi-stock portfolio cycle for "
             f"{', '.join(symbols_to_trade)} on {trade_date.isoformat()} (NY date)"
         )
         orchestrator = PortfolioOrchestrator(
@@ -834,6 +1055,8 @@ def run_once(
             starting_capital=starting_capital or 50000,
             risk_level=risk_level,
             notes=notes,
+            mode=mode,
+            force_reset=force_reset,
             max_parallel=min(5, len(symbols_to_trade))
         )
         asyncio.run(orchestrator.process_portfolio(trade_date))
@@ -841,10 +1064,10 @@ def run_once(
         # Single-stock mode: backward compatible
         single_symbol = symbols_to_trade[0]
         _logger.info(
-            f"🏁 One‑shot mode: running trading cycle for {single_symbol} on "
+            f"🏁 Running trading cycle for {single_symbol} on "
             f"{trade_date.isoformat()} (NY date)"
         )
-        asyncio.run(run_single_trading_cycle(single_symbol, trade_date, starting_capital, risk_level, notes))
+        asyncio.run(run_single_trading_cycle(single_symbol, trade_date, starting_capital, risk_level, notes, mode=mode, force_reset=force_reset))
 
 
 def _parse_args(argv: Optional[list] = None):

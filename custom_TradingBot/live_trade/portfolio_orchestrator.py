@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 
 # Import portfolio state management
-from live_trading_loop import load_portfolio_state, save_portfolio_state
+from live_trading_loop import load_portfolio_state, save_portfolio_state, PortfolioState
 
 # Import ReasoningAgent for stock analysis
 from ReasoningAgent import ReasoningAgent
@@ -55,6 +55,8 @@ class PortfolioOrchestrator:
         risk_level: str = "medium",
         notes: str = "",
         data_dir: str = ".",
+        mode: str = "paper",
+        force_reset: bool = False,
         max_parallel: int = 5,
     ):
         """
@@ -66,6 +68,8 @@ class PortfolioOrchestrator:
             risk_level: Risk level for all stocks (low/medium/high)
             notes: Additional notes for context
             data_dir: Directory for saving state and logs
+            mode: "paper", "analysis", or "alpaca_live"
+            force_reset: Force reset portfolio (analysis mode only)
             max_parallel: Maximum parallel stock analyses (default: 5)
         """
         self.symbols = symbols
@@ -73,10 +77,12 @@ class PortfolioOrchestrator:
         self.risk_level = risk_level
         self.notes = notes
         self.data_dir = Path(data_dir)
+        self.mode = mode
+        self.force_reset = force_reset
         self.max_parallel = max_parallel
 
         # Load or initialize portfolio state
-        self.portfolio_state = load_portfolio_state(starting_capital)
+        self.portfolio_state = load_portfolio_state(starting_capital, mode=mode, force_reset=force_reset)
 
         # Initialize token tracker with 100K daily limit
         self.token_tracker = TokenTracker(daily_limit=100_000)
@@ -239,7 +245,7 @@ class PortfolioOrchestrator:
             result = await agent._make_decision_async(
                 symbol=symbol,
                 current_date=trade_date,
-                portfolio_state=self.portfolio_state,
+                portfolio_state=self.portfolio_state.to_dict() if hasattr(self.portfolio_state, 'to_dict') else self.portfolio_state,
                 execute_trade_after=False,
                 current_price=None,
                 max_tool_iterations=5,
@@ -510,12 +516,17 @@ class PortfolioOrchestrator:
                     amount_usd=amount_usd,
                     current_price=0.0,  # Would fetch real price
                     current_date=trade_date,
-                    portfolio_state=self.portfolio_state,
+                    portfolio_state=self.portfolio_state.to_dict() if hasattr(self.portfolio_state, 'to_dict') else self.portfolio_state,
                 )
 
                 # Update portfolio state if trade executed
                 if result.get("trade_executed"):
-                    self.portfolio_state = result.get("updated_portfolio_state", self.portfolio_state)
+                    updated_dict = result.get("updated_portfolio_state", self.portfolio_state.to_dict() if hasattr(self.portfolio_state, 'to_dict') else self.portfolio_state)
+                    # Convert back to PortfolioState object if needed
+                    if isinstance(updated_dict, dict):
+                        self.portfolio_state = PortfolioState.from_dict(updated_dict)
+                    else:
+                        self.portfolio_state = updated_dict
 
                     # Mirror trade to Alpaca if enabled
                     try:
@@ -572,7 +583,7 @@ class PortfolioOrchestrator:
             trade_date: Trading date
         """
         # Save updated portfolio state
-        save_portfolio_state(self.portfolio_state)
+        save_portfolio_state(self.portfolio_state, mode=self.mode)
 
         # Save decisions to JSON
         decisions_file = self.data_dir / "portfolio_decisions" / f"decisions_{trade_date}.json"
