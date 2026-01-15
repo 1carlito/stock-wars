@@ -571,7 +571,17 @@ def _get_live_trade_dir() -> str:
 
 
 def _portfolio_state_path(mode: str = "paper") -> str:
-    """Get portfolio state file path based on mode."""
+    """
+    Get portfolio state file path based on mode.
+
+    File layout (for user clarity):
+      - analysis / "Investment Analysis Only" mode:
+          theoretical_portfolio.json  -> theoretical / investment-only portfolio
+      - paper trading mode:
+          portfolio_state.json       -> paper trading portfolio state
+      - alpaca_live:
+          no local JSON file (state comes from Alpaca account)
+    """
     live_trade_dir = _get_live_trade_dir()
     if mode == "analysis":
         return os.path.join(live_trade_dir, "theoretical_portfolio.json")
@@ -703,18 +713,22 @@ def load_portfolio_state(
     # Get appropriate file path
     path = _portfolio_state_path(mode)
 
-    # Handle force reset (analysis mode only)
-    if force_reset and mode == "analysis":
-        if os.path.exists(path):
+    # Handle force reset for local JSON-backed modes (analysis & paper)
+    if force_reset and mode in {"analysis", "paper"}:
+        if path and os.path.exists(path):
             timestamp = datetime.now(tz=NY_TZ).strftime("%Y%m%d_%H%M%S")
             backup_path = path.replace(".json", f"_backup_{timestamp}.json")
             import shutil
             shutil.copy(path, backup_path)
-            _logger.info(f"📁 Backed up theoretical portfolio to {backup_path}")
+            mode_label = "theoretical" if mode == "analysis" else "paper"
+            _logger.info(f"📁 Backed up {mode_label} portfolio to {backup_path}")
 
-        state = PortfolioState(cash=starting_capital or 10000.0)
+        # Initialise fresh state with requested starting capital (or sensible default)
+        initial_cash = starting_capital or 10000.0
+        state = PortfolioState(cash=initial_cash)
         save_portfolio_state(state, mode=mode)
-        _logger.info(f"📁 Reset theoretical portfolio with cash=${state.cash:,.2f}")
+        mode_label = "theoretical" if mode == "analysis" else "paper"
+        _logger.info(f"📁 Reset {mode_label} portfolio with cash=${state.cash:,.2f}")
         return state
 
     # Load existing or create new
