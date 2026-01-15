@@ -1054,7 +1054,18 @@ def run_once(
     trade_date = datetime.now(tz=NY_TZ).date()
 
     # Determine which symbols to trade
-    symbols_to_trade = symbols if symbols else ([symbol] if symbol else ["AAPL"])
+    if mode == "alpaca_live" and (not symbols or len(symbols) == 0):
+        # For Alpaca-backed modes (paper or live), allow CLI to signal
+        # "trade all open portfolio positions" by passing an empty list.
+        try:
+            state = load_portfolio_state(starting_capital=starting_capital, mode=mode, force_reset=force_reset)
+            portfolio_symbols = list((state.positions or {}).keys())
+            symbols_to_trade = portfolio_symbols if portfolio_symbols else ([symbol] if symbol else ["AAPL"])
+        except Exception as e:
+            _logger.error(f"❌ Failed to load Alpaca portfolio symbols: {e}")
+            symbols_to_trade = ([symbol] if symbol else ["AAPL"])
+    else:
+        symbols_to_trade = symbols if symbols else ([symbol] if symbol else ["AAPL"])
 
     _logger.info(f"🏁 One‑shot mode: mode={mode}, force_reset={force_reset}")
 

@@ -509,14 +509,45 @@ class PortfolioOrchestrator:
             decision_type = decision.get("decision")
             amount_usd = decision.get("allocated_amount", 0)
 
+            # Derive a reasonable current price for execution:
+            #  1) Prefer last_prices from portfolio_state
+            #  2) Fallback to avg_price from an existing position (if any)
+            #  3) If still unavailable or non-positive, skip trade to avoid
+            #     divide-by-zero errors in downstream logic.
+            current_price = 0.0
+            state_dict = self.portfolio_state.to_dict() if hasattr(self.portfolio_state, 'to_dict') else self.portfolio_state
+            last_prices = state_dict.get("last_prices") or {}
+            positions = state_dict.get("positions") or {}
+
+            if symbol in last_prices and last_prices[symbol] and last_prices[symbol] > 0:
+                current_price = float(last_prices[symbol])
+            elif symbol in positions:
+                avg_price = positions[symbol].get("avg_price") or 0.0
+                if avg_price and avg_price > 0:
+                    current_price = float(avg_price)
+
+            if current_price <= 0:
+                _logger.error(
+                    f"  ❌ Trade execution skipped for {symbol}: "
+                    f"no valid current price available (would cause division by zero)."
+                )
+                executed_trades.append({
+                    "symbol": symbol,
+                    "decision": decision_type,
+                    "amount": amount_usd,
+                    "executed": False,
+                    "error": "no valid current price available",
+                })
+                continue
+
             try:
                 result = execute_trade(
                     symbol=symbol,
                     decision=decision_type,
                     amount_usd=amount_usd,
-                    current_price=0.0,  # Would fetch real price
+                    current_price=current_price,
                     current_date=trade_date,
-                    portfolio_state=self.portfolio_state.to_dict() if hasattr(self.portfolio_state, 'to_dict') else self.portfolio_state,
+                    portfolio_state=state_dict,
                 )
 
                 # Update portfolio state if trade executed

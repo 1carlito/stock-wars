@@ -251,12 +251,13 @@ def _banner() -> None:
     console.print()  # Single blank line before prompts
 
 
-def _prompt_symbols() -> List[str]:
+def _prompt_symbols_analysis() -> List[str]:
+    """Prompt for symbols when running in analysis-only mode."""
     prompt_text = (
-        "Enter the ticker **symbol or symbols** you want the agent to manage.\n"
+        "Enter the ticker **symbol or symbols** you want the agent to analyze.\n"
         "[dim]Examples: AAPL, MSFT, NVDA[/dim]"
     )
-    console.print(Panel(prompt_text, title="Step 1 • Symbols", border_style="cyan"))
+    console.print(Panel(prompt_text, title="Step 5 • Symbols", border_style="cyan"))
 
     while True:
         raw = Prompt.ask("Symbols (comma‑separated)", default="AAPL")
@@ -264,6 +265,32 @@ def _prompt_symbols() -> List[str]:
         if symbols:
             return symbols
         console.print("[red]Please enter at least one symbol.[/red]")
+
+
+def _prompt_symbols_for_alpaca() -> List[str]:
+    """
+    Prompt for symbols when running against an Alpaca account (paper or live).
+
+    Users can:
+      - Press Enter with no input to trade all symbols currently held
+        in their Alpaca portfolio, or
+      - Provide a comma-separated subset of tickers to focus on.
+    """
+    prompt_text = (
+        "Select which symbols to manage from your Alpaca account.\n\n"
+        "- Leave blank to trade **all symbols currently held** in your Alpaca portfolio.\n"
+        "- Or enter a comma-separated list to focus on a subset "
+        "(e.g. APLD, MSFT, ASML)."
+    )
+    console.print(Panel(prompt_text, title="Step 5 • Symbols (Alpaca)", border_style="cyan"))
+
+    raw = Prompt.ask("Symbols (comma‑separated, blank = all Alpaca positions)", default="").strip()
+    if not raw:
+        # Empty list signals 'use all Alpaca portfolio positions'
+        return []
+
+    symbols = [s.strip().upper() for s in raw.split(",") if s.strip()]
+    return symbols
 
 
 def _prompt_risk_level() -> RiskLevel:
@@ -409,7 +436,7 @@ def _prompt_portfolio_reset() -> bool:
     the theoretical portfolio file, but the same flag is also honoured for
     paper trading via the backend load_portfolio_state logic.
     """
-    live_trade_dir = _get_live_trade_dir()
+    live_trade_dir = Path(_get_live_trade_dir())
     theoretical_path = live_trade_dir / "theoretical_portfolio.json"
     portfolio_path = live_trade_dir / "portfolio_state.json"
 
@@ -530,6 +557,65 @@ def _collect_portfolio_details() -> PortfolioSnapshot:
     )
 
     return portfolio
+
+
+def _prompt_analysis_portfolio_source() -> tuple[PortfolioMode, PortfolioSnapshot | None, bool]:
+    """
+    Analysis-mode portfolio source selector.
+
+    Options:
+      1. Use current saved portfolio JSON (if it exists)
+      2. Start a new portfolio with this session's starting capital
+      3. Manually enter portfolio details (existing positions)
+
+    Returns:
+        (portfolio_mode, portfolio_snapshot_or_none, force_reset_flag)
+    """
+    live_trade_dir = Path(_get_live_trade_dir())
+    theoretical_path = live_trade_dir / "theoretical_portfolio.json"
+    has_saved = theoretical_path.exists()
+
+    lines: list[str] = []
+    lines.append("Choose how you want to provide portfolio context for analysis mode:\n")
+
+    if has_saved:
+        lines.append("[bold]1.[/bold] Use [green]current saved portfolio[/green] from theoretical_portfolio.json")
+    else:
+        lines.append("[bold]1.[/bold] Use current saved portfolio (no saved portfolio found yet)")
+
+    lines.append("[bold]2.[/bold] Start a [yellow]new portfolio[/yellow] with this session's starting capital")
+    lines.append("[bold]3.[/bold] [cyan]Manually enter[/cyan] your existing portfolio (positions, sizes, etc.)")
+
+    console.print(
+        Panel(
+            "\n".join(lines),
+            title="Step 4 • Portfolio Source (Analysis)",
+            border_style="cyan",
+        )
+    )
+
+    # Restrict choices if there is no saved portfolio yet
+    valid_choices = ["1", "2", "3"] if has_saved else ["2", "3"]
+    default_choice = "1" if has_saved else "2"
+
+    while True:
+        choice = Prompt.ask(
+            "Select portfolio source",
+            choices=valid_choices,
+            default=default_choice,
+            show_choices=False,
+        ).strip()
+
+        if choice == "1" and has_saved:
+            # Use existing theoretical_portfolio.json as-is
+            return "current", None, False
+        if choice == "2":
+            # Fresh portfolio: reset theoretical_portfolio.json to starting capital
+            return "new", None, True
+        if choice == "3":
+            # Manual portfolio entry
+            portfolio = _collect_portfolio_details()
+            return "current", portfolio, True
 
 
 def _review_config(cfg: SessionConfig) -> bool:
@@ -909,19 +995,16 @@ def run_interactive() -> None:
     os.system("clear" if os.name != "nt" else "cls")
     _banner()
 
-    # Step 1: Symbols
-    symbols = _prompt_symbols()
-
-    # Step 2A: Mode Selection (NEW)
+    # Step 1: Mode Selection (so we know how to interpret symbols/portfolio)
     analysis_mode = _prompt_analysis_mode()
 
-    # Step 3: Risk Level
+    # Step 2: Risk Level
     risk = _prompt_risk_level()
 
-    # Step 4: Starting Capital
+    # Step 3: Starting Capital
     capital = _prompt_starting_capital()
 
-    # Step 2B: Alpaca Credentials (for Alpaca modes: 2 = paper, 3 = live)
+    # Step 4: Alpaca Credentials (for Alpaca modes: 2 = paper, 3 = live)
     alpaca_api_key = ""
     alpaca_api_secret = ""
     alpaca_paper_trading = True  # default; refined below based on mode
@@ -931,14 +1014,23 @@ def run_interactive() -> None:
         # Mode 3 (alpaca_live) -> always use Alpaca live environment
         alpaca_paper_trading = analysis_mode == "paper"
 
-    # Step 5: Portfolio Reset (analysis-only; Alpaca modes use broker state)
-    force_reset = False
+    # Analysis vs Alpaca-specific branching
     if analysis_mode == "analysis":
-        force_reset = _prompt_portfolio_reset()
+        # Step 4: Portfolio Source (Analysis)
+        portfolio_mode, portfolio, force_reset = _prompt_analysis_portfolio_source()
 
-    # Step 6: Run Mode (skip for analysis mode, default to "once")
-    run_mode: RunMode = "once"  # type: ignore
-    if analysis_mode != "analysis":
+        # Step 5: Symbols for analysis
+        symbols = _prompt_symbols_analysis()
+
+        # Step 7: Run Mode (analysis is always one-shot)
+        run_mode: RunMode = "once"  # type: ignore
+    else:
+        # Alpaca-backed modes
+        # Step 5: Symbols / Portfolio selection (Alpaca)
+        symbols = _prompt_symbols_for_alpaca()
+
+        # Step 6: Run Mode
+        run_mode: RunMode = "once"  # type: ignore
         console.print(
             Panel(
                 "How should the agent run?\n"
@@ -956,13 +1048,12 @@ def run_interactive() -> None:
         )
         run_mode = choice  # type: ignore[assignment]
 
-    # Step 7: Portfolio Mode (skip for Alpaca modes, get context for analysis only)
-    portfolio_mode: PortfolioMode = "new"
-    portfolio = None
-    if analysis_mode == "analysis":
-        portfolio_mode, portfolio = _prompt_portfolio_mode()
+        # For Alpaca modes, portfolio_mode/portfolio are not used
+        portfolio_mode: PortfolioMode = "new"
+        portfolio = None
+        force_reset = False
 
-    # Step 8: Notes
+    # Step 9: Notes
     notes = _prompt_notes()
 
     # Trade mode is inferred from analysis_mode
