@@ -924,6 +924,32 @@ async def run_single_trading_cycle(
     # 1. Load portfolio state (initialize with starting_capital if provided)
     state = load_portfolio_state(starting_capital=starting_capital, mode=mode, force_reset=force_reset)
 
+    # 1b. If in analysis mode, enrich state with any manually provided portfolio
+    #     snapshot from the most recent session_config.json (manual entry in CLI).
+    if mode == "analysis":
+        try:
+            cfg_path = os.path.join(_get_live_trade_dir(), "session_config.json")
+            if os.path.exists(cfg_path):
+                with open(cfg_path, "r") as f:
+                    cfg_data = json.load(f)
+                portfolio_cfg = cfg_data.get("portfolio")
+                if portfolio_cfg and isinstance(portfolio_cfg, dict):
+                    positions_list = portfolio_cfg.get("positions") or []
+                    # Map CLI PortfolioSnapshot positions -> PortfolioState positions dict
+                    positions_dict: Dict[str, Dict[str, Any]] = {}
+                    for pos in positions_list:
+                        ticker = pos.get("ticker")
+                        if not ticker:
+                            continue
+                        positions_dict[ticker.upper()] = {
+                            "shares": float(pos.get("shares", 0.0)),
+                            "avg_price": float(pos.get("avg_price", 0.0)),
+                        }
+                    if positions_dict:
+                        state.positions = positions_dict
+        except Exception as e:
+            _logger.warning(f\"⚠️  Failed to merge manual analysis portfolio into state: {e}\")
+
     # 2. Initialize ReasoningAgent (MCP client connects lazily on first use)
     agent = ReasoningAgent(
         data_dir=os.path.dirname(BASE_DIR),  # project root for reasoning_decisions
