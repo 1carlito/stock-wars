@@ -102,3 +102,7 @@
 2026-01-14 15:50:09 [INFO] run_once:868 - 🏁 One‑shot mode: running multi-stock portfolio cycle for OKLO, ONDS on 2026-01-14 (NY date)
 2026-01-14 15:50:09 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
 2026-01-14 15:51:35 [INFO] save_portfolio_state:628 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 22:31:57 [INFO] run_once:1045 - 🏁 One‑shot mode: mode=paper, force_reset=False
+2026-01-14 22:31:57 [INFO] run_once:1049 - 🏁 Running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
+2026-01-14 22:31:57 [WARNING] validate_portfolio_state:597 - ⚠️  Portfolio has negative cash: $-22,483.28
+2026-01-14 22:31:57 [INFO] load_portfolio_state:734 - 📁 Loaded portfolio | cash=$-22,483.28, positions=1, shorts=0

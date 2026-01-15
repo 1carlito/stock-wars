@@ -1,43 +1,18 @@
 {
   "symbols": [
-    "OKLO",
-    "ONDS"
+    "AAPL",
+    "MSFT"
   ],
   "risk_level": "high",
-  "starting_capital": 30000.0,
+  "starting_capital": 10000.0,
   "trade_mode": "paper",
   "run_mode": "once",
-  "portfolio_mode": "current",
-  "portfolio": {
-    "portfolio_value": 20000.0,
-    "num_stocks": 3,
-    "positions": [
-      {
-        "ticker": "RCAT",
-        "avg_price": 6.5,
-        "shares": 1025.0,
-        "holding_period_days": 70,
-        "current_price": 12.23,
-        "current_value": 12535.75
-      },
-      {
-        "ticker": "BBAI",
-        "avg_price": 7.65,
-        "shares": 871.0,
-        "holding_period_days": 30,
-        "current_price": 5.92,
-        "current_value": 5156.32
-      },
-      {
-        "ticker": "APLD",
-        "avg_price": 28.0,
-        "shares": 238.0,
-        "holding_period_days": 90,
-        "current_price": 35.0,
-        "current_value": 8330.0
-      }
-    ],
-    "created_at": "2026-01-14T15:50:06.261665"
-  },
-  "notes": ""
+  "analysis_mode": "paper",
+  "portfolio_mode": "new",
+  "portfolio": null,
+  "notes": "",
+  "alpaca_api_key": "",
+  "alpaca_api_secret": "",
+  "alpaca_paper_trading": true,
+  "force_reset_portfolio": false
 }
