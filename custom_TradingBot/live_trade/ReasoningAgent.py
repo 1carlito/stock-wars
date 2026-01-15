@@ -397,14 +397,23 @@ class ReasoningAgent:
             self._save_decision(decision_result)
 
             if not current_price:
-                price_history_data = None
+                # Try to recover a usable current_price from any available tool data.
+                # Strategy:
+                #   1) Prefer explicit get_current_price results
+                #   2) Next, look for a bar on current_date from get_price_history
+                #   3) Finally, fall back to the latest available close on/before current_date
+                #      from ANY tool that returns OHLC data (e.g. OBV price history)
+                price_history_entries: list[dict] = []
+
                 for tool_result in tool_results:
                     if tool_result.get("error"):
                         continue
 
                     tool_name = tool_result.get("tool_name", "")
+                    data = tool_result.get("data", [])
+
+                    # 1) Direct get_current_price result (historical or quote)
                     if tool_name == "get_current_price":
-                        data = tool_result.get("data", [])
                         if data and isinstance(data, list):
                             entry = data[0]
                             current_price = (
@@ -415,26 +424,40 @@ class ReasoningAgent:
                             )
                             if current_price:
                                 break
-                    elif tool_name == "get_price_history":
-                        data = tool_result.get("data", [])
-                        if data and isinstance(data, list):
-                            price_history_data = data
-                            for entry in reversed(data):
-                                entry_date = entry.get("date", "")
-                                if entry_date == current_date:
-                                    price = entry.get("close")
-                                    if price:
-                                        current_price = price
-                                        break
-                            if current_price:
-                                break
+                        continue
 
-                if not current_price and price_history_data:
-                    for entry in reversed(price_history_data):
-                        price = entry.get("close")
-                        if price:
-                            current_price = price
-                            break
+                    # 2) Collect any OHLC-style history (date + close) we can find
+                    candidates = []
+                    if isinstance(data, list):
+                        candidates = data
+                    elif isinstance(data, dict) and isinstance(data.get("data"), list):
+                        candidates = data.get("data", [])
+
+                    for entry in candidates:
+                        if isinstance(entry, dict) and "date" in entry and "close" in entry:
+                            price_history_entries.append(entry)
+
+                # 3) Prefer a bar exactly on current_date if present
+                if not current_price and price_history_entries:
+                    same_day = [
+                        e for e in price_history_entries
+                        if e.get("date") == current_date and e.get("close")
+                    ]
+                    if same_day:
+                        # Use the last bar for the current_date
+                        current_price = same_day[-1].get("close")
+
+                # 4) If still nothing, fall back to the latest close on/before current_date
+                if not current_price and price_history_entries:
+                    # Sort by date string (YYYY-MM-DD) just in case entries are unordered
+                    price_history_entries.sort(key=lambda e: e.get("date", ""))
+                    for entry in reversed(price_history_entries):
+                        entry_date = entry.get("date", "")
+                        if entry_date and entry_date <= current_date:
+                            price = entry.get("close")
+                            if price:
+                                current_price = price
+                                break
 
             if current_price:
                 print(f"📊 Current price today is ${float(current_price):.2f}")
