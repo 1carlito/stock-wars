@@ -149,7 +149,6 @@ class SessionConfig:
     alpaca_api_secret: str = ""
     alpaca_paper_trading: bool = True
     force_reset_portfolio: bool = False
-    analysis_update_only: bool = False
 
 
 def _render_header() -> Panel:
@@ -385,9 +384,9 @@ def _prompt_analysis_mode() -> AnalysisMode:
         "[bold]1.[/bold] [bold green]Investment Analysis Only[/bold green]\n"
         "   • Test strategies without actual trades\n"
         "   • Uses a theoretical portfolio file only (no broker, no Alpaca)\n\n"
-        "[bold]2.[/bold] [bold yellow]Paper Trading (Simulated)[/bold yellow]\n"
-        "   • Simulate trades with virtual capital using a local paper portfolio file\n"
-        "   • Supports daemon scheduling\n\n"
+        "[bold]2.[/bold] [bold yellow]Alpaca Paper Trading[/bold yellow]\n"
+        "   • Execute trades on your Alpaca [bold]paper[/bold] account\n"
+        "   • Uses Alpaca paper API keys and supports daemon scheduling\n\n"
         "[bold]3.[/bold] [bold cyan]Live Trading (Alpaca)[/bold cyan]\n"
         "   • Execute trades on an Alpaca broker account\n"
         "   • Use your Alpaca paper or live API keys as appropriate\n"
@@ -408,33 +407,6 @@ def _prompt_analysis_mode() -> AnalysisMode:
             return "paper"  # type: ignore[return-value]
         if choice == "3":
             return "alpaca_live"  # type: ignore[return-value]
-
-
-def _prompt_analysis_update_only() -> bool:
-    """
-    For Investment Analysis Only mode, choose between:
-      - running theoretical trades, or
-      - generating analysis-only updates with no trades / portfolio changes.
-    """
-    prompt_text = (
-        "For [bold green]Investment Analysis Only[/bold green] mode, how should the agent run today?\n\n"
-        "[bold]1.[/bold] Run [yellow]theoretical trades[/yellow]\n"
-        "    • Simulate buys/sells in a paper/theoretical portfolio\n"
-        "    • Updates the theoretical portfolio JSON based on decisions\n\n"
-        "[bold]2.[/bold] [cyan]Analysis/report only[/cyan]\n"
-        "    • No trades executed\n"
-        "    • No portfolio JSON changes (read-only analysis of your positions)\n"
-    )
-    console.print(Panel(prompt_text, title="Analysis Mode • Trades vs Analysis Only", border_style="cyan"))
-
-    choice = Prompt.ask(
-        "Execution mode [1=Theoretical trades, 2=Analysis-only]",
-        choices=["1", "2"],
-        default="1",
-        show_choices=False,
-    ).strip()
-
-    return choice == "2"
 
 
 def _prompt_alpaca_credentials() -> tuple[str, str]:
@@ -662,8 +634,6 @@ def _review_config(cfg: SessionConfig) -> bool:
     table.add_row("Trading mode", cfg.trade_mode)
     table.add_row("Run mode", cfg.run_mode)
     table.add_row("Portfolio mode", cfg.portfolio_mode)
-    if cfg.analysis_mode == "analysis":
-        table.add_row("Analysis update only", "yes" if cfg.analysis_update_only else "no")
     if cfg.portfolio:
         returns = cfg.portfolio.calculate_total_return()
         table.add_row(
@@ -922,19 +892,6 @@ def _simulate_launch(cfg: SessionConfig) -> None:
     # Save configuration for the live trading backend
     _save_config(cfg)
 
-    if not LIVE_TRADING_AVAILABLE:
-        console.print(
-            Panel(
-                "[red]Live trading backend not available.[/red]\n"
-                "Running analysis mode only (no actual trading).",
-                border_style="yellow",
-            )
-        )
-        # Run analysis for each symbol with a spinner and compact summary.
-        for sym in cfg.symbols:
-            _run_analysis_for_symbol(cfg, sym)
-        return
-
     console.print()
     console.print(
         Panel(
@@ -958,25 +915,9 @@ def _simulate_launch(cfg: SessionConfig) -> None:
         os.environ["ALPACA_API_SECRET"] = cfg.alpaca_api_secret
         os.environ["ALPACA_PAPER"] = "true" if cfg.alpaca_paper_trading else "false"
 
-    # Launch the live trading backend or run pure analysis-only updates
+    # Launch the live trading backend
     try:
-        # Special case: analysis update-only mode (no trades, no portfolio file changes)
-        if cfg.analysis_mode == "analysis" and cfg.analysis_update_only:
-            if cfg.symbols:
-                symbols_str = ", ".join(cfg.symbols)
-            else:
-                symbols_str = "(no symbols specified)"
-
-            console.print()
-            console.print(
-                f"[bold yellow]Running analysis-only update for: {symbols_str} (no trades will be executed)[/bold yellow]"
-            )
-
-            for sym in cfg.symbols:
-                _run_analysis_for_symbol(cfg, sym)
-            return
-
-        # Normal path: call live trading backend (single- or multi-stock)
+        # Run all symbols (multi-stock or single-stock)
         if cfg.symbols:
             symbols_str = ", ".join(cfg.symbols)
             console.print()
@@ -1043,10 +984,6 @@ def run_interactive() -> None:
 
     # Step 1: Mode Selection (so we know how to interpret symbols/portfolio)
     analysis_mode = _prompt_analysis_mode()
-    update_only = False
-    if analysis_mode == "analysis":
-        # For Investment Analysis Only, decide upfront if we run trades or just analysis
-        update_only = _prompt_analysis_update_only()
 
     # Step 2: Risk Level
     risk = _prompt_risk_level()
@@ -1102,7 +1039,6 @@ def run_interactive() -> None:
         portfolio_mode: PortfolioMode = "new"
         portfolio = None
         force_reset = False
-        update_only = False
 
     # Step 9: Notes
     notes = _prompt_notes()
@@ -1126,7 +1062,6 @@ def run_interactive() -> None:
         alpaca_api_secret=alpaca_api_secret,
         alpaca_paper_trading=alpaca_paper_trading,
         force_reset_portfolio=force_reset,
-        analysis_update_only=update_only,
     )
 
     console.print()
