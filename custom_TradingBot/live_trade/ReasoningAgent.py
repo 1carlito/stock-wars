@@ -228,256 +228,193 @@ class ReasoningAgent:
         notes: str = "",
     ) -> Dict:
         try:
-            mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
+            try:
+                mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
-            system_prompt = self._build_system_prompt(mcp_session, risk_level=risk_level)
-            user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, notes=notes)
+                system_prompt = self._build_system_prompt(mcp_session, risk_level=risk_level)
+                user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, notes=notes)
 
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ]
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ]
 
-            print("\n" + "=" * 80)
-            print("🔵 FIRST STAGE REACT LOOP - INPUT TO LLM (live_trade)")
-            print("=" * 80)
-            print(f"\n📋 SYSTEM PROMPT ({len(system_prompt)} chars):")
-            print("-" * 80)
-            print(system_prompt)
-            print(f"\n📋 USER PROMPT ({len(user_prompt)} chars):")
-            print("-" * 80)
-            print(user_prompt)
-            print(f"\n📋 FULL MESSAGES (JSON):")
-            print("-" * 80)
-            print(json.dumps(messages, indent=2))
-            print("=" * 80 + "\n")
-
-            tool_results: List[Dict[str, Any]] = []
-            iteration = 0
-
-            while iteration < max_tool_iterations:
-                print(f"\n🔄 REACT ITERATION {iteration + 1}/{max_tool_iterations}")
-                print(f"📤 Calling LLM with {len(messages)} messages (planning/analysis stage)...")
-                response_text = self._call_chutes_api(messages)
-                print(f"📥 LLM RESPONSE ({len(response_text)} chars):")
+                print("\n" + "=" * 80)
+                print("🔵 FIRST STAGE REACT LOOP - INPUT TO LLM (live_trade)")
+                print("=" * 80)
+                print(f"\n📋 SYSTEM PROMPT ({len(system_prompt)} chars):")
                 print("-" * 80)
-                print(response_text)
+                print(system_prompt)
+                print(f"\n📋 USER PROMPT ({len(user_prompt)} chars):")
                 print("-" * 80)
+                print(user_prompt)
+                print(f"\n📋 FULL MESSAGES (JSON):")
+                print("-" * 80)
+                print(json.dumps(messages, indent=2))
+                print("=" * 80 + "\n")
 
-                tool_calls = self._extract_tool_calls(response_text)
+                tool_results: List[Dict[str, Any]] = []
+                iteration = 0
 
-                decision_pattern = re.compile(
-                    r"^\s*DECISION:\s*(BUY|SELL|SHORT|HOLD|CLOSE)",
-                    re.IGNORECASE | re.MULTILINE,
-                )
-                has_decision = bool(decision_pattern.search(response_text))
+                while iteration < max_tool_iterations:
+                    print(f"\n🔄 REACT ITERATION {iteration + 1}/{max_tool_iterations}")
+                    print(f"📤 Calling LLM with {len(messages)} messages (planning/analysis stage)...")
+                    response_text = self._call_chutes_api(messages)
+                    print(f"📥 LLM RESPONSE ({len(response_text)} chars):")
+                    print("-" * 80)
+                    print(response_text)
+                    print("-" * 80)
 
-                if has_decision and not tool_calls:
-                    break
+                    tool_calls = self._extract_tool_calls(response_text)
 
-                if mcp_session and tool_calls:
-                    tool_tasks = [
-                        self._execute_tool_via_mcp(mcp_session, tool_call, symbol, current_date)
-                        for tool_call in tool_calls
-                    ]
+                    decision_pattern = re.compile(
+                        r"^\s*DECISION:\s*(BUY|SELL|SHORT|HOLD|CLOSE)",
+                        re.IGNORECASE | re.MULTILINE,
+                    )
+                    has_decision = bool(decision_pattern.search(response_text))
 
-                    try:
-                        timeout = 30 * len(tool_calls)
-                        tool_results_batch = await asyncio.wait_for(
-                            asyncio.gather(*tool_tasks, return_exceptions=True),
-                            timeout=timeout,
-                        )
+                    if has_decision and not tool_calls:
+                        break
 
-                        messages.append(
-                            {
-                                "role": "assistant",
-                                "content": response_text,
-                            }
-                        )
-                        user_tool_messages: List[str] = []
+                    if mcp_session and tool_calls:
+                        tool_tasks = [
+                            self._execute_tool_via_mcp(mcp_session, tool_call, symbol, current_date)
+                            for tool_call in tool_calls
+                        ]
 
-                        for tool_call, tool_result in zip(tool_calls, tool_results_batch):
-                            if isinstance(tool_result, Exception):
-                                print(f"⚠️  Tool '{tool_call['name']}' error: {tool_result}")
+                        try:
+                            timeout = 30 * len(tool_calls)
+                            tool_results_batch = await asyncio.wait_for(
+                                asyncio.gather(*tool_tasks, return_exceptions=True),
+                                timeout=timeout,
+                            )
+
+                            messages.append(
+                                {
+                                    "role": "assistant",
+                                    "content": response_text,
+                                }
+                            )
+                            user_tool_messages: List[str] = []
+
+                            for tool_call, tool_result in zip(tool_calls, tool_results_batch):
+                                if isinstance(tool_result, Exception):
+                                    print(f"⚠️  Tool '{tool_call['name']}' error: {tool_result}")
+                                    tool_result = {
+                                        "error": str(tool_result),
+                                        "tool": tool_call["name"],
+                                        "tool_name": tool_call["name"],
+                                    }
+
+                                if isinstance(tool_result, dict) and "tool_name" not in tool_result:
+                                    tool_result["tool_name"] = tool_call["name"]
+
+                                trimmed_result = self._trim_tool_result(tool_result)
+                                tool_results.append(trimmed_result)
+
+                                tool_result_str = json.dumps(trimmed_result, indent=2)
+                                result_size = len(tool_result_str)
+                                max_chars = 2000
+                                if result_size > max_chars:
+                                    print(
+                                        f"  📊 Tool '{tool_call['name']}' result: {result_size} chars "
+                                        f"(will truncate for prompt)"
+                                    )
+                                    tool_result_str = (
+                                        tool_result_str[:max_chars]
+                                        + f"\n... truncated tool '{tool_call['name']}' output to {max_chars} chars ..."
+                                    )
+                                else:
+                                    print(f"  📊 Tool '{tool_call['name']}' result: {result_size} chars")
+
+                                user_tool_messages.append(
+                                    f"Tool '{tool_call['name']}' result:\n{tool_result_str}"
+                                )
+
+                            if user_tool_messages:
+                                messages.append(
+                                    {
+                                        "role": "user",
+                                        "content": "\n\n".join(user_tool_messages),
+                                    }
+                                )
+
+                        except asyncio.TimeoutError:
+                            print(f"⚠️  Tool execution timed out after {timeout}s")
+                            messages.append(
+                                {
+                                    "role": "assistant",
+                                    "content": response_text,
+                                }
+                            )
+                            timeout_msgs: List[str] = []
+                            for tool_call in tool_calls:
                                 tool_result = {
-                                    "error": str(tool_result),
+                                    "error": "Tool execution timed out",
                                     "tool": tool_call["name"],
                                     "tool_name": tool_call["name"],
                                 }
-
-                            if isinstance(tool_result, dict) and "tool_name" not in tool_result:
-                                tool_result["tool_name"] = tool_call["name"]
-
-                            trimmed_result = self._trim_tool_result(tool_result)
-                            tool_results.append(trimmed_result)
-
-                            tool_result_str = json.dumps(trimmed_result, indent=2)
-                            result_size = len(tool_result_str)
-                            max_chars = 2000
-                            if result_size > max_chars:
-                                print(
-                                    f"  📊 Tool '{tool_call['name']}' result: {result_size} chars "
-                                    f"(will truncate for prompt)"
+                                tool_results.append(tool_result)
+                                timeout_msgs.append(
+                                    f"Tool '{tool_call['name']}' timed out after {timeout}s"
                                 )
-                                tool_result_str = (
-                                    tool_result_str[:max_chars]
-                                    + f"\n... truncated tool '{tool_call['name']}' output to {max_chars} chars ..."
-                                )
-                            else:
-                                print(f"  📊 Tool '{tool_call['name']}' result: {result_size} chars")
-
-                            user_tool_messages.append(
-                                f"Tool '{tool_call['name']}' result:\n{tool_result_str}"
-                            )
-
-                        if user_tool_messages:
                             messages.append(
                                 {
                                     "role": "user",
-                                    "content": "\n\n".join(user_tool_messages),
+                                    "content": "\n".join(timeout_msgs),
+                                }
+                            )
+                        except Exception as e:  # noqa: BLE001
+                            print(f"⚠️  Batch tool execution error: {e}")
+                            for tool_call in tool_calls:
+                                tool_result = {
+                                    "error": str(e),
+                                    "tool": tool_call["name"],
+                                    "tool_name": tool_call["name"],
+                                }
+                                tool_results.append(tool_result)
+                            messages.append(
+                                {
+                                    "role": "assistant",
+                                    "content": response_text,
+                                }
+                            )
+                            messages.append(
+                                {
+                                    "role": "user",
+                                    "content": f"Tool execution failed: {str(e)}",
                                 }
                             )
 
-                    except asyncio.TimeoutError:
-                        print(f"⚠️  Tool execution timed out after {timeout}s")
-                        messages.append(
-                            {
-                                "role": "assistant",
-                                "content": response_text,
-                            }
-                        )
-                        timeout_msgs: List[str] = []
-                        for tool_call in tool_calls:
-                            tool_result = {
-                                "error": "Tool execution timed out",
-                                "tool": tool_call["name"],
-                                "tool_name": tool_call["name"],
-                            }
-                            tool_results.append(tool_result)
-                            timeout_msgs.append(
-                                f"Tool '{tool_call['name']}' timed out after {timeout}s"
-                            )
-                        messages.append(
-                            {
-                                "role": "user",
-                                "content": "\n".join(timeout_msgs),
-                            }
-                        )
-                    except Exception as e:  # noqa: BLE001
-                        print(f"⚠️  Batch tool execution error: {e}")
-                        for tool_call in tool_calls:
-                            tool_result = {
-                                "error": str(e),
-                                "tool": tool_call["name"],
-                                "tool_name": tool_call["name"],
-                            }
-                            tool_results.append(tool_result)
-                        messages.append(
-                            {
-                                "role": "assistant",
-                                "content": response_text,
-                            }
-                        )
-                        messages.append(
-                            {
-                                "role": "user",
-                                "content": f"Tool execution failed: {str(e)}",
-                            }
-                        )
+                    iteration += 1
 
-                iteration += 1
+                decision_result = self._parse_response(response_text, symbol, current_date)
+                decision_result["tool_calls_made"] = len(tool_results)
+                decision_result["tool_results"] = tool_results
+                try:
+                    self._save_raw_prompt(symbol, current_date, messages)
+                except Exception as e:  # noqa: BLE001
+                    print(f"⚠️  Failed to save raw LLM prompt: {e}")
+                self._save_decision(decision_result)
 
-            decision_result = self._parse_response(response_text, symbol, current_date)
-            decision_result["tool_calls_made"] = len(tool_results)
-            decision_result["tool_results"] = tool_results
-            try:
-                self._save_raw_prompt(symbol, current_date, messages)
-            except Exception as e:  # noqa: BLE001
-                print(f"⚠️  Failed to save raw LLM prompt: {e}")
-            self._save_decision(decision_result)
+                if not current_price:
+                    # Try to recover a usable current_price from any available tool data.
+                    # Strategy:
+                    #   1) Prefer explicit get_current_price results
+                    #   2) Next, look for a bar on current_date from get_price_history
+                    #   3) Finally, fall back to the latest available close on/before current_date
+                    #      from ANY tool that returns OHLC data (e.g. OBV price history)
+                    price_history_entries: list[dict] = []
 
-            if not current_price:
-                # Try to recover a usable current_price from any available tool data.
-                # Strategy:
-                #   1) Prefer explicit get_current_price results
-                #   2) Next, look for a bar on current_date from get_price_history
-                #   3) Finally, fall back to the latest available close on/before current_date
-                #      from ANY tool that returns OHLC data (e.g. OBV price history)
-                price_history_entries: list[dict] = []
+                    for tool_result in tool_results:
+                        if tool_result.get("error"):
+                            continue
 
-                for tool_result in tool_results:
-                    if tool_result.get("error"):
-                        continue
+                        tool_name = tool_result.get("tool_name", "")
+                        data = tool_result.get("data", [])
 
-                    tool_name = tool_result.get("tool_name", "")
-                    data = tool_result.get("data", [])
-
-                    # 1) Direct get_current_price result (historical or quote)
-                    if tool_name == "get_current_price":
-                        if data and isinstance(data, list):
-                            entry = data[0]
-                            current_price = (
-                                entry.get("close")
-                                or entry.get("price")
-                                or entry.get("last_price")
-                                or entry.get("prev_close")
-                            )
-                            if current_price:
-                                break
-                        continue
-
-                    # 2) Collect any OHLC-style history (date + close) we can find
-                    candidates = []
-                    if isinstance(data, list):
-                        candidates = data
-                    elif isinstance(data, dict) and isinstance(data.get("data"), list):
-                        candidates = data.get("data", [])
-
-                    for entry in candidates:
-                        if isinstance(entry, dict) and "date" in entry and "close" in entry:
-                            price_history_entries.append(entry)
-
-                # 3) Prefer a bar exactly on current_date if present
-                if not current_price and price_history_entries:
-                    same_day = [
-                        e for e in price_history_entries
-                        if e.get("date") == current_date and e.get("close")
-                    ]
-                    if same_day:
-                        # Use the last bar for the current_date
-                        current_price = same_day[-1].get("close")
-
-                # 4) If still nothing, fall back to the latest close on/before current_date
-                if not current_price and price_history_entries:
-                    # Sort by date string (YYYY-MM-DD) just in case entries are unordered
-                    price_history_entries.sort(key=lambda e: e.get("date", ""))
-                    for entry in reversed(price_history_entries):
-                        entry_date = entry.get("date", "")
-                        if entry_date and entry_date <= current_date:
-                            price = entry.get("close")
-                            if price:
-                                current_price = price
-                                break
-
-            if current_price:
-                print(f"📊 Current price today is ${float(current_price):.2f}")
-
-            if execute_trade_after and TRADE_EXECUTION_AVAILABLE:
-                if not current_price and mcp_session:
-                    try:
-                        print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
-                        price_tool_call = {
-                            "name": "get_current_price",
-                            "arguments": {
-                                "symbol": symbol,
-                                "current_date": current_date,
-                            },
-                        }
-                        price_result = await self._execute_tool_via_mcp(
-                            mcp_session, price_tool_call, symbol, current_date
-                        )
-                        if "error" not in price_result:
-                            data = price_result.get("data", [])
+                        # 1) Direct get_current_price result (historical or quote)
+                        if tool_name == "get_current_price":
                             if data and isinstance(data, list):
                                 entry = data[0]
                                 current_price = (
@@ -487,68 +424,147 @@ class ReasoningAgent:
                                     or entry.get("prev_close")
                                 )
                                 if current_price:
-                                    print(f"✅ Fetched current_price: ${float(current_price):.2f}")
-                                    print(f"📊 Current price today is ${float(current_price):.2f}")
-                    except Exception as e:  # noqa: BLE001
-                        print(f"⚠️  Failed to fetch current_price: {e}")
+                                    break
+                            continue
 
-                if not current_price:
-                    print(
-                        "⚠️  Cannot execute trade: current_price not provided "
-                        "and could not be fetched"
-                    )
-                    print(f"   Tool results: {len(tool_results)} results")
+                        # 2) Collect any OHLC-style history (date + close) we can find
+                        candidates = []
+                        if isinstance(data, list):
+                            candidates = data
+                        elif isinstance(data, dict) and isinstance(data.get("data"), list):
+                            candidates = data.get("data", [])
+
+                        for entry in candidates:
+                            if isinstance(entry, dict) and "date" in entry and "close" in entry:
+                                price_history_entries.append(entry)
+
+                    # 3) Prefer a bar exactly on current_date if present
+                    if not current_price and price_history_entries:
+                        same_day = [
+                            e for e in price_history_entries
+                            if e.get("date") == current_date and e.get("close")
+                        ]
+                        if same_day:
+                            # Use the last bar for the current_date
+                            current_price = same_day[-1].get("close")
+
+                    # 4) If still nothing, fall back to the latest close on/before current_date
+                    if not current_price and price_history_entries:
+                        # Sort by date string (YYYY-MM-DD) just in case entries are unordered
+                        price_history_entries.sort(key=lambda e: e.get("date", ""))
+                        for entry in reversed(price_history_entries):
+                            entry_date = entry.get("date", "")
+                            if entry_date and entry_date <= current_date:
+                                price = entry.get("close")
+                                if price:
+                                    current_price = price
+                                    break
+
+                if current_price:
+                    # Log and expose the resolved current price so downstream
+                    # orchestrators can reuse it for execution and portfolio
+                    # state updates.
+                    print(f"📊 Current price today is ${float(current_price):.2f}")
+                    try:
+                        decision_result["current_price"] = float(current_price)
+                    except Exception:
+                        # If casting fails, don't let it break the flow
+                        pass
+
+                if execute_trade_after and TRADE_EXECUTION_AVAILABLE:
+                    if not current_price and mcp_session:
+                        try:
+                            print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
+                            price_tool_call = {
+                                "name": "get_current_price",
+                                "arguments": {
+                                    "symbol": symbol,
+                                    "current_date": current_date,
+                                },
+                            }
+                            price_result = await self._execute_tool_via_mcp(
+                                mcp_session, price_tool_call, symbol, current_date
+                            )
+                            if "error" not in price_result:
+                                data = price_result.get("data", [])
+                                if data and isinstance(data, list):
+                                    entry = data[0]
+                                    current_price = (
+                                        entry.get("close")
+                                        or entry.get("price")
+                                        or entry.get("last_price")
+                                        or entry.get("prev_close")
+                                    )
+                                    if current_price:
+                                        print(f"✅ Fetched current_price: ${float(current_price):.2f}")
+                                        print(f"📊 Current price today is ${float(current_price):.2f}")
+                        except Exception as e:  # noqa: BLE001
+                            print(f"⚠️  Failed to fetch current_price: {e}")
+
+                    if not current_price:
+                        print(
+                            "⚠️  Cannot execute trade: current_price not provided "
+                            "and could not be fetched"
+                        )
+                        print(f"   Tool results: {len(tool_results)} results")
+                        decision = decision_result.get("decision", "").upper()
+                        if decision in ("BUY", "SELL", "SHORT", "CLOSE"):
+                            amount_usd = decision_result.get("amount_usd", 0)
+                            if decision == "CLOSE" or amount_usd > 0:
+                                return decision_result
+
                     decision = decision_result.get("decision", "").upper()
-                    if decision in ("BUY", "SELL", "SHORT", "CLOSE"):
+                    if decision in ("BUY", "SELL", "SHORT", "HOLD", "CLOSE"):
                         amount_usd = decision_result.get("amount_usd", 0)
                         if decision == "CLOSE" or amount_usd > 0:
-                            return decision_result
+                            try:
+                                trade_result = execute_trade(
+                                    symbol=symbol,
+                                    decision=decision,
+                                    amount_usd=amount_usd,
+                                    current_price=float(current_price),
+                                    current_date=current_date,
+                                    portfolio_state=portfolio_state,
+                                    market_cap_bil=portfolio_state.get("market_caps", {}).get(symbol),
+                                )
+                                decision_result["trade_execution"] = trade_result
+                                decision_result["portfolio_state_updated"] = trade_result.get(
+                                    "updated_portfolio_state"
+                                )
+                                print(
+                                    f"✅ Trade executed: {decision} {symbol} - "
+                                    f"{trade_result.get('trade_details', {}).get('action', 'UNKNOWN')}"
+                                )
+                            except Exception as e:  # noqa: BLE001
+                                print(f"❌ Trade execution failed: {e}")
+                                decision_result["trade_execution_error"] = str(e)
 
-                decision = decision_result.get("decision", "").upper()
-                if decision in ("BUY", "SELL", "SHORT", "HOLD", "CLOSE"):
-                    amount_usd = decision_result.get("amount_usd", 0)
-                    if decision == "CLOSE" or amount_usd > 0:
-                        try:
-                            trade_result = execute_trade(
-                                symbol=symbol,
-                                decision=decision,
-                                amount_usd=amount_usd,
-                                current_price=float(current_price),
-                                current_date=current_date,
-                                portfolio_state=portfolio_state,
-                                market_cap_bil=portfolio_state.get("market_caps", {}).get(symbol),
-                            )
-                            decision_result["trade_execution"] = trade_result
-                            decision_result["portfolio_state_updated"] = trade_result.get(
-                                "updated_portfolio_state"
-                            )
-                            print(
-                                f"✅ Trade executed: {decision} {symbol} - "
-                                f"{trade_result.get('trade_details', {}).get('action', 'UNKNOWN')}"
-                            )
-                        except Exception as e:  # noqa: BLE001
-                            print(f"❌ Trade execution failed: {e}")
-                            decision_result["trade_execution_error"] = str(e)
+                    if current_price and not decision_result.get("portfolio_state_updated"):
+                        updated_state = json.loads(json.dumps(portfolio_state))
+                        if "last_prices" not in updated_state:
+                            updated_state["last_prices"] = {}
+                        updated_state["last_prices"][symbol] = float(current_price)
+                        decision_result["portfolio_state_updated"] = updated_state
+                else:
+                    if current_price and not decision_result.get("portfolio_state_updated"):
+                        updated_state = json.loads(json.dumps(portfolio_state))
+                        if "last_prices" not in updated_state:
+                            updated_state["last_prices"] = {}
+                        updated_state["last_prices"][symbol] = float(current_price)
+                        decision_result["portfolio_state_updated"] = updated_state
 
-                if current_price and not decision_result.get("portfolio_state_updated"):
-                    updated_state = json.loads(json.dumps(portfolio_state))
-                    if "last_prices" not in updated_state:
-                        updated_state["last_prices"] = {}
-                    updated_state["last_prices"][symbol] = float(current_price)
-                    decision_result["portfolio_state_updated"] = updated_state
-            else:
-                if current_price and not decision_result.get("portfolio_state_updated"):
-                    updated_state = json.loads(json.dumps(portfolio_state))
-                    if "last_prices" not in updated_state:
-                        updated_state["last_prices"] = {}
-                    updated_state["last_prices"][symbol] = float(current_price)
-                    decision_result["portfolio_state_updated"] = updated_state
+                return decision_result
 
-            return decision_result
-
-        except Exception as e:  # noqa: BLE001
-            print(f"❌ Error for {symbol}: {e}")
-            return self._create_error_decision(symbol, current_date, str(e))
+            except Exception as e:  # noqa: BLE001
+                print(f"❌ Error for {symbol}: {e}")
+                return self._create_error_decision(symbol, current_date, str(e))
+        finally:
+            if self.use_mcp_client:
+                try:
+                    await self._close_mcp_session()
+                except Exception:
+                    # Cleanup failures should not crash the calling flow
+                    pass
 
     def _build_system_prompt(self, mcp_session=None, risk_level: str = "medium") -> str:
         if mcp_session and self.available_tools:
