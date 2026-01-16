@@ -253,6 +253,53 @@ class PortfolioOrchestrator:
                 notes=self.notes,
             )
 
+            # Merge any updated price information from the agent back into the
+            # shared portfolio_state so that _execute_trades can use a valid
+            # current_price for order sizing and execution.
+            try:
+                updated_state = result.get("portfolio_state_updated")
+                if isinstance(updated_state, dict):
+                    updated_last_prices = (updated_state.get("last_prices") or {})
+                    if updated_last_prices:
+                        # Handle both PortfolioState objects and plain dicts
+                        if hasattr(self.portfolio_state, "last_prices"):
+                            if self.portfolio_state.last_prices is None:
+                                self.portfolio_state.last_prices = {}
+                            self.portfolio_state.last_prices.update(updated_last_prices)
+                        else:
+                            state_dict = self.portfolio_state or {}
+                            current_last_prices = state_dict.get("last_prices") or {}
+                            current_last_prices.update(updated_last_prices)
+                            state_dict["last_prices"] = current_last_prices
+                            self.portfolio_state = state_dict
+
+                # Fallback: if the agent exposed an explicit current_price for
+                # this symbol, make sure it is reflected in last_prices even if
+                # portfolio_state_updated was not present.
+                current_price = result.get("current_price")
+                if current_price:
+                    try:
+                        cp_val = float(current_price)
+                        if hasattr(self.portfolio_state, "last_prices"):
+                            if self.portfolio_state.last_prices is None:
+                                self.portfolio_state.last_prices = {}
+                            self.portfolio_state.last_prices[symbol] = cp_val
+                        else:
+                            state_dict = self.portfolio_state or {}
+                            current_last_prices = state_dict.get("last_prices") or {}
+                            current_last_prices[symbol] = cp_val
+                            state_dict["last_prices"] = current_last_prices
+                            self.portfolio_state = state_dict
+                    except Exception as cp_error:
+                        _logger.warning(
+                            f"⚠️  Failed to merge current_price for {symbol}: {cp_error}"
+                        )
+
+            except Exception as merge_error:
+                _logger.warning(
+                    f"⚠️  Failed to merge updated last_prices for {symbol}: {merge_error}"
+                )
+
             # Extract token usage from response (if available)
             # For now, estimate tokens from response length
             token_usage = self._estimate_tokens(result)

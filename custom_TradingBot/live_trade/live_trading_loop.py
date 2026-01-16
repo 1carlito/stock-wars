@@ -948,7 +948,7 @@ async def run_single_trading_cycle(
                     if positions_dict:
                         state.positions = positions_dict
         except Exception as e:
-            _logger.warning(f\"⚠️  Failed to merge manual analysis portfolio into state: {e}\")
+            _logger.warning(f"⚠️  Failed to merge manual analysis portfolio into state: {e}")
 
     # 2. Initialize ReasoningAgent (MCP client connects lazily on first use)
     agent = ReasoningAgent(
