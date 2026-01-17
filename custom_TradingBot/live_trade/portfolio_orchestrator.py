@@ -606,7 +606,9 @@ class PortfolioOrchestrator:
                     else:
                         self.portfolio_state = updated_dict
 
-                    # Mirror trade to Alpaca if enabled
+                    # Mirror trade to Alpaca if enabled. We pass the actual
+                    # execution price so the broker-side order can size the
+                    # quantity correctly.
                     try:
                         _maybe_execute_with_alpaca(
                             symbol=symbol,
@@ -614,7 +616,7 @@ class PortfolioOrchestrator:
                             decision_result={
                                 "decision": decision_type,
                                 "amount_usd": amount_usd,
-                                "current_price": 0.0,
+                                "current_price": current_price,
                             }
                         )
                     except Exception as alpaca_error:
