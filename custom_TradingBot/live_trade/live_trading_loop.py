@@ -519,15 +519,31 @@ def _maybe_execute_with_alpaca(
     trade_details = trade_exec.get("trade_details") or {}
     current_price = trade_details.get("price")
 
+    # Fallback: allow callers (e.g. PortfolioOrchestrator) to pass a top-level
+    # current_price field instead of a full trade_execution payload.
+    if (current_price is None or current_price == 0) and "current_price" in decision_result:
+        try:
+            cp = float(decision_result.get("current_price") or 0.0)
+            if cp > 0:
+                current_price = cp
+        except Exception:
+            # If casting fails, leave current_price as-is and let validation
+            # below decide whether to skip the broker order.
+            pass
+
     _logger.info(
         f"🦙 Alpaca hook | date={trade_date.isoformat()} symbol={symbol} "
         f"decision={decision} amount_usd={amount_usd} price={current_price}"
     )
 
-    # BUY / SHORT: simple market order, sized by amount_usd
-    if decision in {"BUY", "SHORT"}:
+    # NOTE: For safety, the broker API integration currently only submits BUY
+    # market orders. Short selling is simulated in the portfolio engine but is
+    # not mirrored to Alpaca yet.
+
+    # BUY: simple market order, sized by amount_usd
+    if decision == "BUY":
         if amount_usd <= 0 or not current_price or current_price <= 0:
-            _logger.warning("⚠️  Alpaca: missing amount or price for BUY/SHORT; skipping broker order.")
+            _logger.warning("⚠️  Alpaca: missing amount or price for BUY; skipping broker order.")
             return
 
         qty = int(amount_usd // float(current_price))
@@ -535,24 +551,30 @@ def _maybe_execute_with_alpaca(
             _logger.warning("⚠️  Alpaca: computed quantity is 0; skipping broker order.")
             return
 
-        side = OrderSide.BUY if decision == "BUY" else OrderSide.SELL
-
         try:
             order_req = MarketOrderRequest(
                 symbol=symbol,
                 qty=qty,
-                side=side,
+                side=OrderSide.BUY,
                 time_in_force=TimeInForce.DAY,
             )
             order = client.submit_order(order_data=order_req)
-            _logger.info(f"✅ Alpaca market {decision} submitted: {order}")
+            _logger.info(f"✅ Alpaca market BUY submitted: {order}")
         except Exception as exc:  # noqa: BLE001
             error_msg = str(exc)
-            _logger.error(f"❌ Alpaca {decision} order failed: {error_msg}")
+            _logger.error(f"❌ Alpaca BUY order failed: {error_msg}")
             if "401" in error_msg or "not authorized" in error_msg.lower():
                 _logger.error("   ⚠️  Authentication error - please verify your API keys are correct.")
                 _logger.error("   ⚠️  Make sure you're using PAPER trading keys (not live trading keys).")
                 _logger.error("   ⚠️  Get paper keys from: https://app.alpaca.markets/paper/dashboard/overview")
+        return
+
+    # SHORT: simulated-only in portfolio; do NOT send to Alpaca yet.
+    if decision == "SHORT":
+        _logger.info(
+            "🦙 Alpaca: SHORT decision received but broker integration is BUY-only for now; "
+            "short exposure is handled in the simulated portfolio, not via live broker orders."
+        )
         return
 
     # SELL / CLOSE: let Alpaca work out the size by closing the position
