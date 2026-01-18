@@ -2,7 +2,7 @@
 Utility functions for OpenBB MCP Server
 """
 
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, List
 from functools import wraps
 
 
@@ -60,6 +60,63 @@ def format_tool_result(
     return result
 
 
+def _shrink_indicator_payload(tool_name: str, data: Any) -> Any:
+    """
+    Reduce the size of technical-indicator payloads before they reach the LLM.
+
+    Many indicator endpoints (both FMP and OpenBB) return full OHLCV bars
+    plus the indicator value(s). For reasoning, we usually only need:
+      - the indicator value(s)
+      - optionally the associated date (and sometimes close)
+
+    This helper keeps a minimal subset of fields for known indicator tools
+    while leaving all other tools untouched.
+    """
+    # Only operate on list-like payloads
+    if not isinstance(data, list) or not data:
+        return data
+
+    # Per-tool field selection (only indicator-relevant columns)
+    # NOTE: keep "date" when available so the model can reason about recency / trends.
+    indicator_field_map: Dict[str, List[str]] = {
+        # OpenBB technical indicators
+        "calculate_rsi": ["date", "rsi"],
+        "calculate_adx": ["date", "adx"],
+        "calculate_ema": ["date", "ema"],
+        "calculate_cci": ["date", "cci"],
+        # FMP technical-indicators (processed in Technical_Tools too, but this is harmless)
+        "get_fmp_rsi": ["date", "close", "rsi"],
+        "get_fmp_ema": ["date", "close", "ema"],
+        "get_fmp_sma": ["date", "close", "sma"],
+        "get_fmp_wma": ["date", "close", "wma"],
+        "get_fmp_bbands": ["date", "lowerBand", "middleBand", "upperBand"],
+        "get_fmp_obv": ["date", "close", "obv"],
+    }
+
+    # Never shrink raw price tools – they intentionally return full OHLCV
+    if tool_name in {"get_price_history", "get_current_price"}:
+        return data
+
+    keep_fields = indicator_field_map.get(tool_name)
+    if not keep_fields:
+        # Unknown tool: leave payload as-is
+        return data
+
+    shrunk: List[Any] = []
+    for row in data:
+        # Preserve non-dict rows as-is (unlikely but safe)
+        if not isinstance(row, dict):
+            shrunk.append(row)
+            continue
+
+        entry = {field: row.get(field) for field in keep_fields if field in row}
+        # Only append if we kept something meaningful
+        if entry:
+            shrunk.append(entry)
+
+    return shrunk
+
+
 def handle_premium_error(
     tool_name: str, error: Exception, fallback_message: Optional[str] = None
 ) -> Dict[str, Any]:
@@ -103,6 +160,8 @@ def openbb_tool_wrapper(tool_name: str) -> Callable[[Callable[..., Any]], Callab
             try:
                 raw_result = func(*args, **kwargs)
                 data = _convert_openbb_result(raw_result)
+                # Shrink technical-indicator payloads to the minimal useful subset
+                data = _shrink_indicator_payload(tool_name, data)
                 return format_tool_result(tool_name, data=data)
             except Exception as e:  # noqa: BLE001 - we want to surface any tool error
                 return format_tool_result(tool_name, error=e)

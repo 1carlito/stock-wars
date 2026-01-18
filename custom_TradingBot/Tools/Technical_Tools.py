@@ -130,6 +130,31 @@ def _fmp_get(path: str, params: Dict[str, Any]) -> Any:
     return resp.json()
 
 
+def _simplify_fmp_series(data: Any, keep_fields: Dict[str, Any]) -> Any:
+    """
+    Reduce FMP technical-indicator payloads to only the fields we actually need.
+
+    FMP returns full OHLCV bars plus indicator values for each date. For LLM
+    reasoning we only need:
+      - the indicator value(s)
+      - date (and sometimes close) for context.
+    """
+    if not isinstance(data, list) or not data:
+        return data
+
+    simplified = []
+    for row in data:
+        if not isinstance(row, dict):
+            continue
+        entry = {}
+        for field in keep_fields:
+            if field in row:
+                entry[field] = row[field]
+        if entry:
+            simplified.append(entry)
+    return simplified
+
+
 def register_technical_tools(mcp):
     """Register all technical indicator tools with MCP server"""
     
@@ -329,7 +354,9 @@ def register_technical_tools(mcp):
                 "from": sd.strftime("%Y-%m-%d"),
                 "to": ed.strftime("%Y-%m-%d"),
             }
-            data = _fmp_get("/technical-indicators/rsi", params)
+            raw = _fmp_get("/technical-indicators/rsi", params)
+            # Keep only date, close (for price context), and RSI value
+            data = _simplify_fmp_series(raw, ["date", "close", "rsi"])
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
@@ -365,7 +392,9 @@ def register_technical_tools(mcp):
                 "from": sd.strftime("%Y-%m-%d"),
                 "to": ed.strftime("%Y-%m-%d"),
             }
-            data = _fmp_get("/technical-indicators/ema", params)
+            raw = _fmp_get("/technical-indicators/ema", params)
+            # Keep only date, close, and EMA value
+            data = _simplify_fmp_series(raw, ["date", "close", "ema"])
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
@@ -401,7 +430,9 @@ def register_technical_tools(mcp):
                 "from": sd.strftime("%Y-%m-%d"),
                 "to": ed.strftime("%Y-%m-%d"),
             }
-            data = _fmp_get("/technical-indicators/sma", params)
+            raw = _fmp_get("/technical-indicators/sma", params)
+            # Keep only date, close, and SMA value
+            data = _simplify_fmp_series(raw, ["date", "close", "sma"])
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
@@ -437,7 +468,9 @@ def register_technical_tools(mcp):
                 "from": sd.strftime("%Y-%m-%d"),
                 "to": ed.strftime("%Y-%m-%d"),
             }
-            data = _fmp_get("/technical-indicators/wma", params)
+            raw = _fmp_get("/technical-indicators/wma", params)
+            # Keep only date, close, and WMA value
+            data = _simplify_fmp_series(raw, ["date", "close", "wma"])
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
@@ -488,7 +521,9 @@ def register_technical_tools(mcp):
                 "from": sd.strftime("%Y-%m-%d"),
                 "to": ed.strftime("%Y-%m-%d"),
             }
-            data = _fmp_get("/technical-indicators/bbands", params)
+            raw = _fmp_get("/technical-indicators/bbands", params)
+            # Keep only date and bands (drop raw OHLCV)
+            data = _simplify_fmp_series(raw, ["date", "lowerBand", "middleBand", "upperBand"])
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
@@ -536,7 +571,9 @@ def register_technical_tools(mcp):
                 "from": sd.strftime("%Y-%m-%d"),
                 "to": ed.strftime("%Y-%m-%d"),
             }
-            data = _fmp_get("/technical-indicators/obv", params)
+            raw = _fmp_get("/technical-indicators/obv", params)
+            # Keep only date, close (for price context), and OBV value
+            data = _simplify_fmp_series(raw, ["date", "close", "obv"])
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
