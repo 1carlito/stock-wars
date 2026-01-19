@@ -6,7 +6,13 @@
       "Bash(timeout 5 python:*)",
       "WebFetch(domain:site.financialmodelingprep.com)",
       "Bash(python3:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git -C /Users/pc/stock_agent_eval/stock_agent_eval_clean status --porcelain)",
+      "Bash(git rm:*)",
+      "Bash(xargs git rm --cached)",
+      "Bash(git add:*)",
+      "Bash(git -C /Users/pc/stock_agent_eval/stock_agent_eval_clean add:*)",
+      "Bash(git -C /Users/pc/stock_agent_eval/stock_agent_eval_clean status --short)"
     ]
   }
 }

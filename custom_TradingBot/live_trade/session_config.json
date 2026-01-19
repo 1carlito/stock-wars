@@ -1,18 +1,20 @@
 {
   "symbols": [
-    "AAPL",
-    "MSFT"
+    "APLD",
+    "ONDS"
   ],
   "risk_level": "high",
-  "starting_capital": 10000.0,
+  "starting_capital": 60000.0,
   "trade_mode": "paper",
   "run_mode": "once",
-  "analysis_mode": "paper",
+  "analysis_mode": "analysis",
   "portfolio_mode": "new",
   "portfolio": null,
   "notes": "",
   "alpaca_api_key": "",
   "alpaca_api_secret": "",
   "alpaca_paper_trading": true,
-  "force_reset_portfolio": false
+  "force_reset_portfolio": false,
+  "user_tier": "free",
+  "has_fmp_access": false
 }
