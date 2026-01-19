@@ -519,31 +519,15 @@ def _maybe_execute_with_alpaca(
     trade_details = trade_exec.get("trade_details") or {}
     current_price = trade_details.get("price")
 
-    # Fallback: allow callers (e.g. PortfolioOrchestrator) to pass a top-level
-    # current_price field instead of a full trade_execution payload.
-    if (current_price is None or current_price == 0) and "current_price" in decision_result:
-        try:
-            cp = float(decision_result.get("current_price") or 0.0)
-            if cp > 0:
-                current_price = cp
-        except Exception:
-            # If casting fails, leave current_price as-is and let validation
-            # below decide whether to skip the broker order.
-            pass
-
     _logger.info(
         f"🦙 Alpaca hook | date={trade_date.isoformat()} symbol={symbol} "
         f"decision={decision} amount_usd={amount_usd} price={current_price}"
     )
 
-    # NOTE: For safety, the broker API integration currently only submits BUY
-    # market orders. Short selling is simulated in the portfolio engine but is
-    # not mirrored to Alpaca yet.
-
-    # BUY: simple market order, sized by amount_usd
-    if decision == "BUY":
+    # BUY / SHORT: simple market order, sized by amount_usd
+    if decision in {"BUY", "SHORT"}:
         if amount_usd <= 0 or not current_price or current_price <= 0:
-            _logger.warning("⚠️  Alpaca: missing amount or price for BUY; skipping broker order.")
+            _logger.warning("⚠️  Alpaca: missing amount or price for BUY/SHORT; skipping broker order.")
             return
 
         qty = int(amount_usd // float(current_price))
@@ -551,30 +535,24 @@ def _maybe_execute_with_alpaca(
             _logger.warning("⚠️  Alpaca: computed quantity is 0; skipping broker order.")
             return
 
+        side = OrderSide.BUY if decision == "BUY" else OrderSide.SELL
+
         try:
             order_req = MarketOrderRequest(
                 symbol=symbol,
                 qty=qty,
-                side=OrderSide.BUY,
+                side=side,
                 time_in_force=TimeInForce.DAY,
             )
             order = client.submit_order(order_data=order_req)
-            _logger.info(f"✅ Alpaca market BUY submitted: {order}")
+            _logger.info(f"✅ Alpaca market {decision} submitted: {order}")
         except Exception as exc:  # noqa: BLE001
             error_msg = str(exc)
-            _logger.error(f"❌ Alpaca BUY order failed: {error_msg}")
+            _logger.error(f"❌ Alpaca {decision} order failed: {error_msg}")
             if "401" in error_msg or "not authorized" in error_msg.lower():
                 _logger.error("   ⚠️  Authentication error - please verify your API keys are correct.")
                 _logger.error("   ⚠️  Make sure you're using PAPER trading keys (not live trading keys).")
                 _logger.error("   ⚠️  Get paper keys from: https://app.alpaca.markets/paper/dashboard/overview")
-        return
-
-    # SHORT: simulated-only in portfolio; do NOT send to Alpaca yet.
-    if decision == "SHORT":
-        _logger.info(
-            "🦙 Alpaca: SHORT decision received but broker integration is BUY-only for now; "
-            "short exposure is handled in the simulated portfolio, not via live broker orders."
-        )
         return
 
     # SELL / CLOSE: let Alpaca work out the size by closing the position
@@ -885,6 +863,56 @@ def append_portfolio_history(
     )
 
 
+def _investment_only_results_dir() -> str:
+    """Directory where investment‑only analysis results are stored."""
+    return os.path.join(_get_live_trade_dir(), "investment_only_results")
+
+
+def _save_investment_only_result(
+    symbol: str,
+    trade_date: date,
+    decision_result: Dict[str, Any],
+    state: Optional[PortfolioState] = None,
+) -> None:
+    """
+    Persist a single investment‑only analysis result to disk without creating
+    any portfolio history files.
+
+    Files are written under:
+        live_trade/investment_only_results/{YYYY-MM-DD}_{SYMBOL}.json
+
+    The payload captures:
+        - symbol, trade_date
+        - high‑level decision fields (decision, confidence, amount_usd)
+        - optional thesis / reasoning if present
+        - optional portfolio snapshot (in‑memory only)
+        - full raw decision_result for deeper inspection
+    """
+    results_dir = _investment_only_results_dir()
+    os.makedirs(results_dir, exist_ok=True)
+
+    fname = f"{trade_date.isoformat()}_{symbol.upper()}.json"
+    path = os.path.join(results_dir, fname)
+
+    payload: Dict[str, Any] = {
+        "symbol": symbol.upper(),
+        "trade_date": trade_date.isoformat(),
+        "decision": decision_result.get("decision"),
+        "confidence": decision_result.get("confidence"),
+        "amount_usd": decision_result.get("amount_usd"),
+        "thesis": decision_result.get("thesis") or decision_result.get("reasoning"),
+        "notes": decision_result.get("notes"),
+        "portfolio_snapshot": state.to_dict() if state is not None else None,
+        "raw_decision": decision_result,
+        "saved_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+    with open(path, "w") as f:
+        json.dump(payload, f, indent=2)
+
+    _logger.info(f"💾 Saved investment‑only result to {path}")
+
+
 def get_next_run_time(now: datetime) -> datetime:
     """
     Compute the next scheduled run time for twice-daily trading:
@@ -943,8 +971,30 @@ async def run_single_trading_cycle(
     _logger.info(f"🚀 Live trading cycle for {symbol} on {trade_date.isoformat()}")
     _logger.info("=" * 80)
 
-    # 1. Load portfolio state (initialize with starting_capital if provided)
-    state = load_portfolio_state(starting_capital=starting_capital, mode=mode, force_reset=force_reset)
+    # 1. Load or initialize portfolio state
+    #
+    # For "analysis" mode (mode 1) we now avoid reading/writing any local JSON
+    # portfolio files. Backtesting is responsible for theoretical trade
+    # simulation and historical portfolio tracking. Here we only provide
+    # in‑memory context for better thesis quality:
+    #   - "new portfolio"  -> fresh cash-only PortfolioState
+    #   - "manual"         -> positions injected from session_config.json
+    if mode == "analysis":
+        initial_cash = starting_capital if starting_capital is not None else 50.0
+        state = PortfolioState(
+            cash=initial_cash,
+            positions={},
+            short_positions={},
+            last_prices={},
+            market_caps={},
+        )
+    else:
+        # Paper / Alpaca-backed modes continue to use persistent JSON state.
+        state = load_portfolio_state(
+            starting_capital=starting_capital,
+            mode=mode,
+            force_reset=force_reset,
+        )
 
     # 1b. If in analysis mode, enrich state with any manually provided portfolio
     #     snapshot from the most recent session_config.json (manual entry in CLI).
@@ -981,12 +1031,17 @@ async def run_single_trading_cycle(
     # 3. Build portfolio_state dict expected by ReasoningAgent
     portfolio_state_dict: Dict[str, Any] = state.to_dict()
 
-    # 4. Run decision with trade execution enabled, passing risk_level and notes
+    # 4. Run decision
+    #
+    # For "analysis" mode (mode 1), disable trade execution entirely so that
+    # this path becomes pure investment analysis with no theoretical trades.
+    execute_trades = mode != "analysis"
+
     decision_result = await agent._make_decision_async(
         symbol=symbol,
         current_date=trade_date.isoformat(),
         portfolio_state=portfolio_state_dict,
-        execute_trade_after=True,
+        execute_trade_after=execute_trades,
         current_price=None,
         max_tool_iterations=5,
         risk_level=risk_level,
@@ -1004,13 +1059,25 @@ async def run_single_trading_cycle(
     updated_state_dict = decision_result.get("portfolio_state_updated") or portfolio_state_dict
     updated_state = PortfolioState.from_dict(updated_state_dict)
     updated_state.last_run_date = trade_date.isoformat()
-    save_portfolio_state(updated_state, mode=mode)
 
-    # 7. Append portfolio history record
-    append_portfolio_history(updated_state, symbol, trade_date, decision_result)
-
-    # 8. Optionally mirror the trade to Alpaca (paper account)
-    _maybe_execute_with_alpaca(symbol, trade_date, decision_result)
+    if mode == "analysis":
+        # Investment‑only mode:
+        # - Do NOT persist portfolio JSON
+        # - Do NOT append portfolio history
+        # - Do NOT mirror to Alpaca
+        #
+        # Instead, save a lightweight investment‑only result snapshot that
+        # captures the thesis/decision without creating a portfolio history.
+        try:
+            _save_investment_only_result(symbol, trade_date, decision_result, updated_state)
+        except Exception as e:  # noqa: BLE001
+            _logger.warning(f"⚠️  Failed to save investment‑only result for {symbol}: {e}")
+    else:
+        # Paper / Alpaca‑backed modes: persist updated portfolio + history and
+        # optionally mirror trades to Alpaca.
+        save_portfolio_state(updated_state, mode=mode)
+        append_portfolio_history(updated_state, symbol, trade_date, decision_result)
+        _maybe_execute_with_alpaca(symbol, trade_date, decision_result)
 
     _logger.info("=" * 80)
     _logger.info(
