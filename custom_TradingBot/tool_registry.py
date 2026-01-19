@@ -259,66 +259,32 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
 # TIER DEFINITIONS - What tools are available at each tier
 # =============================================================================
 
-TIER_DEFINITIONS: Dict[str, List[str]] = {
-    "free": [
-        # Price
-        "get_price_history",
-        "get_current_price",
-        "get_real_time_quote",
-        "get_4hour_chart",
-        "get_premarket_context",
-        # Technical (OpenBB versions - slower but always available)
-        "calculate_rsi",
-        "calculate_ema",
-        "calculate_adx",
-        "calculate_cci",
-        # News
-        "get_company_news",
-        "get_world_news",
-        # Sector
-        "get_sector_rankings",
-        "get_sector_exposure",
-        "get_company_sector",
-        # Trading
-        "execute_trade",
-    ],
-    "starter": [
-        # All free tier tools
-        *[tool for tool in TIER_DEFINITIONS.get("free", [])],
-        # Plus all fundamentals
-        "get_income_statement",
-        "get_balance_sheet",
-        "get_cash_flow",
-        "get_company_profile",
-        "get_earnings_calendar",
-        "get_analyst_estimates",
-        "get_key_metrics",
-    ],
-    "premium": [
-        # All tools (would add more premium-only tools here in future)
-        *list(TOOL_REGISTRY.keys()),
-    ],
-}
-
-# Fix tier_definitions forward reference
-TIER_DEFINITIONS["starter"] = [
-    # All free tier tools
+# Free tier tools (base set)
+_FREE_TOOLS = [
+    # Price
     "get_price_history",
     "get_current_price",
     "get_real_time_quote",
     "get_4hour_chart",
     "get_premarket_context",
+    # Technical (OpenBB versions - slower but always available)
     "calculate_rsi",
     "calculate_ema",
     "calculate_adx",
     "calculate_cci",
+    # News
     "get_company_news",
     "get_world_news",
+    # Sector
     "get_sector_rankings",
     "get_sector_exposure",
     "get_company_sector",
+    # Trading
     "execute_trade",
-    # Plus fundamentals
+]
+
+# Starter tier = free + fundamentals
+_STARTER_TOOLS = _FREE_TOOLS + [
     "get_income_statement",
     "get_balance_sheet",
     "get_cash_flow",
@@ -327,6 +293,12 @@ TIER_DEFINITIONS["starter"] = [
     "get_analyst_estimates",
     "get_key_metrics",
 ]
+
+TIER_DEFINITIONS: Dict[str, List[str]] = {
+    "free": _FREE_TOOLS,
+    "starter": _STARTER_TOOLS,
+    "premium": list(TOOL_REGISTRY.keys()),
+}
 
 # =============================================================================
 # DEDUPLICATION PAIRS - Tools to prefer when both are available
