@@ -106,3 +106,177 @@
 2026-01-14 22:31:57 [INFO] run_once:1049 - 🏁 Running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
 2026-01-14 22:31:57 [WARNING] validate_portfolio_state:597 - ⚠️  Portfolio has negative cash: $-22,483.28
 2026-01-14 22:31:57 [INFO] load_portfolio_state:734 - 📁 Loaded portfolio | cash=$-22,483.28, positions=1, shorts=0
+2026-01-15 10:29:17 [INFO] run_once:1059 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-15 10:29:17 [INFO] run_once:1063 - 🏁 Running multi-stock portfolio cycle for APLD, MSFT on 2026-01-15 (NY date)
+2026-01-15 10:29:18 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-15 10:29:18 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-15 10:29:18 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-15 10:29:18 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-15 10:32:23 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-15 11:40:49 [INFO] run_once:1059 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-15 11:40:49 [INFO] run_once:1063 - 🏁 Running multi-stock portfolio cycle for MSFT, ALPD, NVDA, ASML on 2026-01-15 (NY date)
+2026-01-15 11:40:49 [INFO] load_portfolio_state:738 - 📁 No existing portfolio found. Initializing new state with cash=$20,000.00.
+2026-01-15 11:40:49 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 11:46:13 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:23:07 [INFO] run_once:1070 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-15 12:23:07 [INFO] run_once:1091 - 🏁 Running trading cycle for MSFT on 2026-01-15 (NY date)
+2026-01-15 12:23:07 [INFO] run_single_trading_cycle:920 - ================================================================================
+2026-01-15 12:23:07 [INFO] run_single_trading_cycle:921 - 🚀 Live trading cycle for MSFT on 2026-01-15
+2026-01-15 12:23:07 [INFO] run_single_trading_cycle:922 - ================================================================================
+2026-01-15 12:23:07 [INFO] load_portfolio_state:724 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260115_072307.json
+2026-01-15 12:23:07 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:23:07 [INFO] load_portfolio_state:731 - 📁 Reset theoretical portfolio with cash=$20,000.00
+2026-01-15 12:24:38 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:24:38 [INFO] append_portfolio_history:860 - 📈 Logged portfolio history for MSFT on 2026-01-15 | equity=20000.00, cash=20000.00
+2026-01-15 12:24:38 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-15 12:24:38 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-15 12:24:38 [INFO] run_single_trading_cycle:967 - ================================================================================
+2026-01-15 12:24:38 [INFO] run_single_trading_cycle:968 - ✅ Trading cycle complete for MSFT on 2026-01-15 | decision=HOLD amount=0.0
+2026-01-15 12:24:38 [INFO] run_single_trading_cycle:973 - ================================================================================
+2026-01-15 12:41:33 [INFO] run_once:1070 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-15 12:41:33 [INFO] run_once:1091 - 🏁 Running trading cycle for AVGO on 2026-01-15 (NY date)
+2026-01-15 12:41:33 [INFO] run_single_trading_cycle:920 - ================================================================================
+2026-01-15 12:41:33 [INFO] run_single_trading_cycle:921 - 🚀 Live trading cycle for AVGO on 2026-01-15
+2026-01-15 12:41:33 [INFO] run_single_trading_cycle:922 - ================================================================================
+2026-01-15 12:41:33 [INFO] load_portfolio_state:724 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260115_074133.json
+2026-01-15 12:41:33 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:41:33 [INFO] load_portfolio_state:731 - 📁 Reset theoretical portfolio with cash=$20,000.00
+2026-01-15 12:44:00 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:44:00 [INFO] append_portfolio_history:860 - 📈 Logged portfolio history for AVGO on 2026-01-15 | equity=20000.00, cash=20000.00
+2026-01-15 12:44:01 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-15 12:44:01 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-15 12:44:01 [INFO] run_single_trading_cycle:967 - ================================================================================
+2026-01-15 12:44:01 [INFO] run_single_trading_cycle:968 - ✅ Trading cycle complete for AVGO on 2026-01-15 | decision=HOLD amount=0.0
+2026-01-15 12:44:01 [INFO] run_single_trading_cycle:973 - ================================================================================
+2026-01-16 10:31:53 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-16 10:31:53 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for APLD, ONDS on 2026-01-16 (NY date)
+2026-01-16 10:31:53 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$12000.00
+2026-01-16 10:31:53 [INFO] load_portfolio_state:731 - 📁 Reset theoretical portfolio with cash=$12,000.00
+2026-01-16 10:33:37 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$12000.00
+2026-01-16 10:55:14 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 10:55:14 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for ONDS, KOPN, LPTH on 2026-01-16 (NY date)
+2026-01-16 10:55:15 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 10:55:15 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 10:55:15 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 10:55:15 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 10:58:03 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 11:15:59 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 11:15:59 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for TEVA, PLTR on 2026-01-16 (NY date)
+2026-01-16 11:16:00 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 11:16:00 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 11:16:00 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 11:16:00 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 11:17:37 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 11:31:04 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-16 11:31:04 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-16 (NY date)
+2026-01-16 11:31:04 [INFO] load_portfolio_state:724 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260116_063104.json
+2026-01-16 11:31:04 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-16 11:31:04 [INFO] load_portfolio_state:731 - 📁 Reset theoretical portfolio with cash=$50,000.00
+2026-01-16 11:33:45 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-16 11:43:06 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 11:43:06 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM, TSMC, TMC on 2026-01-16 (NY date)
+2026-01-16 11:43:06 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 11:43:06 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 11:43:06 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 11:43:06 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 11:46:28 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 12:35:18 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 12:35:18 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for ARM, AMZN on 2026-01-16 (NY date)
+2026-01-16 12:35:18 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 12:35:18 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 12:35:18 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 12:35:19 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 12:38:03 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:13:58 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:13:58 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM on 2026-01-16 (NY date)
+2026-01-16 13:13:59 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:13:59 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:13:59 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:13:59 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:13:59 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:16:01 [INFO] run_once:1097 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:16:01 [INFO] run_once:1101 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM on 2026-01-16 (NY date)
+2026-01-16 13:16:02 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:16:02 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:16:02 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:16:02 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:16:02 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:19:22 [INFO] run_once:1097 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:19:22 [INFO] run_once:1101 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM on 2026-01-16 (NY date)
+2026-01-16 13:19:24 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:19:24 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:19:24 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:19:24 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:19:24 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:25:54 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:25:54 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM on 2026-01-16 (NY date)
+2026-01-16 13:25:55 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:25:55 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:25:55 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:25:55 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:27:52 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:34:28 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:34:28 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM, BMNR on 2026-01-16 (NY date)
+2026-01-16 13:34:29 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:34:29 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:34:29 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:34:29 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:37:58 [INFO] _maybe_execute_with_alpaca:522 - 🦙 Alpaca hook | date=2026-01-16 symbol=AMZN decision=BUY amount_usd=24968.0725 price=None
+2026-01-16 13:37:58 [WARNING] _maybe_execute_with_alpaca:530 - ⚠️  Alpaca: missing amount or price for BUY/SHORT; skipping broker order.
+2026-01-16 13:37:58 [INFO] _maybe_execute_with_alpaca:522 - 🦙 Alpaca hook | date=2026-01-16 symbol=BMNR decision=BUY amount_usd=15000.0 price=None
+2026-01-16 13:37:58 [WARNING] _maybe_execute_with_alpaca:530 - ⚠️  Alpaca: missing amount or price for BUY/SHORT; skipping broker order.
+2026-01-16 13:37:58 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 16:50:04 [INFO] run_once:1118 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 16:50:04 [INFO] run_once:1122 - 🏁 Running multi-stock portfolio cycle for AMZN, BMNR on 2026-01-16 (NY date)
+2026-01-16 16:50:04 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 16:50:04 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 16:50:04 [INFO] _fetch_alpaca_portfolio:660 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 16:50:04 [INFO] _fetch_alpaca_portfolio:705 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 16:53:04 [DEBUG] save_portfolio_state:789 - 🦙 Alpaca mode - not saving to file
+2026-01-16 16:57:54 [INFO] run_once:1118 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 16:57:54 [INFO] run_once:1122 - 🏁 Running multi-stock portfolio cycle for ASML, AMZN, BMNR on 2026-01-16 (NY date)
+2026-01-16 16:57:54 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 16:57:54 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 16:57:54 [INFO] _fetch_alpaca_portfolio:660 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 16:57:55 [INFO] _fetch_alpaca_portfolio:705 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 17:03:34 [INFO] _maybe_execute_with_alpaca:534 - 🦙 Alpaca hook | date=2026-01-16 symbol=ASML decision=BUY amount_usd=24968.0725 price=1331.6
+2026-01-16 17:03:34 [INFO] _maybe_execute_with_alpaca:562 - ✅ Alpaca market BUY submitted: id=UUID('cd5df255-8ca7-4055-8b3c-08d846fcd498') client_order_id='90649069-b914-403f-9915-53fa0f970478' created_at=datetime.datetime(2026, 1, 16, 17, 3, 34, 513192, tzinfo=TzInfo(0)) updated_at=datetime.datetime(2026, 1, 16, 17, 3, 34, 523935, tzinfo=TzInfo(0)) submitted_at=datetime.datetime(2026, 1, 16, 17, 3, 34, 513192, tzinfo=TzInfo(0)) filled_at=None expired_at=None canceled_at=None failed_at=None replaced_at=None replaced_by=None replaces=None asset_id=UUID('6082378d-ba94-4bb7-a49e-ebe714131ca8') symbol='ASML' asset_class=<AssetClass.US_EQUITY: 'us_equity'> notional=None qty='18' filled_qty='0' filled_avg_price=None order_class=<OrderClass.SIMPLE: 'simple'> order_type=<OrderType.MARKET: 'market'> type=<OrderType.MARKET: 'market'> side=<OrderSide.BUY: 'buy'> time_in_force=<TimeInForce.DAY: 'day'> limit_price=None stop_price=None status=<OrderStatus.PENDING_NEW: 'pending_new'> extended_hours=False legs=None trail_percent=None trail_price=None hwm=None
+2026-01-16 17:03:34 [DEBUG] save_portfolio_state:789 - 🦙 Alpaca mode - not saving to file
+2026-01-17 01:12:05 [INFO] run_once:1118 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-17 01:12:05 [INFO] run_once:1139 - 🏁 Running trading cycle for AAPL on 2026-01-16 (NY date)
+2026-01-17 01:12:05 [INFO] run_single_trading_cycle:942 - ================================================================================
+2026-01-17 01:12:05 [INFO] run_single_trading_cycle:943 - 🚀 Live trading cycle for AAPL on 2026-01-16
+2026-01-17 01:12:05 [INFO] run_single_trading_cycle:944 - ================================================================================
+2026-01-17 01:12:05 [INFO] load_portfolio_state:746 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260116_201205.json
+2026-01-17 01:12:05 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-17 01:12:05 [INFO] load_portfolio_state:753 - 📁 Reset theoretical portfolio with cash=$50,000.00
+2026-01-17 01:12:57 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-17 01:12:57 [INFO] append_portfolio_history:882 - 📈 Logged portfolio history for AAPL on 2026-01-16 | equity=105490.00, cash=50000.00
+2026-01-17 01:12:58 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-17 01:12:58 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $175,570.40
+2026-01-17 01:12:58 [INFO] run_single_trading_cycle:1015 - ================================================================================
+2026-01-17 01:12:58 [INFO] run_single_trading_cycle:1016 - ✅ Trading cycle complete for AAPL on 2026-01-16 | decision=HOLD amount=0.0
+2026-01-17 01:12:58 [INFO] run_single_trading_cycle:1021 - ================================================================================
+2026-01-18 13:19:14 [INFO] run_once:1118 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-18 13:19:14 [INFO] run_once:1139 - 🏁 Running trading cycle for AAPL on 2026-01-18 (NY date)
+2026-01-18 13:19:14 [INFO] run_single_trading_cycle:942 - ================================================================================
+2026-01-18 13:19:14 [INFO] run_single_trading_cycle:943 - 🚀 Live trading cycle for AAPL on 2026-01-18
+2026-01-18 13:19:14 [INFO] run_single_trading_cycle:944 - ================================================================================
+2026-01-18 13:19:14 [WARNING] validate_portfolio_state:643 - ⚠️  Position AMZN missing last_price
+2026-01-18 13:19:14 [WARNING] validate_portfolio_state:643 - ⚠️  Position ASML missing last_price
+2026-01-18 13:19:14 [INFO] load_portfolio_state:770 - 📁 Loaded portfolio | cash=$50,000.00, positions=2, shorts=0
+2026-01-18 13:20:16 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-18 13:20:16 [INFO] append_portfolio_history:882 - 📈 Logged portfolio history for AAPL on 2026-01-18 | equity=105490.00, cash=50000.00
+2026-01-18 13:20:17 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-18 13:20:17 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $175,570.74
+2026-01-18 13:20:17 [INFO] run_single_trading_cycle:1015 - ================================================================================
+2026-01-18 13:20:17 [INFO] run_single_trading_cycle:1016 - ✅ Trading cycle complete for AAPL on 2026-01-18 | decision=HOLD amount=0.0
+2026-01-18 13:20:17 [INFO] run_single_trading_cycle:1021 - ================================================================================
+2026-01-18 21:45:42 [INFO] run_once:1135 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-18 21:45:42 [INFO] run_once:1139 - 🏁 Running multi-stock portfolio cycle for AMZN, APLD on 2026-01-18 (NY date)
+2026-01-18 21:45:42 [INFO] load_portfolio_state:746 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260118_164542.json
+2026-01-18 21:45:42 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$10000.00
+2026-01-18 21:45:42 [INFO] load_portfolio_state:753 - 📁 Reset theoretical portfolio with cash=$10,000.00
+2026-01-18 21:47:53 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$10000.00
+2026-01-19 09:27:10 [INFO] run_once:1185 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-19 09:27:10 [INFO] run_once:1189 - 🏁 Running multi-stock portfolio cycle for APLD, ONDS on 2026-01-19 (NY date)

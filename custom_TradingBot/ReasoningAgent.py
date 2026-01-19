@@ -15,6 +15,17 @@ from typing import Dict, List, Optional, Any
 from dotenv import load_dotenv
 import requests
 
+# Import tool registry for filtering
+try:
+    from tool_registry import (
+        resolve_enabled_tools,
+        deduplicate_tools,
+        validate_tool_name
+    )
+    TOOL_REGISTRY_AVAILABLE = True
+except ImportError:
+    TOOL_REGISTRY_AVAILABLE = False
+
 # Load environment variables
 load_dotenv()
 
@@ -76,7 +87,7 @@ except ImportError:
     print("⚠️  Trade execution not available. Install OpenBBMCPServer.")
 
 class ReasoningAgent:
-    def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True):
+    def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True, config_path=None):
         self.data_dir = data_dir
         self.decision_save_dir = os.path.join(self.data_dir, "reasoning_decisions")
         self.model = MODEL_NAME
@@ -84,35 +95,72 @@ class ReasoningAgent:
         self.use_mcp_client = use_mcp_client and MCP_CLIENT_AVAILABLE
         self.mcp_session = None
         self.available_tools = []
-        
+
+        # Load tool tier and FMP access from session config
+        self.user_tier = "free"
+        self.has_fmp_access = False
+        self._load_user_tier_config(config_path)
+
         if not self.api_key:
             raise ValueError("No API token provided. Set DEEPSEEK_API_KEY in environment.")
-        
+
         # Initialize MCP client connection if available
         if self.use_mcp_client:
             self._init_mcp_client()
         else:
             print(f"⚠️  MCP client not available, using direct imports")
-            
-        print(f"✅ ReasoningAgent initialized with {self.model}")
+
+        print(f"✅ ReasoningAgent initialized with {self.model} (tier={self.user_tier}, fmp={self.has_fmp_access})")
     
     def _init_mcp_client(self):
         """Initialize MCP client connection to OpenBB MCP Server"""
         try:
             # Get path to OpenBBMCPServer.py
             server_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "OpenBBMCPServer.py")
-            
+
             # Configure stdio server parameters
             self.server_params = StdioServerParameters(
                 command="python",
                 args=[server_path]
             )
-            
+
             print(f"📡 MCP client configured (will connect on first use)")
         except Exception as e:
             print(f"⚠️  Failed to initialize MCP client: {e}")
             self.use_mcp_client = False
-    
+
+    def _load_user_tier_config(self, config_path=None):
+        """Load user tier and FMP access from session config."""
+        try:
+            # Determine config path to check
+            if config_path is None:
+                # Try to find session_config.json in data_dir or common locations
+                candidates = [
+                    os.path.join(self.data_dir, "session_config.json"),
+                    os.path.join(self.data_dir, "live_trade", "session_config.json"),
+                    "session_config.json",
+                ]
+                config_path = None
+                for candidate in candidates:
+                    if os.path.exists(candidate):
+                        config_path = candidate
+                        break
+
+            if config_path and os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                    self.user_tier = config.get("user_tier", "free")
+                    self.has_fmp_access = config.get("has_fmp_access", False)
+            else:
+                # Silently default to free tier and no FMP access
+                self.user_tier = "free"
+                self.has_fmp_access = False
+        except Exception as e:
+            # On any error, silently fall back to defaults
+            print(f"⚠️  Could not load tier config: {e}. Using defaults (free tier, no FMP)")
+            self.user_tier = "free"
+            self.has_fmp_access = False
+
     async def _get_mcp_session(self):
         """Get or create MCP client session"""
         if not self.use_mcp_client:
@@ -170,8 +218,27 @@ class ReasoningAgent:
                             await asyncio.sleep(wait_time)
                         
                         tools_response = await self.mcp_session.list_tools()
-                        self.available_tools = [tool.name for tool in tools_response.tools]
-                        print(f"✅ Discovered {len(self.available_tools)} MCP tools: {', '.join(self.available_tools[:5])}...")
+                        discovered_tools = [tool.name for tool in tools_response.tools]
+                        print(f"✅ Discovered {len(discovered_tools)} MCP tools: {', '.join(discovered_tools[:5])}...")
+
+                        # Filter tools based on user tier and FMP access
+                        if TOOL_REGISTRY_AVAILABLE:
+                            enabled_tools = resolve_enabled_tools(
+                                user_tier=self.user_tier,
+                                has_fmp_access=self.has_fmp_access
+                            )
+                            # Intersect with discovered tools (only use what MCP actually registered)
+                            filtered_tools = set(discovered_tools) & enabled_tools
+                            # Deduplicate: prefer FMP versions when both available
+                            self.available_tools = list(deduplicate_tools(filtered_tools))
+                            print(f"   📋 Tier {self.user_tier} + FMP={self.has_fmp_access} → {len(self.available_tools)} tools available")
+                            if len(self.available_tools) < len(discovered_tools):
+                                removed = set(discovered_tools) - self.available_tools
+                                print(f"   🔒 Filtered out {len(removed)} tools (not in tier)")
+                        else:
+                            # No tool registry: use all discovered tools
+                            self.available_tools = discovered_tools
+                            print(f"   ⚠️  Tool registry not available, using all {len(self.available_tools)} discovered tools")
                         break
                     except Exception as tools_error:
                         if attempt < max_retries - 1:
@@ -915,8 +982,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
         return tool_calls
     
     async def _execute_tool_via_mcp(
-        self, 
-        mcp_session: ClientSession, 
+        self,
+        mcp_session: ClientSession,
         tool_call: Dict[str, Any],
         symbol: str,
         current_date: str
@@ -924,6 +991,15 @@ Avoid lookahead bias: do not use data from after {current_date}.
         """Execute a tool call via MCP client"""
         tool_name = tool_call["name"]
         arguments = tool_call["arguments"]
+
+        # Check if tool is available in the user's tier
+        if tool_name not in self.available_tools:
+            return {
+                "tool_name": tool_name,
+                "error": f"Tool '{tool_name}' is not available in your tier ({self.user_tier}). "
+                         f"Consider upgrading your tier or using an alternative tool.",
+                "available": False
+            }
 
         # Parse current_date once for reuse in clamps
         current_date_dt = None
