@@ -82,7 +82,25 @@ class PortfolioOrchestrator:
         self.max_parallel = max_parallel
 
         # Load or initialize portfolio state
-        self.portfolio_state = load_portfolio_state(starting_capital, mode=mode, force_reset=force_reset)
+        #
+        # For analysis mode (mode 1), we avoid loading/saving any local JSON
+        # portfolio files. Backtesting is responsible for theoretical trade
+        # simulation and historical tracking. Here we only keep an in‑memory
+        # PortfolioState snapshot for better thesis quality.
+        if self.mode == "analysis":
+            self.portfolio_state = PortfolioState(
+                cash=starting_capital,
+                positions={},
+                short_positions={},
+                last_prices={},
+                market_caps={},
+            )
+        else:
+            self.portfolio_state = load_portfolio_state(
+                starting_capital,
+                mode=mode,
+                force_reset=force_reset,
+            )
 
         # Initialize token tracker with 100K daily limit
         self.token_tracker = TokenTracker(daily_limit=100_000)
@@ -182,18 +200,33 @@ class PortfolioOrchestrator:
                 error = result.get("error", "Unknown error")
                 _logger.warning(f"  ❌ {symbol}: {error}")
 
-        # --- PHASE 4: Apply portfolio constraints & waterfall allocation ---
-        final_decisions = self._apply_waterfall_allocation(
-            valid_decisions,
-            self.portfolio_state
-        )
-        _logger.info(f"📋 Final trade decisions: {len(final_decisions)}")
+        # --- PHASE 4 & 5: Allocation / execution (mode dependent) ---
+        if self.mode == "analysis":
+            # Mode 1: Investment analysis only.
+            # - Do NOT perform capital / waterfall allocation.
+            # - Do NOT execute theoretical trades.
+            # We still return the raw per‑stock decisions for reporting.
+            final_decisions = valid_decisions
+            trades_executed: List[Dict[str, Any]] = []
+            _logger.info(
+                "📋 Analysis mode: returning decisions only (no allocation, no trades executed)."
+            )
+        else:
+            # Normal portfolio trading modes ("paper", "alpaca_live"):
+            # apply waterfall allocation and execute trades against the
+            # shared portfolio_state.
+            final_decisions = self._apply_waterfall_allocation(
+                valid_decisions,
+                self.portfolio_state
+            )
+            _logger.info(f"📋 Final trade decisions: {len(final_decisions)}")
 
-        # --- PHASE 5: Execute trades ---
-        trades_executed = await self._execute_trades(final_decisions, trade_date_str)
-        _logger.info(f"💰 Trades executed: {len(trades_executed)}")
+            trades_executed = await self._execute_trades(final_decisions, trade_date_str)
+            _logger.info(f"💰 Trades executed: {len(trades_executed)}")
 
         # --- PHASE 6: Save state and logs ---
+        # In analysis mode we no longer persist portfolio JSON to disk; we only
+        # save decision JSON for inspection. Other modes still persist state.
         self._save_results(final_decisions, trades_executed, trade_date_str)
 
         # Log freshness summary
@@ -655,15 +688,16 @@ class PortfolioOrchestrator:
         trade_date: str
     ) -> None:
         """
-        Save portfolio state, decisions, and logs.
+        Save portfolio state (non‑analysis modes), decisions, and logs.
 
         Args:
             decisions: Final trading decisions
             trades: Executed trades
             trade_date: Trading date
         """
-        # Save updated portfolio state
-        save_portfolio_state(self.portfolio_state, mode=self.mode)
+        # Save updated portfolio state for trading modes only
+        if self.mode != "analysis":
+            save_portfolio_state(self.portfolio_state, mode=self.mode)
 
         # Save decisions to JSON
         decisions_file = self.data_dir / "portfolio_decisions" / f"decisions_{trade_date}.json"
