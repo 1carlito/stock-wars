@@ -1092,64 +1092,59 @@ async def run_single_trading_cycle(
     # 3. Build portfolio_state dict expected by ReasoningAgent
     portfolio_state_dict: Dict[str, Any] = state.to_dict()
 
-    # 3.5 Fetch technical data based on time of day and user tier
+    # 3.5 Fetch technical data based on user-selected tool categories
     #
     technical_data_for_prompt = {}
-    current_now = datetime.now(tz=NY_TZ)
-    current_hour = current_now.hour
 
-    # Determine time of day (1pm or 7pm)
-    time_label = "1pm" if 10 <= current_hour < 14 else "7pm" if 14 <= current_hour < 20 else None
-
-    if time_label and mode in ("paper", "alpaca_live"):
+    if mode in ("paper", "alpaca_live"):
         try:
-            # Import orchestrator
+            # Import tools for data fetching
             sys.path.insert(0, os.path.join(BASE_DIR, ".."))
-            from technical_indicator_store import load_yesterday_indicators, save_daily_indicators
-            from Tools.Technical_Tools import get_technical_data_for_cycle
+            from Tools.Technical_Tools import fetch_selected_tools_data
 
-            # Load yesterday's indicators for 1pm premarket
-            stored_daily = None
-            if time_label == "1pm":
-                stored_daily = load_yesterday_indicators(symbol, trade_date.isoformat())
-                if stored_daily:
-                    _logger.info(f"📊 Loaded yesterday's daily indicators for {symbol}")
+            # Load selected tool categories from config (or use defaults)
+            selected_categories = ["technical_indicators"]  # Default
+            tech_date_range = None  # Agent decides by default
 
-            # Get technical data based on tier and time
+            # Try to load from session config if available
+            try:
+                config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+                if os.path.exists(config_path):
+                    with open(config_path, 'r') as f:
+                        config_data = json.load(f)
+                        if config_data.get("selected_tool_categories"):
+                            selected_categories = config_data["selected_tool_categories"]
+                        if config_data.get("technical_indicators_date_range"):
+                            tech_date_range = config_data["technical_indicators_date_range"]
+            except Exception as e:
+                _logger.debug(f"Could not load tool categories from config: {e}")
+
+            # Fetch data for selected categories
             has_fmp = os.getenv("fmp_api_key") is not None
-            tech_result = get_technical_data_for_cycle(
+            include_news = "sentiment" in selected_categories or False
+            tech_data = fetch_selected_tools_data(
                 symbol=symbol,
                 trade_date=trade_date.isoformat(),
-                time_of_day=time_label,
-                user_tier="free",  # TODO: load from config
+                selected_categories=selected_categories,
+                include_news=include_news,
+                tech_date_range=tech_date_range,
                 has_fmp_access=has_fmp,
-                stored_daily_indicators=stored_daily,
             )
 
-            if tech_result and not tech_result.get("error"):
-                technical_data_for_prompt = tech_result
-                current_price = tech_result.get("current_price") or current_price
-                _logger.info(
-                    f"📈 Technical data ({time_label}): "
-                    f"source={tech_result.get('source')}, "
-                    f"interval={tech_result.get('interval')}, "
-                    f"price=${current_price:.2f}"
-                )
-
-                # Store today's technical data for tomorrow's 1pm use
-                if time_label == "7pm" and tech_result.get("technical_data"):
-                    save_daily_indicators(
-                        symbol,
-                        trade_date.isoformat(),
-                        {
-                            **tech_result.get("technical_data", {}),
-                            "close": current_price,
-                        }
+            # Extract technical indicators data if available
+            if tech_data and tech_data.get("technical_indicators") and not tech_data["technical_indicators"].get("error"):
+                technical_data_for_prompt = tech_data["technical_indicators"]
+                if technical_data_for_prompt.get("current_price"):
+                    current_price = technical_data_for_prompt.get("current_price") or current_price
+                    _logger.info(
+                        f"📈 Technical data: "
+                        f"source={technical_data_for_prompt.get('source')}, "
+                        f"interval={technical_data_for_prompt.get('interval')}, "
+                        f"price=${current_price:.2f}"
                     )
-                    _logger.info(f"💾 Saved daily indicators for {symbol}")
             else:
-                error_msg = tech_result.get("error") if tech_result else "Unknown error"
-                _logger.warning(f"⚠️  Technical data fetch failed: {error_msg}")
+                error_msg = tech_data.get("error") if tech_data else "Unknown error"
+                _logger.debug(f"Technical data not available: {error_msg}")
 
                 # Fallback: try to get fresh current price
                 if not current_price:
@@ -1179,6 +1174,21 @@ async def run_single_trading_cycle(
     # this path becomes pure investment analysis with no theoretical trades.
     execute_trades = mode != "analysis"
 
+    # Load selected_categories and technical_indicators_date_range from config
+    selected_categories = ["technical_indicators"]  # Default
+    technical_indicators_date_range = None  # Optional optimization parameter
+    try:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+                if config_data.get("selected_tool_categories"):
+                    selected_categories = config_data["selected_tool_categories"]
+                if config_data.get("technical_indicators_date_range"):
+                    technical_indicators_date_range = config_data["technical_indicators_date_range"]
+    except Exception as e:
+        _logger.debug(f"Could not load config: {e}")
+
     decision_result = await agent._make_decision_async(
         symbol=symbol,
         current_date=trade_date.isoformat(),
@@ -1189,6 +1199,8 @@ async def run_single_trading_cycle(
         risk_level=risk_level,
         notes=notes,
         technical_data=technical_data_for_prompt if technical_data_for_prompt else None,
+        selected_categories=selected_categories,
+        technical_indicators_date_range=technical_indicators_date_range,
     )
 
     # 5. Close MCP session cleanly

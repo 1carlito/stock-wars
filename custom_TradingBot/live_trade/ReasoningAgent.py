@@ -301,12 +301,14 @@ class ReasoningAgent:
         risk_level: str = "medium",
         notes: str = "",
         technical_data: Optional[Dict[str, Any]] = None,
+        selected_categories: Optional[List[str]] = None,
+        technical_indicators_date_range: Optional[int] = None,
     ) -> Dict:
         try:
             try:
                 mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
-                system_prompt = self._build_system_prompt(mcp_session, risk_level=risk_level)
+                system_prompt = self._build_system_prompt(mcp_session, risk_level=risk_level, selected_categories=selected_categories, technical_indicators_date_range=technical_indicators_date_range)
                 user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, current_price=current_price, technical_data=technical_data, notes=notes)
 
                 messages = [
@@ -641,40 +643,47 @@ class ReasoningAgent:
                     # Cleanup failures should not crash the calling flow
                     pass
 
-    def _build_system_prompt(self, mcp_session=None, risk_level: str = "medium") -> str:
-        if mcp_session and self.available_tools:
+    def _build_system_prompt(self, mcp_session=None, selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None) -> str:
+        # Build tools list based on selected categories
+        if selected_categories:
+            try:
+                from tool_registry import TOOL_CATEGORIES
+                category_tools = []
+                for cat in selected_categories:
+                    if cat in TOOL_CATEGORIES:
+                        category_tools.extend(TOOL_CATEGORIES[cat]["tools"])
+                tools_list = "You have access to the following tools:\n"
+                tools_list += "\n".join([f"- {tool}" for tool in sorted(set(category_tools))])
+            except Exception:
+                tools_list = "You have access to analysis tools (configured for your tier)"
+        elif mcp_session and self.available_tools:
             tools_list = "You have access to the following tools via MCP:\n"
             tools_list += "\n".join([f"- {tool}" for tool in self.available_tools[:20]])
             if len(self.available_tools) > 20:
                 tools_list += f"\n... and {len(self.available_tools) - 20} more tools"
-            tools_list += "\n\nKey FMP technical tools (when available):\n- get_fmp_rsi\n- get_fmp_ema"
-            tools_list += "\n\nKey news tools (when available):\n- get_company_news\n- get_world_news"
-            tools_list += "\n\nTo use a tool, format your request as:\nTOOL_CALL: tool_name(param1=value1, param2=value2)"
         else:
             tools_list = """You have access to the following analysis tools:
-- get_price_history(symbol, start_date, end_date)
-- calculate_rsi(symbol, start_date, end_date, length=14, target='close')
-- get_fmp_rsi(symbol, start_date, end_date, period_length=14, timeframe='1day')
-- calculate_adx(symbol, start_date, end_date, length=14)
-- calculate_ema(symbol, start_date, end_date, length=50, target='close')
-- get_fmp_ema(symbol, start_date, end_date, period_length=50, timeframe='1day')
-- calculate_cci(symbol, start_date, end_date, length=20)
-- get_current_price(symbol, current_date=None)
-- get_earnings_calendar(start_date, end_date, symbol=None, current_date=None)
-- get_analyst_estimates(symbol)
-- get_company_profile(symbol)
-- get_income_statement(symbol, period='annual', limit=5)
-- get_balance_sheet(symbol, period='annual', limit=5)
-- get_cash_flow(symbol, period='annual', limit=5)
-- get_company_news(symbol, start_date, end_date, limit)
-- get_world_news(start_date, end_date, topics=None, limit)"""
+- Technical: calculate_rsi, calculate_ema, calculate_adx, calculate_cci, calculate_macd, calculate_bbands, calculate_atr, calculate_obv
+- FMP Technical: get_fmp_rsi, get_fmp_ema
+- Price: get_current_price, get_price_history
+- Fundamental: get_company_profile, get_income_statement, get_balance_sheet, get_cash_flow, get_analyst_estimates, get_earnings_calendar
+- Sentiment: get_company_news, get_world_news"""
 
-        # Risk level guidance for position sizing
-        risk_guidance = {
-            "low": "Capital preservation focus: Use small position sizes (5-10% of available cash per trade), prioritize stop-losses, avoid high volatility stocks.",
-            "medium": "Balanced approach: Use moderate position sizes (10-20% of available cash per trade), balanced risk/reward, standard stop-losses.",
-            "high": "Aggressive strategy: Use larger position sizes (25-30% of available cash per trade), higher drawdown tolerance, can take on more volatility.",
-        }.get(risk_level.lower(), "Balanced approach: Use moderate position sizes (10-20% of available cash per trade), balanced risk/reward, standard stop-losses.")
+        # Generate pre-computed tool calls if date range is specified
+        precomputed_tools = ""
+        planning_stage = ""
+
+        if technical_indicators_date_range and selected_categories:
+            try:
+                from tool_registry import generate_precomputed_tool_calls
+                precomputed_tools = generate_precomputed_tool_calls(selected_categories, technical_indicators_date_range)
+                date_range_note = f"\n[Technical indicators configured for {technical_indicators_date_range}-day lookback]\n"
+            except Exception:
+                date_range_note = ""
+                planning_stage = self._get_planning_stage()
+        else:
+            date_range_note = ""
+            planning_stage = self._get_planning_stage()
 
         return f"""You are an expert autonomous portfolio trading agent powered by OpenBB data.
 Your goal is to analyze stocks and make profitable PORTFOLIO-AWARE trading decisions.
@@ -711,22 +720,13 @@ PORTFOLIO CONTEXT MATTERS:
 - Long positions: Use SELL to exit or reduce when signals turn negative
 - Short positions: Similar logic applies (exit when signals improve)
 - Cash: Use BUY decisions to deploy capital when strong signals appear
-- Risk level: {risk_level.upper()} → {risk_guidance}
 
-{tools_list}
+{tools_list}{date_range_note}
 
-You operate in TWO CLEAR STAGES:
+How to operate:
 
-STAGE 1 - PLANNING (FIRST RESPONSE ONLY):
-- Carefully decide which tools you need and with what parameters.
-- For technical indicators: Use compact date ranges of ~60-90 days. These tools return pre-calculated indicator series (and may internally use longer price windows), so avoid redundant raw price-history calls unless you specifically need candles.
-- For intraday 4-hour trading: Use 4-hour historical chart API when available
-- For fundamentals, request only as much history as you truly need.
-- For news, use short date windows and small limits.
-- Output ONLY tool calls in this format (no decision yet):
-  TOOL_CALL: tool_name(param1=value1, param2=value2)
-
-STAGE 2 - ANALYSIS AND DECISION (AFTER YOU SEE TOOL RESULTS):
+{planning_stage}{precomputed_tools}
+ANALYSIS AND DECISION - STAGE:
 - When tool results are provided, use them to form a single, final trading decision.
 - Check portfolio state: Are we ALREADY holding this stock? This changes SELL behavior!
 - Consider the risk level when sizing positions (AMOUNT_USD).
@@ -739,39 +739,26 @@ AMOUNT_USD: [Dollar amount for the trade, based on confidence, portfolio size, a
 REASONING: [Detailed analysis explaining: signals found, portfolio impact, position sizing logic]
 """
 
+    def _get_planning_stage(self) -> str:
+        """Return PLANNING-STAGE instructions when no date range is specified."""
+        return """PLANNING - STAGE:
+* Carefully decide the desired tool history window you want based on the users tool list.
+
+- For technical indicators: Use compact date ranges of ~60-90 days. These tools return pre-calculated indicator series (and may internally use longer price windows), so avoid redundant raw price-history calls unless you specifically need candles.
+- For fundamentals, request only as much history as you truly need.
+- For news, use short date windows and small limits.
+- Output ONLY tool calls in this format (no decision yet):
+  TOOL_CALL: tool_name(param1=value1, param2=value2)
+
+"""
+
     def _build_user_prompt(self, symbol, current_date, portfolio_state, current_price: Optional[float] = None, technical_data: Optional[Dict[str, Any]] = None, notes: str = "") -> str:
-        notes_section = f"\n\nAdditional Instructions:\n{notes}" if notes else ""
+        notes_section = f"\n\nVerified News You Should Consider:\n{notes}" if notes else ""
 
         # Build current price section (if available)
         current_price_section = ""
         if current_price is not None:
             current_price_section = f"\n🔴 CURRENT PRICE: {symbol} = ${current_price:.2f}"
-
-        # Build technical data section (if available)
-        technical_section = ""
-        if technical_data:
-            tech_info = technical_data.get("technical_data", {})
-            source = technical_data.get("source", "unknown")
-            interval = technical_data.get("interval", "unknown")
-
-            if tech_info:
-                technical_section = f"\n📊 TECHNICAL DATA ({interval}, {source}):"
-
-                # Add individual indicators
-                if "rsi" in tech_info:
-                    technical_section += f"\n  • RSI: {tech_info['rsi']:.1f}"
-                if "ema" in tech_info:
-                    technical_section += f"\n  • EMA: ${tech_info['ema']:.2f}"
-                if "macd" in tech_info:
-                    technical_section += f"\n  • MACD: {tech_info['macd']}"
-                if "open" in tech_info:
-                    technical_section += f"\n  • Open: ${tech_info['open']:.2f}"
-                if "high" in tech_info:
-                    technical_section += f"\n  • High: ${tech_info['high']:.2f}"
-                if "low" in tech_info:
-                    technical_section += f"\n  • Low: ${tech_info['low']:.2f}"
-                if "volume" in tech_info:
-                    technical_section += f"\n  • Volume: {tech_info['volume']:,.0f}"
 
         # Build summary-only portfolio context (minimal tokens)
         portfolio_context = f"Portfolio State:\n- Cash: ${portfolio_state.get('cash', 0):,.2f}\n"
@@ -800,7 +787,7 @@ REASONING: [Detailed analysis explaining: signals found, portfolio impact, posit
 
         portfolio_context += f"- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}"
 
-        return f"""Analyze {symbol} for trading date {current_date}.{current_price_section}{technical_section}
+        return f"""Analyze {symbol} for trading date {current_date}.{current_price_section}
 
 {portfolio_context}
 {notes_section}
