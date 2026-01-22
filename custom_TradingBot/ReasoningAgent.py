@@ -317,7 +317,7 @@ class ReasoningAgent:
     ) -> Dict:
         """
         Analyze a stock and make a trading decision using OpenBB tools via MCP.
-        
+
         Args:
             symbol: Stock ticker symbol
             current_date: Current trading date (YYYY-MM-DD)
@@ -341,8 +341,14 @@ class ReasoningAgent:
         except RuntimeError:
             # No running loop (RuntimeError raised by get_running_loop()), safe to use asyncio.run()
             return asyncio.run(self._make_decision_async(
-                symbol, current_date, portfolio_state, execute_trade_after, 
-                current_price, max_tool_iterations
+                symbol=symbol,
+                current_date=current_date,
+                portfolio_state=portfolio_state,
+                execute_trade_after=execute_trade_after,
+                current_price=current_price,
+                max_tool_iterations=max_tool_iterations,
+                notes=notes,
+                technical_data=technical_data,
             ))
     
     async def _make_decision_async(
@@ -354,7 +360,8 @@ class ReasoningAgent:
         current_price: Optional[float],
         max_tool_iterations: int,
         risk_level: str = "medium",
-        notes: str = ""
+        notes: str = "",
+        technical_data: Optional[Dict[str, Any]] = None,
     ) -> Dict:
         """Async version of make_decision with MCP tool calling"""
         try:
@@ -363,7 +370,7 @@ class ReasoningAgent:
             
             # 2. Build initial prompts
             system_prompt = self._build_system_prompt(mcp_session, risk_level)
-            user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, risk_level, notes)
+            user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, current_price=current_price, technical_data=technical_data, notes=notes)
             
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -720,7 +727,7 @@ Make sure to check for:
 4. Volume (OBV)
 5. Fundamental events (Earnings) and health.
 
-Once you have receiced the data from the tool calls, then you can provide your final output in this format:
+Once you have received the data from the tool calls, then you can provide your final output in this format:
 DECISION: [BUY/SELL/SHORT/HOLD]
 CONFIDENCE: [0.0-1.0]
 AMOUNT_USD: [Optional - dollar amount for the trade, based on confidence and portfolio size]
@@ -729,18 +736,72 @@ REASONING: [Detailed analysis]
 Note: If you decide to execute a trade, specify the AMOUNT_USD based on your confidence level and available cash.
 """
 
-    def _build_user_prompt(self, symbol, current_date, portfolio_state, risk_level: str = "medium", notes: str = "") -> str:
-        notes_section = f"\nAdditional Notes: {notes}" if notes else ""
-        return f"""Analyze {symbol} for trading date {current_date}.
+    def _build_user_prompt(self, symbol, current_date, portfolio_state, current_price: Optional[float] = None, technical_data: Optional[Dict[str, Any]] = None, risk_level: str = "medium", notes: str = "") -> str:
+        notes_section = f"\n\nAdditional Instructions:\n{notes}" if notes else ""
 
-Risk Level: {risk_level}
-Portfolio State:
-- Cash: ${portfolio_state.get('cash', 0):,.2f}
-- Long Positions: {portfolio_state.get('positions', {})}
-- Short Positions: {portfolio_state.get('short_positions', {})}
-- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}{notes_section}
+        # Build current price section (if available)
+        current_price_section = ""
+        if current_price is not None:
+            current_price_section = f"\n🔴 CURRENT PRICE: {symbol} = ${current_price:.2f}"
 
-Please use the available tools to gather data and make a decision.
+        # Build technical data section (if available)
+        technical_section = ""
+        if technical_data:
+            tech_info = technical_data.get("technical_data", {})
+            source = technical_data.get("source", "unknown")
+            interval = technical_data.get("interval", "unknown")
+
+            if tech_info:
+                technical_section = f"\n📊 TECHNICAL DATA ({interval}, {source}):"
+
+                # Add individual indicators
+                if "rsi" in tech_info:
+                    technical_section += f"\n  • RSI: {tech_info['rsi']:.1f}"
+                if "ema" in tech_info:
+                    technical_section += f"\n  • EMA: ${tech_info['ema']:.2f}"
+                if "macd" in tech_info:
+                    technical_section += f"\n  • MACD: {tech_info['macd']}"
+                if "open" in tech_info:
+                    technical_section += f"\n  • Open: ${tech_info['open']:.2f}"
+                if "high" in tech_info:
+                    technical_section += f"\n  • High: ${tech_info['high']:.2f}"
+                if "low" in tech_info:
+                    technical_section += f"\n  • Low: ${tech_info['low']:.2f}"
+                if "volume" in tech_info:
+                    technical_section += f"\n  • Volume: {tech_info['volume']:,.0f}"
+
+        # Build summary-only portfolio context (minimal tokens)
+        portfolio_context = f"Portfolio State:\n- Cash: ${portfolio_state.get('cash', 0):,.2f}\n"
+
+        # Long positions summary (symbol: shares @ avg_price)
+        positions = portfolio_state.get('positions', {})
+        if positions:
+            portfolio_context += "- Long Positions:\n"
+            for pos_symbol, pos_data in positions.items():
+                shares = pos_data.get('shares', 0)
+                avg_price = pos_data.get('avg_price', 0)
+                portfolio_context += f"  * {pos_symbol}: {shares} shares @ ${avg_price:.2f} avg\n"
+        else:
+            portfolio_context += "- Long Positions: None\n"
+
+        # Short positions summary
+        short_positions = portfolio_state.get('short_positions', {})
+        if short_positions:
+            portfolio_context += "- Short Positions:\n"
+            for pos_symbol, pos_data in short_positions.items():
+                shares = pos_data.get('shares', 0)
+                avg_price = pos_data.get('avg_price', 0)
+                portfolio_context += f"  * {pos_symbol}: {shares} shares @ ${avg_price:.2f} avg\n"
+        else:
+            portfolio_context += "- Short Positions: None\n"
+
+        portfolio_context += f"- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}"
+
+        return f"""Analyze {symbol} for trading date {current_date}.{current_price_section}{technical_section}
+
+{portfolio_context}{notes_section}
+
+Please use the available tools to gather additional data and make a decision.
 Avoid lookahead bias: do not use data from after {current_date}.
 """
 

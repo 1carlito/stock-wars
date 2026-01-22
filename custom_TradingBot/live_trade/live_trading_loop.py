@@ -70,6 +70,7 @@ except Exception:  # pragma: no cover - if alpaca-py is not installed
 
 
 NY_TZ = ZoneInfo("America/New_York")
+UTC_TZ = ZoneInfo("UTC")
 
 
 # ============================================================================
@@ -913,37 +914,95 @@ def _save_investment_only_result(
     _logger.info(f"💾 Saved investment‑only result to {path}")
 
 
-def get_next_run_time(now: datetime) -> datetime:
+def get_next_run_time(
+    now: datetime,
+    scheduled_times_gmt: Optional[List[str]] = None,
+    first_run_date: Optional[str] = None,
+    first_day_entry_time_gmt: Optional[str] = None,
+) -> datetime:
     """
-    Compute the next scheduled run time for twice-daily trading:
-    - 13:00 (1 PM) America/New_York - Midday analysis + portfolio rebalance
-    - 19:00 (7 PM) America/New_York - Evening analysis + position management
+    Compute the next scheduled run time for trading.
+
+    Default (backward compatible):
+    - 13:00 (1 PM) America/New_York (6 AM GMT) - Midday analysis + portfolio rebalance
+    - 19:00 (7 PM) America/New_York (12 AM GMT) - Evening analysis + position management
+
+    With config (NEW):
+    - scheduled_times_gmt: List of times in HH:MM format (GMT), e.g., ["13:00", "19:00"]
+      Default: ["13:00", "19:00"] (1 PM GMT, 7 PM GMT)
+    - first_run_date: ISO date (YYYY-MM-DD) of first run - if today, use first_day_entry_time_gmt
+    - first_day_entry_time_gmt: Time in HH:MM format (GMT) for first day only
 
     Returns the next upcoming scheduled time (whichever comes first).
     Weekends are skipped; holidays are not modeled here.
     """
     if now.tzinfo is None:
-        now = now.replace(tzinfo=NY_TZ)
+        now = now.replace(tzinfo=UTC_TZ)
+    elif now.tzinfo != UTC_TZ:
+        # Convert to UTC for consistent comparison
+        now = now.astimezone(UTC_TZ)
 
-    # Define the two trading times each day
-    midday_time = now.replace(hour=13, minute=0, second=0, microsecond=0)  # 1 PM
-    evening_time = now.replace(hour=19, minute=0, second=0, microsecond=0)  # 7 PM
+    # Parse scheduled times
+    if scheduled_times_gmt is None:
+        scheduled_times_gmt = ["13:00", "19:00"]  # Default: 1 PM GMT, 7 PM GMT
 
-    # Check if it's a trading day (weekday)
+    # Parse time strings to (hour, minute) tuples
+    scheduled_hours_minutes = []
+    for time_str in scheduled_times_gmt:
+        try:
+            h, m = map(int, time_str.split(":"))
+            scheduled_hours_minutes.append((h, m))
+        except (ValueError, AttributeError):
+            _logger.warning(f"Invalid time format '{time_str}', skipping")
+            continue
+
+    if not scheduled_hours_minutes:
+        # Fallback to default if all parsing failed
+        scheduled_hours_minutes = [(13, 0), (19, 0)]
+
+    # Sort times for consistent ordering
+    scheduled_hours_minutes.sort()
+
+    # Check if today is the first run day
+    today_date = now.date()
+    is_first_day = first_run_date and first_run_date == today_date.isoformat()
+
+    # On first day, use entry time ONLY - not the scheduled times
+    if is_first_day and first_day_entry_time_gmt:
+        try:
+            h, m = map(int, first_day_entry_time_gmt.split(":"))
+            entry_time = now.replace(hour=h, minute=m, second=0, microsecond=0)
+            if now <= entry_time and now.weekday() < 5:
+                # Before entry time on first day - return entry time
+                return entry_time
+            else:
+                # Past entry time on first day - skip to next day's first scheduled time
+                next_day = now + timedelta(days=1)
+                while next_day.weekday() >= 5:  # Skip weekends
+                    next_day += timedelta(days=1)
+                first_hour, first_minute = scheduled_hours_minutes[0]
+                _logger.info(f"First day entry time passed. Next run on {next_day.date()} at {first_hour:02d}:{first_minute:02d} GMT")
+                return next_day.replace(hour=first_hour, minute=first_minute, second=0, microsecond=0)
+        except (ValueError, AttributeError):
+            _logger.warning(f"Invalid entry time format '{first_day_entry_time_gmt}'")
+            # Fall through to normal logic if parsing fails
+
+    # Check if it's a trading day (weekday) - for non-first-days or if first-day logic didn't trigger
     if now.weekday() < 5:  # 0-4 = Mon-Fri
-        # Return the next upcoming time (midday or evening)
-        if now <= midday_time:
-            return midday_time
-        elif now <= evening_time:
-            return evening_time
+        # Find the next upcoming time today
+        for hour, minute in scheduled_hours_minutes:
+            scheduled_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            if now <= scheduled_time:
+                return scheduled_time
 
-    # If past both times today, or if it's a weekend, move to next weekday
+    # If past all times today, or if it's a weekend, move to next weekday
     next_day = now + timedelta(days=1)
     while next_day.weekday() >= 5:  # 5=Saturday, 6=Sunday
         next_day += timedelta(days=1)
 
-    # Return midday time on the next trading day
-    return next_day.replace(hour=13, minute=0, second=0, microsecond=0)
+    # Return first scheduled time on the next trading day
+    first_hour, first_minute = scheduled_hours_minutes[0]
+    return next_day.replace(hour=first_hour, minute=first_minute, second=0, microsecond=0)
 
 
 async def run_single_trading_cycle(
@@ -1178,10 +1237,15 @@ def run_daemon(
     risk_level: str = "medium",
     notes: str = "",
     mode: str = "paper",
+    scheduled_times_gmt: Optional[List[str]] = None,
+    first_run_date: Optional[str] = None,
+    first_day_entry_time_gmt: Optional[str] = None,
 ) -> None:
     """
     Long‑running scheduler:
-    - Computes next trading time (13:00 or 19:00 ET).
+    - Computes next trading time based on GMT schedule (default: 1 PM GMT, 7 PM GMT).
+    - First day: if specified, runs at first_day_entry_time_gmt.
+    - After first day: uses scheduled_times_gmt times.
     - Sleeps until then.
     - Runs one trading cycle.
     - Repeats indefinitely.
@@ -1192,21 +1256,37 @@ def run_daemon(
         risk_level: "low", "medium", or "high"
         notes: Additional notes
         mode: "paper" or "alpaca_live" (NOT "analysis" - analysis is one-shot only)
+        scheduled_times_gmt: List of times in HH:MM format (GMT), e.g., ["13:00", "19:00"]
+        first_run_date: ISO date string (YYYY-MM-DD) of first run
+        first_day_entry_time_gmt: Time in HH:MM format (GMT) for first day only
     """
     if mode == "analysis":
         _logger.error("❌ Analysis mode only supports one-shot runs, not daemon mode")
         return
 
+    # Default to 1 PM GMT and 7 PM GMT if not specified
+    if scheduled_times_gmt is None:
+        scheduled_times_gmt = ["13:00", "19:00"]
+
     _logger.info(f"📡 Live trading daemon starting for symbol={symbol} (mode={mode})")
-    _logger.info("   Schedule: twice per trading day at 13:00 (1 PM) and 19:00 (7 PM) America/New_York")
+    _logger.info(f"   Schedule (GMT): {', '.join(scheduled_times_gmt)}")
+    if first_run_date and first_day_entry_time_gmt:
+        _logger.info(f"   First day ({first_run_date}): entry at {first_day_entry_time_gmt} GMT")
+
     while True:
-        now = datetime.now(tz=NY_TZ)
-        next_run = get_next_run_time(now)
+        now = datetime.now(tz=UTC_TZ)
+        next_run = get_next_run_time(
+            now,
+            scheduled_times_gmt=scheduled_times_gmt,
+            first_run_date=first_run_date,
+            first_day_entry_time_gmt=first_day_entry_time_gmt,
+        )
         seconds_until = (next_run - now).total_seconds()
 
+        now_ny = now.astimezone(NY_TZ)
         _logger.info(
-            f"⏰ Current NY time: {now.isoformat(timespec='seconds')}, "
-            f"next run at: {next_run.isoformat(timespec='seconds')} "
+            f"⏰ Current time: {now.isoformat(timespec='seconds')} GMT / {now_ny.isoformat(timespec='seconds')} ET, "
+            f"next run at: {next_run.isoformat(timespec='seconds')} GMT "
             f"({seconds_until:.0f}s from now)"
         )
 
@@ -1215,7 +1295,8 @@ def run_daemon(
         if seconds_until > 0:
             time.sleep(seconds_until)
 
-        # At/after scheduled time, run trading cycle for "today" in NY
+        # At/after scheduled time, run trading cycle for "today"
+        # Use NY timezone for trade date to match market days
         trade_date = datetime.now(tz=NY_TZ).date()
 
         # Fetch fresh current price before running trading cycle
@@ -1316,6 +1397,20 @@ def run_once(
         asyncio.run(run_single_trading_cycle(single_symbol, trade_date, starting_capital, risk_level, notes, mode=mode, force_reset=force_reset))
 
 
+def _load_session_config() -> Optional[Dict[str, Any]]:
+    """Load session configuration from session_config.json if it exists."""
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+    if not os.path.exists(config_path):
+        return None
+
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        _logger.warning(f"⚠️  Failed to load session_config.json: {e}")
+        return None
+
+
 def _parse_args(argv: Optional[list] = None):
     import argparse
 
@@ -1336,9 +1431,61 @@ def _parse_args(argv: Optional[list] = None):
 
 if __name__ == "__main__":
     args = _parse_args()
+
+    # Try to load session config
+    session_config = _load_session_config()
+
     if args.once:
-        run_once(args.symbol.upper())
+        if session_config:
+            # Use config if available
+            symbols = session_config.get("symbols", [args.symbol.upper()])
+            starting_capital = session_config.get("starting_capital")
+            risk_level = session_config.get("risk_level", "medium")
+            notes = session_config.get("notes", "")
+            # Map trade_mode to actual mode
+            trade_mode = session_config.get("trade_mode", "paper")
+            mode = "alpaca_live" if trade_mode == "live" else "paper"
+
+            run_once(
+                symbols=symbols,
+                starting_capital=starting_capital,
+                risk_level=risk_level,
+                notes=notes,
+                mode=mode,
+                force_reset=session_config.get("force_reset_portfolio", False),
+            )
+        else:
+            run_once(args.symbol.upper())
     else:
-        run_daemon(args.symbol.upper())
+        if session_config:
+            # Use config if available
+            symbols = session_config.get("symbols", [args.symbol.upper()])
+            symbol = symbols[0] if symbols else args.symbol.upper()
+            starting_capital = session_config.get("starting_capital")
+            risk_level = session_config.get("risk_level", "medium")
+            notes = session_config.get("notes", "")
+            # Map trade_mode to actual mode
+            trade_mode = session_config.get("trade_mode", "paper")
+            mode = "alpaca_live" if trade_mode == "live" else "paper"
+
+            # Extract scheduling parameters
+            scheduled_times_gmt = session_config.get("scheduled_times_gmt")
+            first_run_date = session_config.get("first_run_date")
+            first_day_entry_time_gmt = session_config.get("first_day_entry_time_gmt")
+
+            _logger.info(f"📋 Loaded config: symbols={symbols}, mode={mode}, first_day={first_run_date}")
+
+            run_daemon(
+                symbol=symbol,
+                starting_capital=starting_capital,
+                risk_level=risk_level,
+                notes=notes,
+                mode=mode,
+                scheduled_times_gmt=scheduled_times_gmt,
+                first_run_date=first_run_date,
+                first_day_entry_time_gmt=first_day_entry_time_gmt,
+            )
+        else:
+            run_daemon(args.symbol.upper())
 
 

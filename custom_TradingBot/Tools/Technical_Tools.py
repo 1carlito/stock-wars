@@ -24,6 +24,28 @@ _cache_manager = CacheManager(cache_dir=os.path.join(parent_dir, ".cache"), ttl_
 
 
 # ============================================================================
+# UTILITY: CHECK IF DATE IS TODAY
+# ============================================================================
+
+def _is_today(date_str: str) -> bool:
+    """
+    Check if a date string (YYYY-MM-DD) is today's date.
+
+    Args:
+        date_str: Date string in YYYY-MM-DD format
+
+    Returns:
+        True if date is today, False otherwise
+    """
+    try:
+        from datetime import date
+        target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        return target_date == date.today()
+    except (ValueError, AttributeError):
+        return False
+
+
+# ============================================================================
 # UTILITY: RESAMPLE 60m CANDLES TO 4h
 # ============================================================================
 
@@ -97,34 +119,22 @@ def get_technical_data_for_cycle(
     stored_daily_indicators: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
-    Orchestrate technical data fetching based on time of day and user tier.
+    Orchestrate technical data fetching based on date.
 
     Strategy:
-    - 1PM (premarket): Use yesterday's daily indicators + current price
-    - 7PM (market hours): Use 4-hour data + current price (FMP or yfinance)
+    - TODAY's date: Use latest 30-minute intraday candle + current price (FMP if available)
+    - BEFORE TODAY: Use daily candles (existing logic)
 
     Args:
         symbol: Stock ticker symbol
-        trade_date: Today's date (YYYY-MM-DD)
-        time_of_day: "1pm" or "7pm"
+        trade_date: Date to analyze (YYYY-MM-DD)
+        time_of_day: "1pm" or "7pm" (kept for backward compatibility)
         user_tier: "free" or "starter"
         has_fmp_access: Whether user has FMP API key
-        stored_daily_indicators: Yesterday's daily indicators (for 1PM use)
+        stored_daily_indicators: Yesterday's daily indicators (cached for reference)
 
     Returns:
-        Dict with current_price and technical indicators:
-        {
-            "current_price": 123.45,
-            "timestamp": "2026-01-20 15:30:00",
-            "technical_data": {
-                "rsi": 65.2,
-                "ema": 122.1,
-                "macd": {...},
-                ...
-            },
-            "source": "yfinance" | "fmp",
-            "interval": "daily" | "4h"
-        }
+        Dict with current_price and technical indicators
     """
     result = {
         "symbol": symbol,
@@ -139,55 +149,52 @@ def get_technical_data_for_cycle(
     }
 
     try:
-        # 1PM RUN: Premarket - use yesterday's daily indicators
-        if time_of_day.lower() == "1pm":
-            if stored_daily_indicators:
-                result["technical_data"] = stored_daily_indicators
-                result["source"] = "cached_daily"
-                result["interval"] = "daily"
+        # TODAY: Use latest 30-minute candle for intraday context
+        if _is_today(trade_date):
+            if has_fmp_access and user_tier == "starter":
+                result = _get_fmp_30m_technical_data(symbol, trade_date, result)
             else:
-                result["error"] = "No daily indicators stored for premarket"
+                result = _get_yfinance_30m_technical_data(symbol, trade_date, result)
+            return result
 
-            # Get fresh current price
+        # HISTORICAL: Fetch daily candle (just like before, unchanged)
+        else:
             try:
-                from datetime import datetime as dt
                 price_data = obb.equity.price.historical(
                     symbol=symbol,
                     start_date=trade_date,
                     end_date=trade_date,
-                    interval="5m",
+                    interval="1d",
                     provider="yfinance",
-                    extended_hours=True,
                 )
-                if price_data and price_data.results:
-                    latest = price_data.results[-1]
-                    latest_dict = (
-                        latest.model_dump()
-                        if hasattr(latest, "model_dump")
-                        else latest.dict()
-                        if hasattr(latest, "dict")
-                        else latest
+
+                if price_data and price_data.results and len(price_data.results) > 0:
+                    daily_candle = price_data.results[0]
+                    daily_dict = (
+                        daily_candle.model_dump()
+                        if hasattr(daily_candle, "model_dump")
+                        else daily_candle.dict()
+                        if hasattr(daily_candle, "dict")
+                        else daily_candle
                     )
-                    result["current_price"] = latest_dict.get("close")
-                    result["timestamp"] = latest_dict.get("date")
-            except Exception as e:
-                result["error"] = f"Failed to fetch current price: {e}"
+                    result["technical_data"] = {
+                        "open": daily_dict.get("open"),
+                        "high": daily_dict.get("high"),
+                        "low": daily_dict.get("low"),
+                        "close": daily_dict.get("close"),
+                        "volume": daily_dict.get("volume"),
+                        "timestamp": daily_dict.get("date"),
+                    }
+                    result["source"] = "yfinance"
+                    result["interval"] = "daily"
+                    result["current_price"] = daily_dict.get("close")
+                    result["timestamp"] = daily_dict.get("date")
+                else:
+                    result["error"] = "No daily data available"
 
-            return result
+            except Exception as e:  # noqa: BLE001
+                result["error"] = f"Daily data fetch failed: {e}"
 
-        # 7PM RUN: Market hours - use 4-hour data
-        elif time_of_day.lower() == "7pm":
-            if has_fmp_access and user_tier == "starter":
-                # Use FMP 4-hour chart (precomputed)
-                result = _get_fmp_4h_technical_data(symbol, trade_date, result)
-            else:
-                # Use yfinance 60m, resample to 4h
-                result = _get_yfinance_4h_technical_data(symbol, trade_date, result)
-
-            return result
-
-        else:
-            result["error"] = f"Unknown time_of_day: {time_of_day}"
             return result
 
     except Exception as e:  # noqa: BLE001
@@ -302,6 +309,110 @@ def _get_yfinance_4h_technical_data(
 
     except Exception as e:  # noqa: BLE001
         result["error"] = f"yfinance 4h fetch failed: {e}"
+        return result
+
+
+# ============================================================================
+# TODAY: GET 30-MINUTE INTRADAY DATA
+# ============================================================================
+
+def _get_fmp_30m_technical_data(
+    symbol: str, trade_date: str, result: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Fetch latest 30-minute candle from FMP for today's intraday context."""
+    try:
+        # Fetch 30-minute chart for today - just get latest candle
+        sd = datetime.strptime(trade_date, "%Y-%m-%d")
+        ed = sd + timedelta(days=1)
+
+        params: Dict[str, Any] = {
+            "symbol": symbol.upper(),
+            "from": sd.strftime("%Y-%m-%d"),
+            "to": ed.strftime("%Y-%m-%d"),
+        }
+        chart_data = _fmp_get("/historical-chart/30min", params)
+
+        if chart_data and isinstance(chart_data, list) and len(chart_data) > 0:
+            # Get latest 30m candle (most recent - FMP returns newest first)
+            latest_30m = chart_data[0]
+            result["technical_data"] = {
+                "open": latest_30m.get("open"),
+                "high": latest_30m.get("high"),
+                "low": latest_30m.get("low"),
+                "close": latest_30m.get("close"),
+                "volume": latest_30m.get("volume"),
+                "timestamp": latest_30m.get("date"),
+            }
+            result["source"] = "fmp"
+            result["interval"] = "30m"
+        else:
+            result["error"] = "No 30m data available from FMP"
+
+        # Get current price from FMP quote for latest snapshot
+        quote_params: Dict[str, Any] = {"symbol": symbol.upper()}
+        quote_data = _fmp_get("/quote", quote_params)
+
+        if isinstance(quote_data, list) and len(quote_data) > 0:
+            quote = quote_data[0]
+            result["current_price"] = quote.get("price")
+            result["timestamp"] = quote.get("timestamp")
+
+        return result
+
+    except Exception as e:  # noqa: BLE001
+        result["error"] = f"FMP 30m fetch failed: {e}"
+        return result
+
+
+def _get_yfinance_30m_technical_data(
+    symbol: str, trade_date: str, result: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Fetch latest 30m candle from yfinance for today's intraday context."""
+    try:
+        # Fetch 30m intraday data for today
+        price_data = obb.equity.price.historical(
+            symbol=symbol,
+            start_date=trade_date,
+            end_date=trade_date,
+            interval="30m",
+            provider="yfinance",
+            extended_hours=False,  # Regular hours only
+        )
+
+        if not price_data or not price_data.results:
+            result["error"] = "No 30m data available"
+            return result
+
+        # Get latest 30m candle (most recent)
+        candles_list = price_data.results
+        if isinstance(candles_list, list) and len(candles_list) > 0:
+            latest_30m = candles_list[-1]
+            latest_dict = (
+                latest_30m.model_dump()
+                if hasattr(latest_30m, "model_dump")
+                else latest_30m.dict()
+                if hasattr(latest_30m, "dict")
+                else latest_30m
+            )
+            result["technical_data"] = {
+                "open": latest_dict.get("open"),
+                "high": latest_dict.get("high"),
+                "low": latest_dict.get("low"),
+                "close": latest_dict.get("close"),
+                "volume": latest_dict.get("volume"),
+                "timestamp": latest_dict.get("date"),
+            }
+            result["source"] = "yfinance"
+            result["interval"] = "30m"
+            result["current_price"] = latest_dict.get("close")
+            result["timestamp"] = latest_dict.get("date")
+        else:
+            result["error"] = "No 30m candles found"
+
+        return result
+
+    except Exception as e:  # noqa: BLE001
+        result["error"] = f"yfinance 30m fetch failed: {e}"
         return result
 
 
@@ -1275,50 +1386,7 @@ def register_technical_tools(mcp):
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
 
-    @mcp.tool(name="get_4hour_chart")
-    def get_4hour_chart(
-        symbol: str,
-        start_date: str,
-        end_date: str,
-    ) -> Dict[str, Any]:
-        """
-        Get 4-hour OHLCV chart data from FMP for intraday analysis.
-
-        Perfect for 4-hour interval trading and twice-daily portfolio cycles.
-        Returns: Open, High, Low, Close, Volume for each 4-hour candle.
-
-        Args:
-            symbol: Stock ticker symbol
-            start_date: Start date (YYYY-MM-DD)
-            end_date: End date (YYYY-MM-DD)
-
-        Returns:
-            Dict with 4-hour OHLCV bars
-        """
-        tool_name = "get_4hour_chart"
-        try:
-            if not symbol:
-                raise ValueError("get_4hour_chart requires a non-empty symbol")
-
-            sd = datetime.strptime(start_date, "%Y-%m-%d")
-            ed = datetime.strptime(end_date, "%Y-%m-%d")
-
-            if ed < sd:
-                sd, ed = ed, sd
-
-            # Clamp to max 120 days for performance
-            if (ed - sd).days > 120:
-                sd = ed - timedelta(days=120)
-
-            params: Dict[str, Any] = {
-                "symbol": symbol.upper(),
-                "from": sd.strftime("%Y-%m-%d"),
-                "to": ed.strftime("%Y-%m-%d"),
-            }
-            data = _fmp_get("/historical-chart/4hour", params)
-            return format_tool_result(tool_name, data=data)
-        except Exception as e:  # noqa: BLE001
-            return format_tool_result(tool_name, error=e)
+   
 
     @mcp.tool(name="get_real_time_quote")
     def get_real_time_quote(symbol: str) -> Dict[str, Any]:
