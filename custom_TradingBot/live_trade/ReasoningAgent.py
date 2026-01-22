@@ -264,6 +264,9 @@ class ReasoningAgent:
         execute_trade_after: bool = False,
         current_price: Optional[float] = None,
         max_tool_iterations: int = 5,
+        risk_level: str = "medium",
+        notes: str = "",
+        technical_data: Optional[Dict[str, Any]] = None,
     ) -> Dict:
         try:
             _ = asyncio.get_running_loop()
@@ -275,12 +278,15 @@ class ReasoningAgent:
         except RuntimeError:
             return asyncio.run(
                 self._make_decision_async(
-                    symbol,
-                    current_date,
-                    portfolio_state,
-                    execute_trade_after,
-                    current_price,
-                    max_tool_iterations,
+                    symbol=symbol,
+                    current_date=current_date,
+                    portfolio_state=portfolio_state,
+                    execute_trade_after=execute_trade_after,
+                    current_price=current_price,
+                    max_tool_iterations=max_tool_iterations,
+                    risk_level=risk_level,
+                    notes=notes,
+                    technical_data=technical_data,
                 )
             )
 
@@ -294,13 +300,14 @@ class ReasoningAgent:
         max_tool_iterations: int,
         risk_level: str = "medium",
         notes: str = "",
+        technical_data: Optional[Dict[str, Any]] = None,
     ) -> Dict:
         try:
             try:
                 mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
                 system_prompt = self._build_system_prompt(mcp_session, risk_level=risk_level)
-                user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, notes=notes)
+                user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, current_price=current_price, technical_data=technical_data, notes=notes)
 
                 messages = [
                     {"role": "system", "content": system_prompt},
@@ -732,8 +739,39 @@ AMOUNT_USD: [Dollar amount for the trade, based on confidence, portfolio size, a
 REASONING: [Detailed analysis explaining: signals found, portfolio impact, position sizing logic]
 """
 
-    def _build_user_prompt(self, symbol, current_date, portfolio_state, notes: str = "") -> str:
+    def _build_user_prompt(self, symbol, current_date, portfolio_state, current_price: Optional[float] = None, technical_data: Optional[Dict[str, Any]] = None, notes: str = "") -> str:
         notes_section = f"\n\nAdditional Instructions:\n{notes}" if notes else ""
+
+        # Build current price section (if available)
+        current_price_section = ""
+        if current_price is not None:
+            current_price_section = f"\n🔴 CURRENT PRICE: {symbol} = ${current_price:.2f}"
+
+        # Build technical data section (if available)
+        technical_section = ""
+        if technical_data:
+            tech_info = technical_data.get("technical_data", {})
+            source = technical_data.get("source", "unknown")
+            interval = technical_data.get("interval", "unknown")
+
+            if tech_info:
+                technical_section = f"\n📊 TECHNICAL DATA ({interval}, {source}):"
+
+                # Add individual indicators
+                if "rsi" in tech_info:
+                    technical_section += f"\n  • RSI: {tech_info['rsi']:.1f}"
+                if "ema" in tech_info:
+                    technical_section += f"\n  • EMA: ${tech_info['ema']:.2f}"
+                if "macd" in tech_info:
+                    technical_section += f"\n  • MACD: {tech_info['macd']}"
+                if "open" in tech_info:
+                    technical_section += f"\n  • Open: ${tech_info['open']:.2f}"
+                if "high" in tech_info:
+                    technical_section += f"\n  • High: ${tech_info['high']:.2f}"
+                if "low" in tech_info:
+                    technical_section += f"\n  • Low: ${tech_info['low']:.2f}"
+                if "volume" in tech_info:
+                    technical_section += f"\n  • Volume: {tech_info['volume']:,.0f}"
 
         # Build summary-only portfolio context (minimal tokens)
         portfolio_context = f"Portfolio State:\n- Cash: ${portfolio_state.get('cash', 0):,.2f}\n"
@@ -762,12 +800,12 @@ REASONING: [Detailed analysis explaining: signals found, portfolio impact, posit
 
         portfolio_context += f"- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}"
 
-        return f"""Analyze {symbol} for trading date {current_date}.
+        return f"""Analyze {symbol} for trading date {current_date}.{current_price_section}{technical_section}
 
 {portfolio_context}
 {notes_section}
 
-Please use the available tools to gather data and make a decision.
+Please use the available tools to gather additional data and make a decision.
 Avoid lookahead bias: do not use data from after {current_date}.
 """
 

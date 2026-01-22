@@ -1004,9 +1004,251 @@ def _simulate_launch(cfg: SessionConfig) -> None:
         )
 
 
+def _parse_tool_selection(input_str: str, max_tools: int) -> set:
+    """
+    Parse user tool selection input supporting ranges and comma-separated numbers.
+
+    Examples:
+    - "1,2,3" → {1, 2, 3}
+    - "1-5" → {1, 2, 3, 4, 5}
+    - "1,3,5-8,10" → {1, 3, 5, 6, 7, 8, 10}
+    - "all" → {1, 2, ..., max_tools}
+    - "none" → {}
+
+    Args:
+        input_str: User input string
+        max_tools: Maximum tool number (for validation)
+
+    Returns:
+        Set of tool indices (1-based)
+    """
+    input_str = input_str.lower().strip()
+
+    if input_str == "all":
+        return set(range(1, max_tools + 1))
+
+    if input_str == "none":
+        return set()
+
+    selected = set()
+    for part in input_str.split(","):
+        part = part.strip()
+        if not part:
+            continue
+
+        if "-" in part:
+            try:
+                start, end = part.split("-")
+                start, end = int(start.strip()), int(end.strip())
+                if start > end:
+                    start, end = end, start
+                selected.update(range(start, end + 1))
+            except (ValueError, AttributeError):
+                console.print(f"[red]Invalid range: {part}[/red]")
+                return set()
+        else:
+            try:
+                selected.add(int(part))
+            except ValueError:
+                console.print(f"[red]Invalid number: {part}[/red]")
+                return set()
+
+    # Validate ranges
+    invalid = selected - set(range(1, max_tools + 1))
+    if invalid:
+        console.print(f"[red]Invalid tool numbers: {sorted(invalid)}[/red]")
+        return set()
+
+    return selected
+
+
+def _prompt_tool_selection(has_fmp_access: bool = False) -> List[str]:
+    """
+    Display all available tools and let user select which ones to enable.
+
+    Returns:
+        List of selected tool names (MCP tool names from registry)
+    """
+    # Import tool registry
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    try:
+        from tool_registry import TOOL_REGISTRY, resolve_enabled_tools, deduplicate_tools
+    except ImportError:
+        console.print("[red]Could not load tool registry. Using all default tools.[/red]")
+        return []
+
+    # Get available tools based on FMP access
+    enabled_tools = resolve_enabled_tools(user_tier="free", has_fmp_access=has_fmp_access)
+    enabled_tools = deduplicate_tools(enabled_tools)
+    tool_list = sorted(list(enabled_tools))
+
+    console.print(
+        Panel(
+            f"[bold]Available Tools ({len(tool_list)} total)[/bold]\n\n"
+            "Select which tools the LLM can use for analysis.\n"
+            "Enter tool numbers separated by commas, or use ranges (e.g., 1-5).\n\n"
+            "Examples: '1,2,3' | '1-10' | 'all' | 'none'",
+            border_style="cyan",
+            title="Tool Selection",
+        )
+    )
+
+    # Display tools in 2-column format
+    table = Table(show_header=False, pad_edge=False, padding=(0, 2))
+    table.add_column("Left", style="dim")
+    table.add_column("Right", style="dim")
+
+    # Build 2-column display
+    rows = []
+    for i, tool_name in enumerate(tool_list, start=1):
+        metadata = TOOL_REGISTRY.get(tool_name, {})
+        desc = metadata.get("description", "").split("(")[0].strip()[:40]  # Truncate description
+        row_text = f"{i:2}. {tool_name:30} ({desc})"
+        rows.append(row_text)
+
+    # Add rows in pairs
+    for i in range(0, len(rows), 2):
+        left = rows[i]
+        right = rows[i + 1] if i + 1 < len(rows) else ""
+        table.add_row(left, right)
+
+    console.print(table)
+    console.print()
+
+    # Prompt for selection
+    while True:
+        selection_input = Prompt.ask(
+            "Enter tool numbers",
+            default="all",
+        ).strip()
+
+        selected_indices = _parse_tool_selection(selection_input, len(tool_list))
+
+        if selected_indices:
+            # Convert indices to tool names
+            selected_tools = [tool_list[i - 1] for i in sorted(selected_indices)]
+
+            # Show summary
+            console.print()
+            console.print(
+                Panel(
+                    f"[green]Selected {len(selected_tools)} tools[/green]:\n\n"
+                    + "\n".join(f"• {tool}" for tool in selected_tools),
+                    border_style="green",
+                    title="Tool Summary",
+                )
+            )
+
+            if Confirm.ask("Use these tools?", default=True):
+                return selected_tools
+        else:
+            console.print("[yellow]No tools selected. Please try again.[/yellow]")
+            console.print()
+
+
+def _check_and_setup_fmp_api_key() -> bool:
+    """
+    Check for FMP API key at startup and offer to set it up.
+
+    Returns:
+        True if user has FMP access (either already set or entered), False otherwise.
+    """
+    # Check if FMP API key is already set
+    fmp_key = os.getenv("fmp_api_key")
+
+    if fmp_key:
+        console.print(
+            Panel(
+                f"[green]✅ FMP API Key detected[/green]\nFMP tools will be available.",
+                border_style="green",
+                title="FMP Access",
+            )
+        )
+        return True
+
+    # No FMP key found, ask if user wants to set it up
+    console.print(
+        Panel(
+            "[bold yellow]FMP API Key Not Found[/bold yellow]\n\n"
+            "FMP provides fast precomputed technical indicators (RSI, EMA, Bollinger Bands, OBV).\n"
+            "Without FMP access, you'll use slower OpenBB indicators (still free, just slower).\n\n"
+            "Free tier: Limited requests per day\n"
+            "Paid tier: Higher limits + premium indicators",
+            border_style="yellow",
+            title="FMP Setup",
+        )
+    )
+
+    has_fmp_key = Confirm.ask("Do you have an FMP API key?", default=False)
+
+    if not has_fmp_key:
+        console.print(
+            Panel(
+                "✅ Continuing without FMP\nYou'll use OpenBB indicators (free, slower).",
+                border_style="blue",
+            )
+        )
+        return False
+
+    # User has an API key - prompt for it
+    console.print("\n[dim]Enter your FMP API key. It will be saved to .env[/dim]")
+    fmp_key = Prompt.ask("FMP API Key", password=False).strip()
+
+    if not fmp_key:
+        console.print("[yellow]⚠️  No key entered. Continuing without FMP access.[/yellow]")
+        return False
+
+    # Save to .env file
+    env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    try:
+        # Read existing .env if it exists
+        env_content = ""
+        if os.path.exists(env_file):
+            with open(env_file, "r") as f:
+                env_content = f.read()
+
+        # Remove any existing fmp_api_key line
+        lines = env_content.split("\n")
+        lines = [line for line in lines if not line.startswith("fmp_api_key=")]
+
+        # Add new key
+        lines.append(f"fmp_api_key={fmp_key}")
+
+        # Write back
+        with open(env_file, "w") as f:
+            f.write("\n".join(lines))
+
+        # Also set in current environment
+        os.environ["fmp_api_key"] = fmp_key
+
+        console.print(
+            Panel(
+                f"[green]✅ FMP API Key saved to .env[/green]\nFMP tools are now enabled.",
+                border_style="green",
+                title="FMP Configured",
+            )
+        )
+        return True
+
+    except Exception as e:  # noqa: BLE001
+        console.print(
+            Panel(
+                f"[red]Failed to save FMP key: {e}[/red]\n"
+                "You can manually add `fmp_api_key=YOUR_KEY` to .env",
+                border_style="red",
+            )
+        )
+        # Still set in environment even if file write failed
+        os.environ["fmp_api_key"] = fmp_key
+        return True
+
+
 def run_interactive() -> None:
     os.system("clear" if os.name != "nt" else "cls")
     _banner()
+
+    # FMP API Key Check at Startup
+    _check_and_setup_fmp_api_key()
 
     # Step 1: Engine Selection (live vs backtest)
     engine_mode = _prompt_engine_mode()
