@@ -27,6 +27,13 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "mcp_name": "get_current_price",
         "description": "Current price quote"
     },
+    "get_current_price_yfinance": {
+        "category": "price",
+        "tier": "free",
+        "provider": "openbb",
+        "mcp_name": "get_current_price_yfinance",
+        "description": "Current price via 5m intraday candle (FREE - yfinance)"
+    },
     "get_real_time_quote": {
         "category": "price",
         "tier": "free",
@@ -126,23 +133,46 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "requires": ["has_fmp_access"],
         "replaces": None
     },
-    "get_fmp_bbands": {
+    # =========================================================================
+    # TECHNICAL INDICATORS - OpenBB intraday indicators (FREE)
+    # Fetch historical data (60-200 days), calculate, return current values ONLY
+    # No direct FMP equivalents available
+    # =========================================================================
+    "get_openbb_bbands": {
         "category": "technical",
         "tier": "free",
-        "provider": "fmp",
-        "mcp_name": "get_fmp_bbands",
-        "description": "Bollinger Bands (fast - precomputed, instant response)",
-        "requires": ["has_fmp_access"],
-        "replaces": None
+        "provider": "openbb",
+        "mcp_name": "get_openbb_bbands",
+        "description": "Bollinger Bands (requires history fetch, returns current values only)",
+        "has_fast_alternative": True,
+        "returns_indicator_only": True
     },
-    "get_fmp_obv": {
+    "get_openbb_macd": {
         "category": "technical",
         "tier": "free",
-        "provider": "fmp",
-        "mcp_name": "get_fmp_obv",
-        "description": "OBV indicator (fast - precomputed, instant response)",
-        "requires": ["has_fmp_access"],
-        "replaces": None
+        "provider": "openbb",
+        "mcp_name": "get_openbb_macd",
+        "description": "MACD (requires history fetch, returns current values only)",
+        "has_fast_alternative": False,
+        "returns_indicator_only": True
+    },
+    "get_openbb_obv": {
+        "category": "technical",
+        "tier": "free",
+        "provider": "openbb",
+        "mcp_name": "get_openbb_obv",
+        "description": "On-Balance Volume (requires history fetch, returns current values only)",
+        "has_fast_alternative": True,
+        "returns_indicator_only": True
+    },
+    "get_openbb_vwap": {
+        "category": "technical",
+        "tier": "free",
+        "provider": "openbb",
+        "mcp_name": "get_openbb_vwap",
+        "description": "Volume-Weighted Average Price intraday (current day only)",
+        "has_fast_alternative": False,
+        "returns_indicator_only": True
     },
 
     # =========================================================================
@@ -264,6 +294,7 @@ _FREE_TOOLS = [
     # Price
     "get_price_history",
     "get_current_price",
+    "get_current_price_yfinance",
     "get_real_time_quote",
     "get_4hour_chart",
     "get_premarket_context",
@@ -272,6 +303,11 @@ _FREE_TOOLS = [
     "calculate_ema",
     "calculate_adx",
     "calculate_cci",
+    # Technical (OpenBB intraday - new indicators)
+    "get_openbb_bbands",
+    "get_openbb_macd",
+    "get_openbb_obv",
+    "get_openbb_vwap",
     # News
     "get_company_news",
     "get_world_news",
@@ -303,11 +339,13 @@ TIER_DEFINITIONS: Dict[str, List[str]] = {
 # =============================================================================
 # DEDUPLICATION PAIRS - Tools to prefer when both are available
 # Format: (slow_openbb_tool, fast_fmp_tool)
+# When both tools are available, prefer the FMP (fast) version
 # =============================================================================
 
 DEDUPLICATION_PAIRS: List[tuple] = [
-    ("calculate_rsi", "get_fmp_rsi"),      # Prefer FMP (faster)
-    ("calculate_ema", "get_fmp_ema"),      # Prefer FMP (faster)
+    ("calculate_rsi", "get_fmp_rsi"),           # Prefer FMP (faster, precomputed)
+    ("calculate_ema", "get_fmp_ema"),           # Prefer FMP (faster, precomputed)
+    # Note: BBands, MACD, OBV, VWAP have no FMP equivalents (not in FMP free tier docs)
 ]
 
 # =============================================================================

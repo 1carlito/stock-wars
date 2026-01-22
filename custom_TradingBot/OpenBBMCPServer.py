@@ -383,7 +383,7 @@ if mcp:
         
     # Register fundamental, technical, news, and sector tools
     _register_tool_module(register_fundamental_tools, "fundamental analysis tools")
-    _register_tool_module(register_technical_tools, "technical analysis tools")
+    _register_tool_module(register_technical_tools, "technical analysis tools (includes current price)")
     _register_tool_module(register_news_tools, "news tools")
     _register_tool_module(register_sector_tools, "sector analysis tools")
 

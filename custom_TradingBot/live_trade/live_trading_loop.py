@@ -4,13 +4,13 @@ Live trading orchestrator
 =========================
 
 Runs the ReasoningAgent twice per trading day for intraday portfolio management:
-- 10:00 ET (10 AM) - Gap analysis + morning cycle
-- 15:00 ET (3 PM) - Afternoon cycle (5 hours separation)
+- 13:00 ET (1 PM) - Midday analysis + portfolio rebalance
+- 19:00 ET (7 PM) - Evening analysis + position management
 Uses the OpenBB MCP server as a data + execution provider and persists portfolio state to disk.
 
 Modes:
 - Daemon mode (default): long‑running scheduler that waits until the next
-  scheduled time (10:00 or 15:00 ET) on a trading day, then runs the decision + trade flow.
+  scheduled time (13:00 or 19:00 ET) on a trading day, then runs the decision + trade flow.
 - One‑shot mode (--once): run the flow immediately for "today" and exit;
   useful for cron or manual testing.
 """
@@ -916,8 +916,8 @@ def _save_investment_only_result(
 def get_next_run_time(now: datetime) -> datetime:
     """
     Compute the next scheduled run time for twice-daily trading:
-    - 10:00 (10 AM) America/New_York - Gap analysis + morning cycle
-    - 15:00 (3 PM) America/New_York - Afternoon cycle (5 hours after morning)
+    - 13:00 (1 PM) America/New_York - Midday analysis + portfolio rebalance
+    - 19:00 (7 PM) America/New_York - Evening analysis + position management
 
     Returns the next upcoming scheduled time (whichever comes first).
     Weekends are skipped; holidays are not modeled here.
@@ -926,24 +926,24 @@ def get_next_run_time(now: datetime) -> datetime:
         now = now.replace(tzinfo=NY_TZ)
 
     # Define the two trading times each day
-    morning_time = now.replace(hour=10, minute=0, second=0, microsecond=0)  # 10 AM
-    afternoon_time = now.replace(hour=15, minute=0, second=0, microsecond=0)   # 3 PM
+    midday_time = now.replace(hour=13, minute=0, second=0, microsecond=0)  # 1 PM
+    evening_time = now.replace(hour=19, minute=0, second=0, microsecond=0)  # 7 PM
 
     # Check if it's a trading day (weekday)
     if now.weekday() < 5:  # 0-4 = Mon-Fri
-        # Return the next upcoming time (morning or afternoon)
-        if now <= morning_time:
-            return morning_time
-        elif now <= afternoon_time:
-            return afternoon_time
+        # Return the next upcoming time (midday or evening)
+        if now <= midday_time:
+            return midday_time
+        elif now <= evening_time:
+            return evening_time
 
     # If past both times today, or if it's a weekend, move to next weekday
     next_day = now + timedelta(days=1)
     while next_day.weekday() >= 5:  # 5=Saturday, 6=Sunday
         next_day += timedelta(days=1)
 
-    # Return morning time on the next trading day
-    return next_day.replace(hour=10, minute=0, second=0, microsecond=0)
+    # Return midday time on the next trading day
+    return next_day.replace(hour=13, minute=0, second=0, microsecond=0)
 
 
 async def run_single_trading_cycle(
@@ -954,6 +954,7 @@ async def run_single_trading_cycle(
     notes: str = "",
     mode: str = "paper",
     force_reset: bool = False,
+    current_price: Optional[float] = None,
 ) -> None:
     """
     Execute one full decision + trade cycle for a single symbol on a given date.
@@ -966,6 +967,7 @@ async def run_single_trading_cycle(
         notes: Additional notes
         mode: "paper", "analysis", or "alpaca_live"
         force_reset: Force reset portfolio (analysis mode only)
+        current_price: Optional current price to inject into prompt (fetched fresh if not provided)
     """
     _logger.info("=" * 80)
     _logger.info(f"🚀 Live trading cycle for {symbol} on {trade_date.isoformat()}")
@@ -1031,6 +1033,87 @@ async def run_single_trading_cycle(
     # 3. Build portfolio_state dict expected by ReasoningAgent
     portfolio_state_dict: Dict[str, Any] = state.to_dict()
 
+    # 3.5 Fetch technical data based on time of day and user tier
+    #
+    technical_data_for_prompt = {}
+    current_now = datetime.now(tz=NY_TZ)
+    current_hour = current_now.hour
+
+    # Determine time of day (1pm or 7pm)
+    time_label = "1pm" if 10 <= current_hour < 14 else "7pm" if 14 <= current_hour < 20 else None
+
+    if time_label and mode in ("paper", "alpaca_live"):
+        try:
+            # Import orchestrator
+            sys.path.insert(0, os.path.join(BASE_DIR, ".."))
+            from technical_indicator_store import load_yesterday_indicators, save_daily_indicators
+            from Tools.Technical_Tools import get_technical_data_for_cycle
+
+            # Load yesterday's indicators for 1pm premarket
+            stored_daily = None
+            if time_label == "1pm":
+                stored_daily = load_yesterday_indicators(symbol, trade_date.isoformat())
+                if stored_daily:
+                    _logger.info(f"📊 Loaded yesterday's daily indicators for {symbol}")
+
+            # Get technical data based on tier and time
+            has_fmp = os.getenv("fmp_api_key") is not None
+            tech_result = get_technical_data_for_cycle(
+                symbol=symbol,
+                trade_date=trade_date.isoformat(),
+                time_of_day=time_label,
+                user_tier="free",  # TODO: load from config
+                has_fmp_access=has_fmp,
+                stored_daily_indicators=stored_daily,
+            )
+
+            if tech_result and not tech_result.get("error"):
+                technical_data_for_prompt = tech_result
+                current_price = tech_result.get("current_price") or current_price
+                _logger.info(
+                    f"📈 Technical data ({time_label}): "
+                    f"source={tech_result.get('source')}, "
+                    f"interval={tech_result.get('interval')}, "
+                    f"price=${current_price:.2f}"
+                )
+
+                # Store today's technical data for tomorrow's 1pm use
+                if time_label == "7pm" and tech_result.get("technical_data"):
+                    save_daily_indicators(
+                        symbol,
+                        trade_date.isoformat(),
+                        {
+                            **tech_result.get("technical_data", {}),
+                            "close": current_price,
+                        }
+                    )
+                    _logger.info(f"💾 Saved daily indicators for {symbol}")
+            else:
+                error_msg = tech_result.get("error") if tech_result else "Unknown error"
+                _logger.warning(f"⚠️  Technical data fetch failed: {error_msg}")
+
+                # Fallback: try to get fresh current price
+                if not current_price:
+                    try:
+                        from openbb import obb
+                        price_data = obb.equity.price.historical(
+                            symbol=symbol,
+                            start_date=trade_date.isoformat(),
+                            end_date=trade_date.isoformat(),
+                            interval="5m",
+                            provider="yfinance",
+                            extended_hours=True,
+                        )
+                        if price_data and price_data.results:
+                            latest = price_data.results[-1]
+                            latest_dict = latest.model_dump() if hasattr(latest, "model_dump") else latest.dict() if hasattr(latest, "dict") else latest
+                            current_price = latest_dict.get("close")
+                    except Exception:  # noqa: BLE001
+                        pass
+
+        except Exception as e:  # noqa: BLE001
+            _logger.warning(f"⚠️  Technical data pipeline error: {e}")
+
     # 4. Run decision
     #
     # For "analysis" mode (mode 1), disable trade execution entirely so that
@@ -1042,10 +1125,11 @@ async def run_single_trading_cycle(
         current_date=trade_date.isoformat(),
         portfolio_state=portfolio_state_dict,
         execute_trade_after=execute_trades,
-        current_price=None,
+        current_price=current_price,
         max_tool_iterations=5,
         risk_level=risk_level,
         notes=notes,
+        technical_data=technical_data_for_prompt if technical_data_for_prompt else None,
     )
 
     # 5. Close MCP session cleanly
@@ -1097,7 +1181,7 @@ def run_daemon(
 ) -> None:
     """
     Long‑running scheduler:
-    - Computes next trading time (10:00 or 15:00 ET).
+    - Computes next trading time (13:00 or 19:00 ET).
     - Sleeps until then.
     - Runs one trading cycle.
     - Repeats indefinitely.
@@ -1114,7 +1198,7 @@ def run_daemon(
         return
 
     _logger.info(f"📡 Live trading daemon starting for symbol={symbol} (mode={mode})")
-    _logger.info("   Schedule: twice per trading day at 10:00 (10 AM) and 15:00 (3 PM) America/New_York")
+    _logger.info("   Schedule: twice per trading day at 13:00 (1 PM) and 19:00 (7 PM) America/New_York")
     while True:
         now = datetime.now(tz=NY_TZ)
         next_run = get_next_run_time(now)
@@ -1133,7 +1217,29 @@ def run_daemon(
 
         # At/after scheduled time, run trading cycle for "today" in NY
         trade_date = datetime.now(tz=NY_TZ).date()
-        asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, risk_level, notes, mode=mode))
+
+        # Fetch fresh current price before running trading cycle
+        fresh_price = None
+        if mode in ("paper", "alpaca_live"):
+            try:
+                from openbb import obb
+                price_data = obb.equity.price.historical(
+                    symbol=symbol,
+                    start_date=trade_date.isoformat(),
+                    end_date=trade_date.isoformat(),
+                    interval="5m",
+                    provider="yfinance",
+                    extended_hours=True,
+                )
+                if price_data and price_data.results:
+                    latest = price_data.results[-1]
+                    latest_dict = latest.model_dump() if hasattr(latest, "model_dump") else latest.dict() if hasattr(latest, "dict") else latest
+                    fresh_price = latest_dict.get("close")
+                    _logger.info(f"💰 Pre-cycle price fetch: {symbol} = ${fresh_price:.2f}")
+            except Exception as e:  # noqa: BLE001
+                _logger.warning(f"⚠️  Could not fetch current price: {e}")
+
+        asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, risk_level, notes, mode=mode, current_price=fresh_price))
 
 
 def run_once(

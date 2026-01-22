@@ -233,7 +233,7 @@ class ReasoningAgent:
                             self.available_tools = list(deduplicate_tools(filtered_tools))
                             print(f"   📋 Tier {self.user_tier} + FMP={self.has_fmp_access} → {len(self.available_tools)} tools available")
                             if len(self.available_tools) < len(discovered_tools):
-                                removed = set(discovered_tools) - self.available_tools
+                                removed = set(discovered_tools) - set(self.available_tools)
                                 print(f"   🔒 Filtered out {len(removed)} tools (not in tier)")
                         else:
                             # No tool registry: use all discovered tools
