@@ -24,7 +24,7 @@ import threading
 import contextlib
 import subprocess
 import asyncio
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import date, datetime, timezone
 from typing import List, Literal, Dict, Any
 from pathlib import Path
@@ -166,8 +166,12 @@ class SessionConfig:
     has_fmp_access: bool = False
     # Scheduling (times in GMT)
     first_run_date: str | None = None  # ISO format date string (YYYY-MM-DD)
-    scheduled_times_gmt: List[str] | None = None  # List of HH:MM format times in GMT (e.g., ["13:00", "19:00"])
+    scheduled_times_gmt: List[str] | None = field(default=None)  # List of HH:MM format times in GMT (e.g., ["13:00", "19:00"])
     first_day_entry_time_gmt: str | None = None  # HH:MM format time in GMT for first day only
+    # Tool Selection
+    selected_tool_categories: List[str] = field(default_factory=list)  # e.g., ["technical_indicators", "fundamental"]
+    include_news: bool = False  # Toggle for news/sentiment tools
+    technical_indicators_date_range: int | None = None  # Days of history for technical indicators (None = agent decides)
 
 
 def _render_header() -> Panel:
@@ -415,13 +419,14 @@ def _is_within_nyse_hours(times: List[str]) -> tuple[bool, List[str]]:
 def _prompt_notes() -> str:
     console.print(
         Panel(
-            "Optional: add any [bold]session notes[/bold] or constraints "
-            "(e.g. 'no earnings plays', 'focus on mega‑caps only').",
-            title="Step 8 • Notes (Optional)",
+            "Optional: add any [bold]verified news or events[/bold] you want the agent to consider "
+            "(e.g. 'earnings report today', 'FDA approval announced', 'macro headwinds expected').\n\n"
+            "[dim]Since we may not have real-time news, you can inject your own verified information.[/dim]",
+            title="Step 8 • Verified News (Optional)",
             border_style="cyan",
         )
     )
-    return Prompt.ask("Notes", default="")
+    return Prompt.ask("Verified news to consider", default="")
 
 
 def _prompt_scheduled_times_gmt() -> List[str] | None:
@@ -780,6 +785,12 @@ def _review_config(cfg: SessionConfig) -> bool:
             f"{returns['total_return_pct']:+.2f}% (${returns['total_unrealized_pnl']:+,.2f})"
         )
     table.add_row("Notes", cfg.notes or "—")
+    table.add_row("Tool categories", ", ".join(cfg.selected_tool_categories) if cfg.selected_tool_categories else "—")
+    table.add_row("Include news", "Yes" if cfg.include_news else "No")
+    if cfg.technical_indicators_date_range:
+        table.add_row("Tech data range", f"{cfg.technical_indicators_date_range} days")
+    else:
+        table.add_row("Tech data range", "Agent decides")
 
     panel = Panel(
         table,
@@ -1047,6 +1058,11 @@ def _simulate_launch(cfg: SessionConfig) -> None:
     _save_config(cfg)
 
     console.print()
+    tools_summary = ", ".join(cfg.selected_tool_categories) if cfg.selected_tool_categories else "technical_indicators"
+    if cfg.include_news:
+        tools_summary += " + news"
+    tech_range_str = f"{cfg.technical_indicators_date_range} days" if cfg.technical_indicators_date_range else "agent decides"
+
     console.print(
         Panel(
             f"[bold cyan]Configuration Summary:[/bold cyan]\n"
@@ -1055,6 +1071,8 @@ def _simulate_launch(cfg: SessionConfig) -> None:
             f"• Starting Capital: ${cfg.starting_capital:,.2f}\n"
             f"• Trade Mode: {cfg.trade_mode}\n"
             f"• Run Mode: {cfg.run_mode}\n"
+            f"• Tools: {tools_summary}\n"
+            f"• Tech data range: {tech_range_str}\n"
             f"• Alpaca Environment: "
             f"{'paper' if cfg.alpaca_paper_trading else 'live' if cfg.analysis_mode in ('paper', 'alpaca_live') else 'n/a'}",
             border_style="cyan",
@@ -1287,6 +1305,88 @@ def _prompt_tool_selection(has_fmp_access: bool = False) -> List[str]:
         else:
             console.print("[yellow]No tools selected. Please try again.[/yellow]")
             console.print()
+
+
+def _prompt_tool_categories() -> List[str]:
+    """
+    Prompt user to select tool categories (technical, fundamental, sentiment/news).
+
+    Returns:
+        List of selected category names (e.g., ["technical_indicators", "fundamental"])
+    """
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    try:
+        from tool_registry import TOOL_CATEGORIES
+    except ImportError:
+        console.print("[red]Could not load tool categories.[/red]")
+        return ["technical_indicators"]  # Default fallback
+
+    prompt_text = (
+        "[bold]Select Tool Categories[/bold]\n\n"
+        "Choose which types of tools the LLM can use:\n\n"
+    )
+
+    categories_list = list(TOOL_CATEGORIES.keys())
+    for i, cat in enumerate(categories_list, 1):
+        desc = TOOL_CATEGORIES[cat]["description"]
+        tool_count = len(TOOL_CATEGORIES[cat]["tools"])
+        prompt_text += f"{i}. {cat:25} ({tool_count} tools) - {desc}\n"
+
+    console.print(Panel(prompt_text, title="Step • Tool Categories", border_style="cyan"))
+
+    # Multi-select with checkboxes
+    selected = []
+    for i, cat in enumerate(categories_list, 1):
+        should_select = Confirm.ask(f"  Include {cat}?", default=(i == 1))
+        if should_select:
+            selected.append(cat)
+
+    if not selected:
+        console.print("[yellow]At least one category required. Using technical indicators as default.[/yellow]")
+        selected = ["technical_indicators"]
+
+    return selected
+
+
+def _prompt_include_news() -> bool:
+    """Prompt user to enable/disable news and sentiment analysis tools."""
+    prompt_text = (
+        "[bold]Include News & Sentiment?[/bold]\n\n"
+        "News tools allow the LLM to incorporate company news, world events,\n"
+        "and market sentiment into decisions.\n\n"
+        "• Improves analysis quality but uses additional API calls\n"
+        "• Can be turned on/off separately from other tools"
+    )
+    console.print(Panel(prompt_text, title="Step • News & Sentiment", border_style="cyan"))
+
+    return Confirm.ask("Include news and sentiment tools?", default=False)
+
+
+def _prompt_technical_date_range() -> int | None:
+    """Prompt for technical indicators date range (optional)."""
+    prompt_text = (
+        "[bold]Technical Indicators Date Range[/bold]\n\n"
+        "Specify how many days of historical data to fetch for technical indicators.\n\n"
+        "• Leave blank to let the LLM decide based on analysis needs\n"
+        "• Enter a number (e.g., 60, 90, 180) to lock a specific range\n"
+        "• Shorter ranges = faster but less historical context\n"
+        "• Longer ranges = slower but more context"
+    )
+    console.print(Panel(prompt_text, title="Step • Technical Data Range", border_style="cyan"))
+
+    while True:
+        user_input = Prompt.ask("Date range (days, or press Enter for auto)", default="").strip()
+
+        if not user_input:
+            return None  # Agent decides
+
+        try:
+            days = int(user_input)
+            if days < 1:
+                raise ValueError
+            return days
+        except ValueError:
+            console.print("[red]Please enter a positive number or press Enter.[/red]")
 
 
 def _check_and_setup_fmp_api_key() -> bool:
@@ -1558,23 +1658,29 @@ def run_interactive() -> None:
     # Step 9: Notes
     notes = _prompt_notes()
 
-    # Step 10: Scheduling (only if daemon mode)
+    # Step 10: Tool Selection
+    selected_tool_categories = _prompt_tool_categories()
+    include_news = _prompt_include_news()
+    technical_indicators_date_range = _prompt_technical_date_range()
+
+    # Step 11: Scheduling (only if daemon mode)
     scheduled_times_gmt = None
     first_run_date = None
     first_day_entry_time_gmt = None
 
     if run_mode == "daemon":
-        # Automatically set first-day entry to NOW
-        from datetime import datetime as dt
+        # Automatically set first-day entry to NOW + 1 minute (buffer for PM2 startup)
+        from datetime import datetime as dt, timedelta
         now_utc = dt.now(timezone.utc)
-        first_run_date = now_utc.date().isoformat()  # Today's date (YYYY-MM-DD)
-        first_day_entry_time_gmt = now_utc.strftime("%H:%M")  # Current time (HH:MM GMT)
+        entry_time_utc = now_utc + timedelta(minutes=1)  # Add 1 minutebuffer
+        first_run_date = entry_time_utc.date().isoformat()  # Today's date (YYYY-MM-DD)
+        first_day_entry_time_gmt = entry_time_utc.strftime("%H:%M")  # Entry time +1 minute (HH:MM GMT)
 
         console.print()
         console.print(
             Panel(
                 "[bold cyan]First Day Entry[/bold cyan]\n\n"
-                f"Your initial trade will run NOW at your entry point.\n"
+                f"Your initial trade will run in [bold]~1 minute [/bold] (buffer for PM2 startup).\n"
                 f"[bold]Date:[/bold] {first_run_date}\n"
                 f"[bold]Time (GMT):[/bold] {first_day_entry_time_gmt}\n\n"
                 f"After today, the daemon will follow your custom schedule daily.",
@@ -1609,6 +1715,9 @@ def run_interactive() -> None:
         scheduled_times_gmt=scheduled_times_gmt,
         first_run_date=first_run_date,
         first_day_entry_time_gmt=first_day_entry_time_gmt,
+        selected_tool_categories=selected_tool_categories,
+        include_news=include_news,
+        technical_indicators_date_range=technical_indicators_date_range,
     )
 
     console.print()

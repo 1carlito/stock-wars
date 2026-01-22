@@ -362,14 +362,16 @@ class ReasoningAgent:
         risk_level: str = "medium",
         notes: str = "",
         technical_data: Optional[Dict[str, Any]] = None,
+        selected_categories: Optional[List[str]] = None,
+        technical_indicators_date_range: Optional[int] = None,
     ) -> Dict:
         """Async version of make_decision with MCP tool calling"""
         try:
             # 1. Get MCP session (if using MCP client)
             mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
-            
+
             # 2. Build initial prompts
-            system_prompt = self._build_system_prompt(mcp_session, risk_level)
+            system_prompt = self._build_system_prompt(mcp_session, risk_level, selected_categories=selected_categories, technical_indicators_date_range=technical_indicators_date_range)
             user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, current_price=current_price, technical_data=technical_data, notes=notes)
             
             messages = [
@@ -658,64 +660,68 @@ class ReasoningAgent:
             # await self._close_mcp_session()  # Commented out to preserve cache
             return self._create_error_decision(symbol, current_date, str(e))
 
-    def _build_system_prompt(self, mcp_session=None, risk_level: str = "medium") -> str:
-        """Build system prompt with available tools.
+    def _build_system_prompt(self, mcp_session=None, risk_level: str = "medium", selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None) -> str:
+        """Build system prompt with tools from selected categories.
 
         Design:
         - First LLM call is a PLANNING call: choose specific tools and tightly bounded
           date ranges / limits. Do NOT make a final decision in the first call.
         - After tools have been executed and summarized, a later call makes a single
           final DECISION using the returned data.
+        - If technical_indicators_date_range is provided, skip PLANNING stage and use
+          pre-computed tool calls instead (optimization to reduce LLM calls).
         """
-        if mcp_session and self.available_tools:
+        # Build tools list based on selected categories
+        if selected_categories:
+            try:
+                from tool_registry import TOOL_CATEGORIES
+                category_tools = []
+                for cat in selected_categories:
+                    if cat in TOOL_CATEGORIES:
+                        category_tools.extend(TOOL_CATEGORIES[cat]["tools"])
+                tools_list = "You have access to the following tools:\n"
+                tools_list += "\n".join([f"- {tool}" for tool in sorted(set(category_tools))])
+            except Exception:
+                tools_list = "You have access to analysis tools (configured for your tier)"
+        elif mcp_session and self.available_tools:
             # Use discovered tools from MCP
             tools_list = "You have access to the following tools via MCP:\n"
-            tools_list += "\n".join([f"- {tool}" for tool in self.available_tools[:20]])  # Show first 20
+            tools_list += "\n".join([f"- {tool}" for tool in self.available_tools[:20]])
             if len(self.available_tools) > 20:
                 tools_list += f"\n... and {len(self.available_tools) - 20} more tools"
-            tools_list += "\n\nKey FMP technical tools (when available):\n- get_fmp_rsi\n- get_fmp_ema"
-            tools_list += "\n\nKey news tools (when available):\n- get_company_news\n- get_world_news"
-            tools_list += "\n\nTo use a tool, format your request as:\nTOOL_CALL: tool_name(param1=value1, param2=value2)"
         else:
-            # Fallback: list predefined tools (note: actual tool schemas come from MCP discovery when available)
+            # Fallback: list predefined tools
             tools_list = """You have access to the following analysis tools:
-- get_price_history(symbol, start_date, end_date)
-- calculate_rsi(symbol, start_date, end_date, length=14, target='close')
-- get_fmp_rsi(symbol, start_date, end_date, period_length=14, timeframe='1day')
-- calculate_bbands(symbol, start_date, end_date, length=20, std=2.0, target='close')
-- calculate_atr(symbol, start_date, end_date, length=14)
-- calculate_obv(symbol, start_date, end_date)
-- calculate_adx(symbol, start_date, end_date, length=14)
-- calculate_ema(symbol, start_date, end_date, length=50, target='close')
-- get_fmp_ema(symbol, start_date, end_date, period_length=50, timeframe='1day')
-- calculate_cci(symbol, start_date, end_date, length=20)
-- get_current_price(symbol, current_date=None)
-- get_earnings_calendar(start_date, end_date, symbol=None, current_date=None)
-- get_analyst_estimates(symbol)
-- get_company_profile(symbol)
-- get_income_statement(symbol, period='annual', limit=5)
-- get_balance_sheet(symbol, period='annual', limit=5)
-- get_cash_flow(symbol, period='annual', limit=5)
-- get_company_news(symbol, start_date, end_date, limit)
-- get_world_news(start_date, end_date, topics=None, limit)"""
-        
+- Technical: calculate_rsi, calculate_ema, calculate_macd, calculate_bbands, calculate_atr, calculate_adx, calculate_obv, calculate_cci
+- FMP Technical: get_fmp_rsi, get_fmp_ema
+- Price: get_current_price, get_price_history
+- Fundamental: get_company_profile, get_income_statement, get_balance_sheet, get_cash_flow, get_analyst_estimates, get_earnings_calendar
+- Sentiment: get_company_news, get_world_news"""
+
+        # Generate pre-computed tool calls if date range is specified
+        precomputed_tools = ""
+        planning_stage = ""
+        date_range_note = ""
+
+        if technical_indicators_date_range and selected_categories:
+            try:
+                from tool_registry import generate_precomputed_tool_calls
+                precomputed_tools = generate_precomputed_tool_calls(selected_categories, technical_indicators_date_range)
+                date_range_note = f"\n[Technical indicators configured for {technical_indicators_date_range}-day lookback]\n"
+            except Exception:
+                date_range_note = ""
+                planning_stage = self._get_planning_stage()
+        else:
+            planning_stage = self._get_planning_stage()
+
         return f"""You are an expert autonomous trading agent powered by OpenBB data.
 Your goal is to analyze stocks and make profitable trading decisions (BUY, SELL, SHORT, HOLD).
 
-{tools_list}
+{tools_list}{date_range_note}
 
 You operate in TWO CLEAR STAGES:
 
-STAGE 1 - PLANNING (FIRST RESPONSE ONLY):
-- Carefully decide which tools you need and with what parameters.
-- For technical indicators: Use compact date ranges of ~60-90 days. These tools return pre-calculated indicator series (and may internally use longer price windows), so avoid redundant raw price-history calls unless you specifically need candles.
-- For fundamentals, request only as much history as you truly need (for example: period='annual', limit=3).
-- For news, use short date windows (for example: the last 3-7 days) and small limits (for example: 20 headlines or fewer).
-- Only call news tools when technicals or fundamentals suggest a potential catalyst (earnings, gaps, abnormal volume, guidance changes, macro events, etc.).
-- Output ONLY tool calls in this format (no decision yet):
-  TOOL_CALL: tool_name(param1=value1, param2=value2)
-  You may emit multiple TOOL_CALL lines if needed.
-
+{planning_stage}{precomputed_tools}
 STAGE 2 - ANALYSIS AND DECISION (AFTER YOU SEE TOOL RESULTS):
 - When tool results are provided, use them to form a single, final trading decision.
 - Now you MUST output your answer in the format below.
@@ -730,10 +736,24 @@ Make sure to check for:
 Once you have received the data from the tool calls, then you can provide your final output in this format:
 DECISION: [BUY/SELL/SHORT/HOLD]
 CONFIDENCE: [0.0-1.0]
-AMOUNT_USD: [Optional - dollar amount for the trade, based on confidence and portfolio size]
+AMOUNT_USD: [Dollar amount for the trade, based on confidence and portfolio size]
 REASONING: [Detailed analysis]
 
 Note: If you decide to execute a trade, specify the AMOUNT_USD based on your confidence level and available cash.
+"""
+
+    def _get_planning_stage(self) -> str:
+        """Return STAGE 1 PLANNING instructions when no date range is specified."""
+        return """STAGE 1 - PLANNING (FIRST RESPONSE ONLY):
+- Carefully decide which tools you need and with what parameters.
+- For technical indicators: Use compact date ranges of ~60-90 days.
+- For fundamentals, request only as much history as you truly need (for example: period='annual', limit=3).
+- For news, use short date windows (for example: the last 3-7 days) and small limits (for example: 20 headlines or fewer).
+- Only call news tools when technicals or fundamentals suggest a potential catalyst.
+- Output ONLY tool calls in this format (no decision yet):
+  TOOL_CALL: tool_name(param1=value1, param2=value2)
+  You may emit multiple TOOL_CALL lines if needed.
+
 """
 
     def _build_user_prompt(self, symbol, current_date, portfolio_state, current_price: Optional[float] = None, technical_data: Optional[Dict[str, Any]] = None, risk_level: str = "medium", notes: str = "") -> str:
@@ -743,32 +763,6 @@ Note: If you decide to execute a trade, specify the AMOUNT_USD based on your con
         current_price_section = ""
         if current_price is not None:
             current_price_section = f"\n🔴 CURRENT PRICE: {symbol} = ${current_price:.2f}"
-
-        # Build technical data section (if available)
-        technical_section = ""
-        if technical_data:
-            tech_info = technical_data.get("technical_data", {})
-            source = technical_data.get("source", "unknown")
-            interval = technical_data.get("interval", "unknown")
-
-            if tech_info:
-                technical_section = f"\n📊 TECHNICAL DATA ({interval}, {source}):"
-
-                # Add individual indicators
-                if "rsi" in tech_info:
-                    technical_section += f"\n  • RSI: {tech_info['rsi']:.1f}"
-                if "ema" in tech_info:
-                    technical_section += f"\n  • EMA: ${tech_info['ema']:.2f}"
-                if "macd" in tech_info:
-                    technical_section += f"\n  • MACD: {tech_info['macd']}"
-                if "open" in tech_info:
-                    technical_section += f"\n  • Open: ${tech_info['open']:.2f}"
-                if "high" in tech_info:
-                    technical_section += f"\n  • High: ${tech_info['high']:.2f}"
-                if "low" in tech_info:
-                    technical_section += f"\n  • Low: ${tech_info['low']:.2f}"
-                if "volume" in tech_info:
-                    technical_section += f"\n  • Volume: {tech_info['volume']:,.0f}"
 
         # Build summary-only portfolio context (minimal tokens)
         portfolio_context = f"Portfolio State:\n- Cash: ${portfolio_state.get('cash', 0):,.2f}\n"
@@ -797,7 +791,7 @@ Note: If you decide to execute a trade, specify the AMOUNT_USD based on your con
 
         portfolio_context += f"- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}"
 
-        return f"""Analyze {symbol} for trading date {current_date}.{current_price_section}{technical_section}
+        return f"""Analyze {symbol} for trading date {current_date}.{current_price_section}
 
 {portfolio_context}{notes_section}
 

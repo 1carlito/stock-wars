@@ -122,6 +122,8 @@ async def run_backtest(
             execute_trade_after=True,  # Execute trade after decision
             current_price=None,  # Will be fetched if needed
             max_tool_iterations=5,
+            selected_categories=["technical_indicators", "fundamental"],  # Default tool categories for backtest
+            technical_indicators_date_range=90,  # Fixed 90-day lookback for consistent backtest behavior
         )
 
         all_results.append(result)

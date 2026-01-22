@@ -2,7 +2,7 @@
 Technical_Tools.py: Technical indicator tools using OpenBB SDK + FMP precomputed indicators.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 from functools import lru_cache
 import sys
@@ -200,6 +200,113 @@ def get_technical_data_for_cycle(
     except Exception as e:  # noqa: BLE001
         result["error"] = f"Orchestrator error: {e}"
         return result
+
+
+def fetch_selected_tools_data(
+    symbol: str,
+    trade_date: str,
+    selected_categories: List[str],
+    include_news: bool = False,
+    tech_date_range: Optional[int] = None,
+    has_fmp_access: bool = False,
+) -> Dict[str, Any]:
+    """
+    Fetch only data for user-selected tool categories.
+
+    Args:
+        symbol: Stock ticker
+        trade_date: Date to analyze (YYYY-MM-DD)
+        selected_categories: List of selected categories (e.g., ["technical_indicators", "fundamental"])
+        include_news: Whether to include news/sentiment tools
+        tech_date_range: Days of history for technical indicators (None = agent decides)
+        has_fmp_access: Whether user has FMP API key
+
+    Returns:
+        Dict with organized data by category: {"technical_indicators": {...}, "fundamental": {...}, etc.}
+    """
+    result = {
+        "symbol": symbol,
+        "trade_date": trade_date,
+        "technical_indicators": None,
+        "fundamental": None,
+        "sentiment": None,
+    }
+
+    try:
+        # TECHNICAL INDICATORS: Fetch intraday data for today
+        if "technical_indicators" in selected_categories:
+            if _is_today(trade_date):
+                # TODAY: Use latest 30-minute candle
+                tech_result = {
+                    "symbol": symbol,
+                    "trade_date": trade_date,
+                    "current_price": None,
+                    "timestamp": None,
+                    "technical_data": {},
+                    "source": None,
+                    "interval": None,
+                    "error": None,
+                }
+
+                if has_fmp_access:
+                    tech_result = _get_fmp_30m_technical_data(symbol, trade_date, tech_result)
+                else:
+                    tech_result = _get_yfinance_30m_technical_data(symbol, trade_date, tech_result)
+
+                result["technical_indicators"] = tech_result
+            else:
+                # HISTORICAL: Fetch daily candle
+                try:
+                    price_data = obb.equity.price.historical(
+                        symbol=symbol,
+                        start_date=trade_date,
+                        end_date=trade_date,
+                        interval="1d",
+                        provider="yfinance",
+                    )
+
+                    if price_data and price_data.results and len(price_data.results) > 0:
+                        daily_candle = price_data.results[0]
+                        daily_dict = (
+                            daily_candle.model_dump()
+                            if hasattr(daily_candle, "model_dump")
+                            else daily_candle.dict()
+                            if hasattr(daily_candle, "dict")
+                            else daily_candle
+                        )
+                        result["technical_indicators"] = {
+                            "interval": "daily",
+                            "technical_data": {
+                                "open": daily_dict.get("open"),
+                                "high": daily_dict.get("high"),
+                                "low": daily_dict.get("low"),
+                                "close": daily_dict.get("close"),
+                                "volume": daily_dict.get("volume"),
+                                "timestamp": daily_dict.get("date"),
+                            },
+                            "source": "yfinance",
+                            "current_price": daily_dict.get("close"),
+                        }
+
+                except Exception as e:  # noqa: BLE001
+                    result["technical_indicators"] = {"error": str(e)}
+
+        # FUNDAMENTAL: Placeholder - agent will call tools as needed
+        if "fundamental" in selected_categories:
+            result["fundamental"] = {
+                "note": "Agent will fetch fundamental data via tools (company profile, financials, etc.)"
+            }
+
+        # SENTIMENT: Placeholder for news - agent will call news tools
+        if include_news:
+            result["sentiment"] = {
+                "note": "Agent can use news tools for analysis"
+            }
+
+        return result
+
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e)}
 
 
 def _get_fmp_4h_technical_data(

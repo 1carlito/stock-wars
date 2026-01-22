@@ -448,3 +448,134 @@ def get_tools_by_provider(provider: str) -> List[str]:
         name for name, meta in TOOL_REGISTRY.items()
         if meta.get("provider") == provider
     ]
+
+
+# =============================================================================
+# TOOL CATEGORIES FOR USER SELECTION (Live Trading & Backtesting)
+# =============================================================================
+# User selects which tool categories to use, and the system only shows
+# those tools in the system prompt. The agent uses only tools from
+# selected categories.
+
+TOOL_CATEGORIES: Dict[str, Dict[str, List[str]]] = {
+    "technical_indicators": {
+        "description": "Technical analysis tools (RSI, EMA, MACD, etc.) + intraday candles",
+        "tools": [
+            "get_intraday_candles",  # NEW - latest 30m/1h candle for today
+            "calculate_rsi",
+            "calculate_ema",
+            "calculate_macd",
+            "calculate_bbands",
+            "calculate_atr",
+            "calculate_adx",
+            "calculate_obv",
+            "calculate_cci",
+            "get_fmp_rsi",
+            "get_fmp_ema",
+        ]
+    },
+    "fundamental": {
+        "description": "Fundamental analysis (financials, earnings, analyst estimates)",
+        "tools": [
+            "get_company_profile",
+            "get_income_statement",
+            "get_balance_sheet",
+            "get_cash_flow",
+            "get_analyst_estimates",
+            "get_earnings_calendar",
+        ]
+    },
+    "sentiment": {
+        "description": "News and sentiment analysis",
+        "tools": [
+            "get_company_news",
+            "get_world_news",
+        ]
+    }
+}
+
+
+def get_tools_for_categories(categories: List[str]) -> List[str]:
+    """Get all tools for selected categories.
+
+    Args:
+        categories: List of category names (e.g., ["technical_indicators", "fundamental"])
+
+    Returns:
+        List of tool names to include in system prompt
+    """
+    tools = []
+    for category in categories:
+        if category in TOOL_CATEGORIES:
+            tools.extend(TOOL_CATEGORIES[category]["tools"])
+    return tools
+
+
+CATEGORY_TOOL_CALLS: Dict[str, List[Dict[str, Any]]] = {
+    "technical_indicators": [
+        {"tool": "get_intraday_candles", "params": {"lookback_days": None}},
+        {"tool": "calculate_rsi", "params": {"lookback_days": None, "period": 14}},
+        {"tool": "calculate_ema", "params": {"lookback_days": None, "period": 20}},
+        {"tool": "calculate_macd", "params": {"lookback_days": None}},
+        {"tool": "calculate_bbands", "params": {"lookback_days": None, "period": 20}},
+        {"tool": "calculate_atr", "params": {"lookback_days": None, "period": 14}},
+        {"tool": "calculate_adx", "params": {"lookback_days": None, "period": 14}},
+        {"tool": "calculate_obv", "params": {"lookback_days": None}},
+        {"tool": "calculate_cci", "params": {"lookback_days": None, "period": 20}},
+        {"tool": "get_fmp_rsi", "params": {"lookback_days": None}},
+        {"tool": "get_fmp_ema", "params": {"lookback_days": None}},
+    ],
+    "fundamental": [
+        {"tool": "get_company_profile", "params": {}},
+        {"tool": "get_income_statement", "params": {"limit": 4}},
+        {"tool": "get_balance_sheet", "params": {"limit": 4}},
+        {"tool": "get_cash_flow", "params": {"limit": 4}},
+        {"tool": "get_analyst_estimates", "params": {}},
+        {"tool": "get_earnings_calendar", "params": {}},
+    ],
+    "sentiment": [
+        {"tool": "get_company_news", "params": {"limit": 5}},
+        {"tool": "get_world_news", "params": {"limit": 5}},
+    ]
+}
+
+
+def generate_precomputed_tool_calls(
+    selected_categories: List[str],
+    technical_indicators_date_range: Optional[int] = None,
+) -> str:
+    """Generate pre-computed tool calls when user specifies date range.
+
+    Args:
+        selected_categories: Tool categories to include (e.g., ["technical_indicators", "fundamental"])
+        technical_indicators_date_range: Number of days to lookback (applies to all indicators)
+
+    Returns:
+        Pre-formatted tool calls string ready for agent
+    """
+    if not technical_indicators_date_range:
+        return ""  # Return empty if no date range specified
+
+    tool_calls = []
+
+    for category in selected_categories:
+        if category not in CATEGORY_TOOL_CALLS:
+            continue
+
+        for tool_def in CATEGORY_TOOL_CALLS[category]:
+            tool_name = tool_def["tool"]
+            params = tool_def["params"].copy()
+
+            # Apply user's date range to all indicators
+            if "lookback_days" in params and params["lookback_days"] is None:
+                params["lookback_days"] = technical_indicators_date_range
+
+            # Format as tool call string
+            param_strs = [f"{k}={v}" for k, v in params.items() if v is not None]
+            tool_call_str = f"TOOL_CALL: {tool_name}({', '.join(param_strs)})"
+            tool_calls.append(tool_call_str)
+
+    if not tool_calls:
+        return ""
+
+    return "PRE-COMPUTED TOOL CALLS:\n" + "\n".join(tool_calls) + "\n"
