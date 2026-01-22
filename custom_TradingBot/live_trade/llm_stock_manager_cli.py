@@ -25,7 +25,7 @@ import contextlib
 import subprocess
 import asyncio
 from dataclasses import dataclass, asdict
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import List, Literal, Dict, Any
 from pathlib import Path
 
@@ -163,6 +163,11 @@ class SessionConfig:
     alpaca_api_secret: str = ""
     alpaca_paper_trading: bool = True
     force_reset_portfolio: bool = False
+    has_fmp_access: bool = False
+    # Scheduling (times in GMT)
+    first_run_date: str | None = None  # ISO format date string (YYYY-MM-DD)
+    scheduled_times_gmt: List[str] | None = None  # List of HH:MM format times in GMT (e.g., ["13:00", "19:00"])
+    first_day_entry_time_gmt: str | None = None  # HH:MM format time in GMT for first day only
 
 
 def _render_header() -> Panel:
@@ -379,6 +384,34 @@ def _prompt_run_mode() -> RunMode:
     return choice  # type: ignore[return-value]
 
 
+def _is_within_nyse_hours(times: List[str]) -> tuple[bool, List[str]]:
+    """
+    Check if all times fall within NYSE extended trading hours (GMT).
+
+    NYSE Trading Hours (GMT - approximate):
+    - Pre-market: 08:00 GMT (4 AM ET)
+    - Regular: 13:30-21:00 GMT (9:30 AM - 4 PM ET)
+    - After-hours: 21:00-23:00 GMT (4-8 PM ET)
+
+    Recommended window: 08:00-23:00 GMT
+
+    Returns: (is_within_hours, list_of_outside_times)
+    """
+    nyse_min_hour = 8      # 08:00 GMT (premarket start)
+    nyse_max_hour = 23     # 23:00 GMT (after-hours end)
+
+    outside_times = []
+    for time_str in times:
+        try:
+            h, m = map(int, time_str.split(":"))
+            if not (nyse_min_hour <= h <= nyse_max_hour):
+                outside_times.append(time_str)
+        except (ValueError, AttributeError):
+            pass
+
+    return len(outside_times) == 0, outside_times
+
+
 def _prompt_notes() -> str:
     console.print(
         Panel(
@@ -389,6 +422,82 @@ def _prompt_notes() -> str:
         )
     )
     return Prompt.ask("Notes", default="")
+
+
+def _prompt_scheduled_times_gmt() -> List[str] | None:
+    """Prompt for custom trading schedule times in GMT."""
+    console.print(
+        Panel(
+            "[bold]Customize Your Trading Schedule (Optional)[/bold]\n\n"
+            "Default: [bold]13:00 GMT (1 PM GMT)[/bold] and [bold]19:00 GMT (7 PM GMT)[/bold]\n"
+            "Times should be in HH:MM format (24-hour), e.g., 13:00, 19:00\n\n"
+            "[dim]Recommended: 08:00-23:00 GMT (covers premarket to after-hours)[/dim]\n"
+            "[dim]Note: GMT times will be converted to your local timezone for display[/dim]",
+            title="Step 8a • Scheduled Times (Optional)",
+            border_style="cyan",
+        )
+    )
+
+    customize = Confirm.ask("Would you like to customize the schedule times?", default=False)
+    if not customize:
+        return None
+
+    while True:
+        times_input = Prompt.ask(
+            "Enter scheduled times in GMT (comma-separated, e.g., '13:00,19:00')",
+            default="13:00,19:00"
+        ).strip()
+
+        try:
+            times = [t.strip() for t in times_input.split(",")]
+            # Validate each time format
+            for t in times:
+                parts = t.split(":")
+                if len(parts) != 2:
+                    raise ValueError(f"Invalid format: {t}")
+                h, m = int(parts[0]), int(parts[1])
+                if not (0 <= h <= 23 and 0 <= m <= 59):
+                    raise ValueError(f"Invalid time: {t}")
+
+            # Check if times fall within NYSE trading hours
+            is_within_hours, outside_times = _is_within_nyse_hours(times)
+
+            if not is_within_hours:
+                console.print()
+                console.print(
+                    Panel(
+                        "[bold yellow]⚠️  Warning: Times Outside NYSE Trading Hours[/bold yellow]\n\n"
+                        f"These times fall outside recommended hours (08:00-23:00 GMT):\n"
+                        f"[red]{', '.join(outside_times)}[/red]\n\n"
+                        "[dim]Trading outside market hours may result in unreliable data:\n"
+                        "• Pre-market (before 08:00 GMT): Very limited data\n"
+                        "• After-hours (after 23:00 GMT): No data available\n"
+                        "• Gaps between sessions: Missing OHLCV data[/dim]",
+                        border_style="yellow",
+                        title="Data Quality Warning",
+                    )
+                )
+
+                choice = Prompt.ask(
+                    "Would you like to (1) change times or (2) continue anyway?",
+                    choices=["1", "2"],
+                    default="1",
+                    show_choices=False,
+                ).strip()
+
+                if choice == "1":
+                    console.print("[yellow]Let's choose better times...[/yellow]\n")
+                    continue  # Ask for times again
+                else:  # choice == "2"
+                    console.print(
+                        "[yellow]ℹ️  Proceeding with times outside market hours. "
+                        "Monitor logs for data availability issues.[/yellow]"
+                    )
+
+            console.print(f"[green]✓ Schedule times set to: {', '.join(times)} GMT[/green]")
+            return times
+        except (ValueError, IndexError):
+            console.print("[red]Invalid format. Please use HH:MM format, e.g., 13:00,19:00[/red]")
 
 
 def _prompt_engine_mode() -> EngineMode:
@@ -893,6 +1002,25 @@ def _run_analysis_for_symbol(cfg: SessionConfig, symbol: str) -> None:
 
 def _simulate_launch(cfg: SessionConfig) -> None:
     """Launch the live trading agent with the configured settings."""
+
+    # Validate: Alpaca modes MUST use daemon mode, never "once"
+    if cfg.analysis_mode in ("paper", "alpaca_live"):
+        if cfg.run_mode == "once":
+            console.print(
+                Panel(
+                    "[red]❌ Invalid Configuration:[/red]\n\n"
+                    f"Alpaca modes ({cfg.analysis_mode}) do NOT support 'once' mode.\n\n"
+                    "Alpaca is designed for scheduled trading on a fixed schedule:\n"
+                    "• Default: 13:00 GMT (1 PM GMT) and 19:00 GMT (7 PM GMT)\n"
+                    "• You can customize these times during configuration\n\n"
+                    "[yellow]For one-shot analysis, use 'analysis' mode instead.[/yellow]\n"
+                    "[yellow]For multi-symbol portfolio analysis, use 'analysis' mode.[/yellow]",
+                    border_style="red",
+                    title="Alpaca Mode Validation Error",
+                )
+            )
+            return
+
     console.print()
     console.print(
         Panel(
@@ -954,11 +1082,23 @@ def _simulate_launch(cfg: SessionConfig) -> None:
             if cfg.run_mode == "daemon":
                 # Daemon mode: only trade first symbol (scheduler limitation)
                 first_symbol = cfg.symbols[0]
+                # Format schedule times for display
+                schedule_display = (
+                    f"{', '.join(cfg.scheduled_times_gmt or ['13:00', '19:00'])} GMT"
+                    if cfg.scheduled_times_gmt
+                    else "13:00, 19:00 GMT (default)"
+                )
+                first_day_display = (
+                    f"\n  • First day ({cfg.first_run_date}): entry at {cfg.first_day_entry_time_gmt} GMT"
+                    if cfg.first_run_date and cfg.first_day_entry_time_gmt
+                    else ""
+                )
                 console.print(
                     Panel(
                         "[bold cyan]Daemon Mode:[/bold cyan]\n"
-                        f"The agent will trade {first_symbol} once per trading day at 15:00 ET.\n"
-                        "[yellow]Note: Daemon mode supports single stock. For multi-stock, use 'once' mode.[/yellow]\n"
+                        f"The agent will trade {first_symbol} on a fixed schedule:\n"
+                        f"  • Schedule: {schedule_display}{first_day_display}\n\n"
+                        "[dim]Daemon mode trades one symbol at a time. For multi-symbol portfolio management, use 'analysis' mode.[/dim]\n"
                         "[yellow]Press Ctrl+C to stop the daemon.[/yellow]",
                         border_style="cyan",
                     )
@@ -971,6 +1111,9 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                     risk_level=cfg.risk_level,
                     notes=cfg.notes,
                     mode=engine_mode,
+                    scheduled_times_gmt=cfg.scheduled_times_gmt,
+                    first_run_date=cfg.first_run_date,
+                    first_day_entry_time_gmt=cfg.first_day_entry_time_gmt,
                 )
             else:  # once mode
                 console.print("[bold cyan]Running one-shot trading cycle...[/bold cyan]")
@@ -1247,8 +1390,8 @@ def run_interactive() -> None:
     os.system("clear" if os.name != "nt" else "cls")
     _banner()
 
-    # FMP API Key Check at Startup
-    _check_and_setup_fmp_api_key()
+    # FMP API Key Check at Startup (before mode selection so it's available for all modes)
+    has_fmp_access = _check_and_setup_fmp_api_key()
 
     # Step 1: Engine Selection (live vs backtest)
     engine_mode = _prompt_engine_mode()
@@ -1373,28 +1516,39 @@ def run_interactive() -> None:
         # Step 7: Run Mode (analysis is always one-shot)
         run_mode: RunMode = "once"  # type: ignore
     else:
-        # Alpaca-backed modes
+        # Alpaca-backed modes (paper or alpaca_live)
         # Step 5: Symbols / Portfolio selection (Alpaca)
         symbols = _prompt_symbols_for_alpaca()
 
-        # Step 6: Run Mode
-        run_mode: RunMode = "once"  # type: ignore
+        # Validate symbols for Alpaca mode
+        if not symbols:
+            console.print(
+                Panel(
+                    "[red]⚠️  Alpaca modes require at least one symbol.[/red]\n\n"
+                    "You pressed Enter to use all Alpaca positions, but this feature is not yet supported.\n"
+                    "Please enter specific symbol(s) you want to trade (e.g., AAPL, MSFT, TSLA).\n\n"
+                    "[dim]Note: You can also use 'analysis' mode for one-shot multi-symbol analysis without Alpaca integration.[/dim]",
+                    border_style="red",
+                    title="Invalid Configuration",
+                )
+            )
+            return
+
+        # Step 6: Run Mode - Alpaca only supports daemon (scheduled) mode
+        # For one-shot analysis, use the "analysis" mode instead
         console.print(
             Panel(
-                "How should the agent run?\n"
-                "- [bold]once[/bold]: run a single decision cycle and exit\n"
-                "- [bold]daemon[/bold]: schedule one run per trading day (15:00 NY time)",
+                "[bold cyan]Alpaca Trading Schedule:[/bold cyan]\n"
+                "Alpaca modes run on a fixed schedule:\n"
+                "• [bold]Daemon mode[/bold]: scheduled runs (default: 13:00 GMT and 19:00 GMT each trading day)\n"
+                "• You'll have the option to customize these times on the next screen\n\n"
+                "[dim]Note: For one-shot analysis without broker integration, use 'analysis' mode[/dim]",
                 title="Step 6 • Schedule",
                 border_style="cyan",
             )
         )
-        choice = Prompt.ask(
-            "Run mode",
-            choices=["once", "daemon"],
-            default="once",
-            show_choices=True,
-        )
-        run_mode = choice  # type: ignore[assignment]
+        run_mode: RunMode = "daemon"  # type: ignore
+        console.print("[yellow]ℹ️  Alpaca mode set to daemon (scheduled trading)[/yellow]\n")
 
         # For Alpaca modes, portfolio_mode/portfolio are not used
         portfolio_mode: PortfolioMode = "new"
@@ -1403,6 +1557,34 @@ def run_interactive() -> None:
 
     # Step 9: Notes
     notes = _prompt_notes()
+
+    # Step 10: Scheduling (only if daemon mode)
+    scheduled_times_gmt = None
+    first_run_date = None
+    first_day_entry_time_gmt = None
+
+    if run_mode == "daemon":
+        # Automatically set first-day entry to NOW
+        from datetime import datetime as dt
+        now_utc = dt.now(timezone.utc)
+        first_run_date = now_utc.date().isoformat()  # Today's date (YYYY-MM-DD)
+        first_day_entry_time_gmt = now_utc.strftime("%H:%M")  # Current time (HH:MM GMT)
+
+        console.print()
+        console.print(
+            Panel(
+                "[bold cyan]First Day Entry[/bold cyan]\n\n"
+                f"Your initial trade will run NOW at your entry point.\n"
+                f"[bold]Date:[/bold] {first_run_date}\n"
+                f"[bold]Time (GMT):[/bold] {first_day_entry_time_gmt}\n\n"
+                f"After today, the daemon will follow your custom schedule daily.",
+                border_style="cyan",
+                title="First Day Configuration",
+            )
+        )
+
+        # Ask for custom scheduled times for subsequent days
+        scheduled_times_gmt = _prompt_scheduled_times_gmt()
 
     # Trade mode is inferred from analysis_mode
     trade_mode: TradeMode = "paper"  # type: ignore
@@ -1423,6 +1605,10 @@ def run_interactive() -> None:
         alpaca_api_secret=alpaca_api_secret,
         alpaca_paper_trading=alpaca_paper_trading,
         force_reset_portfolio=force_reset,
+        has_fmp_access=has_fmp_access,
+        scheduled_times_gmt=scheduled_times_gmt,
+        first_run_date=first_run_date,
+        first_day_entry_time_gmt=first_day_entry_time_gmt,
     )
 
     console.print()
