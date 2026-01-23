@@ -77,7 +77,7 @@ except Exception:
     BACKTESTING_AVAILABLE = False
 
 
-RiskLevel = Literal["low", "medium", "high"]
+
 TradeMode = Literal["paper", "live"]
 RunMode = Literal["once", "daemon"]
 PortfolioMode = Literal["new", "current"]
@@ -151,7 +151,6 @@ class PortfolioSnapshot:
 @dataclass
 class SessionConfig:
     symbols: List[str]
-    risk_level: RiskLevel
     starting_capital: float
     trade_mode: TradeMode
     run_mode: RunMode
@@ -316,23 +315,6 @@ def _prompt_symbols_for_alpaca() -> List[str]:
     return symbols
 
 
-def _prompt_risk_level() -> RiskLevel:
-    prompt_text = (
-        "Select a **risk level**. This will eventually control position sizing,\n"
-        "leverage, and stop‑loss aggressiveness.\n\n"
-        "- [bold green]low[/bold green]: capital preservation, small positions\n"
-        "- [bold yellow]medium[/bold yellow]: balanced risk / reward\n"
-        "- [bold red]high[/bold red]: aggressive, higher drawdown tolerance"
-    )
-    console.print(Panel(prompt_text, title="Step 2 • Risk Profile", border_style="cyan"))
-
-    choice = Prompt.ask(
-        "Risk level",
-        choices=["low", "medium", "high"],
-        default="medium",
-        show_choices=True,
-    )
-    return choice  # type: ignore[return-value]
 
 
 def _prompt_starting_capital() -> float:
@@ -769,7 +751,6 @@ def _review_config(cfg: SessionConfig) -> bool:
     table.add_column("Value", style="white")
 
     table.add_row("Symbols", ", ".join(cfg.symbols))
-    table.add_row("Risk level", cfg.risk_level)
     table.add_row("Starting capital", f"${cfg.starting_capital:,.2f}")
     table.add_row("Trading mode", cfg.trade_mode)
     table.add_row("Run mode", cfg.run_mode)
@@ -1067,7 +1048,6 @@ def _simulate_launch(cfg: SessionConfig) -> None:
         Panel(
             f"[bold cyan]Configuration Summary:[/bold cyan]\n"
             f"• Symbols: {', '.join(cfg.symbols)}\n"
-            f"• Risk Level: {cfg.risk_level}\n"
             f"• Starting Capital: ${cfg.starting_capital:,.2f}\n"
             f"• Trade Mode: {cfg.trade_mode}\n"
             f"• Run Mode: {cfg.run_mode}\n"
@@ -1126,7 +1106,6 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                 run_daemon(
                     symbol=first_symbol,
                     starting_capital=cfg.starting_capital,
-                    risk_level=cfg.risk_level,
                     notes=cfg.notes,
                     mode=engine_mode,
                     scheduled_times_gmt=cfg.scheduled_times_gmt,
@@ -1140,7 +1119,6 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                 run_once(
                     symbols=cfg.symbols,
                     starting_capital=cfg.starting_capital,
-                    risk_level=cfg.risk_level,
                     notes=cfg.notes,
                     mode=engine_mode,
                     force_reset=cfg.force_reset_portfolio,
@@ -1589,8 +1567,6 @@ def run_interactive() -> None:
     # Step 2: Mode Selection (so we know how to interpret symbols/portfolio)
     analysis_mode = _prompt_analysis_mode()
 
-    # Step 3: Risk Level
-    risk = _prompt_risk_level()
 
     # Step 4: Starting Capital
     capital = _prompt_starting_capital()
@@ -1699,7 +1675,6 @@ def run_interactive() -> None:
 
     cfg = SessionConfig(
         symbols=symbols,
-        risk_level=risk,
         starting_capital=capital,
         trade_mode=trade_mode,
         run_mode=run_mode,
