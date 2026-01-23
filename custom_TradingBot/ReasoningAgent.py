@@ -671,6 +671,21 @@ class ReasoningAgent:
         - If technical_indicators_date_range is provided, skip PLANNING stage and use
           pre-computed tool calls instead (optimization to reduce LLM calls).
         """
+        # Load prompt template from JSON file (enables hot-reload without daemon restart)
+        prompts_path = os.path.join(os.path.dirname(__file__), "prompts.json")
+        try:
+            with open(prompts_path, "r") as f:
+                prompts_config = json.load(f)
+            prompt_template = prompts_config.get("system_prompt", "")
+            default_tools = prompts_config.get("default_tools_list", "")
+            planning_stage_template = prompts_config.get("planning_stage", "")
+        except Exception as e:
+            print(f"⚠️  Failed to load prompts.json: {e}. Using fallback prompt.")
+            # Fallback to minimal prompt if JSON fails
+            prompt_template = "You are an expert autonomous portfolio trading agent.\n{tools_list}\n{planning_stage}{precomputed_tools}\nOutput: DECISION, CONFIDENCE, AMOUNT_USD, REASONING"
+            default_tools = "You have access to analysis tools."
+            planning_stage_template = "Plan your tool calls first."
+        
         # Build tools list based on selected categories
         if selected_categories:
             try:
@@ -690,13 +705,7 @@ class ReasoningAgent:
             if len(self.available_tools) > 20:
                 tools_list += f"\n... and {len(self.available_tools) - 20} more tools"
         else:
-            # Fallback: list predefined tools
-            tools_list = """You have access to the following analysis tools:
-- Technical: calculate_rsi, calculate_ema, calculate_macd, calculate_bbands, calculate_atr, calculate_adx, calculate_obv, calculate_cci
-- FMP Technical: get_fmp_rsi, get_fmp_ema
-- Price: get_current_price, get_price_history
-- Fundamental: get_company_profile, get_income_statement, get_balance_sheet, get_cash_flow, get_analyst_estimates, get_earnings_calendar
-- Sentiment: get_company_news, get_world_news"""
+            tools_list = default_tools
 
         # Generate pre-computed tool calls if date range is specified
         precomputed_tools = ""
@@ -710,37 +719,17 @@ class ReasoningAgent:
                 date_range_note = f"\n[Technical indicators configured for {technical_indicators_date_range}-day lookback]\n"
             except Exception:
                 date_range_note = ""
-                planning_stage = self._get_planning_stage()
+                planning_stage = planning_stage_template
         else:
-            planning_stage = self._get_planning_stage()
+            planning_stage = planning_stage_template
 
-        return f"""You are an expert autonomous trading agent powered by OpenBB data.
-Your goal is to analyze stocks and make profitable trading decisions (BUY, SELL, SHORT, HOLD).
-
-{tools_list}{date_range_note}
-
-You operate in TWO CLEAR STAGES:
-
-{planning_stage}{precomputed_tools}
-STAGE 2 - ANALYSIS AND DECISION (AFTER YOU SEE TOOL RESULTS):
-- When tool results are provided, use them to form a single, final trading decision.
-- Now you MUST output your answer in the format below.
-
-Make sure to check for:
-1. Trend (EMA, ADX)
-2. Momentum (RSI, CCI)
-3. Volatility (BBands, ATR)
-4. Volume (OBV)
-5. Fundamental events (Earnings) and health.
-
-Once you have received the data from the tool calls, then you can provide your final output in this format:
-DECISION: [BUY/SELL/SHORT/HOLD]
-CONFIDENCE: [0.0-1.0]
-AMOUNT_USD: [Dollar amount for the trade, based on confidence and portfolio size]
-REASONING: [Detailed analysis]
-
-Note: If you decide to execute a trade, specify the AMOUNT_USD based on your confidence level and available cash.
-"""
+        # Format the template with dynamic values
+        return prompt_template.format(
+            tools_list=tools_list,
+            date_range_note=date_range_note,
+            planning_stage=planning_stage,
+            precomputed_tools=precomputed_tools
+        )
 
     def _get_planning_stage(self) -> str:
         """Return STAGE 1 PLANNING instructions when no date range is specified."""

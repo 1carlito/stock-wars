@@ -644,6 +644,21 @@ class ReasoningAgent:
                     pass
 
     def _build_system_prompt(self, mcp_session=None, selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None) -> str:
+        # Load prompt template from JSON file (enables hot-reload without daemon restart)
+        prompts_path = os.path.join(os.path.dirname(__file__), "prompts.json")
+        try:
+            with open(prompts_path, "r") as f:
+                prompts_config = json.load(f)
+            prompt_template = prompts_config.get("system_prompt", "")
+            default_tools = prompts_config.get("default_tools_list", "")
+            planning_stage_template = prompts_config.get("planning_stage", "")
+        except Exception as e:
+            print(f"⚠️  Failed to load prompts.json: {e}. Using fallback prompt.")
+            # Fallback to minimal prompt if JSON fails
+            prompt_template = "You are an expert autonomous portfolio trading agent.\n{tools_list}\n{planning_stage}{precomputed_tools}\nOutput: DECISION, CONFIDENCE, AMOUNT_USD, REASONING"
+            default_tools = "You have access to analysis tools."
+            planning_stage_template = "Plan your tool calls first."
+        
         # Build tools list based on selected categories
         if selected_categories:
             try:
@@ -662,12 +677,7 @@ class ReasoningAgent:
             if len(self.available_tools) > 20:
                 tools_list += f"\n... and {len(self.available_tools) - 20} more tools"
         else:
-            tools_list = """You have access to the following analysis tools:
-- Technical: calculate_rsi, calculate_ema, calculate_adx, calculate_cci, calculate_macd, calculate_bbands, calculate_atr, calculate_obv
-- FMP Technical: get_fmp_rsi, get_fmp_ema
-- Price: get_current_price, get_price_history
-- Fundamental: get_company_profile, get_income_statement, get_balance_sheet, get_cash_flow, get_analyst_estimates, get_earnings_calendar
-- Sentiment: get_company_news, get_world_news"""
+            tools_list = default_tools
 
         # Generate pre-computed tool calls if date range is specified
         precomputed_tools = ""
@@ -680,64 +690,19 @@ class ReasoningAgent:
                 date_range_note = f"\n[Technical indicators configured for {technical_indicators_date_range}-day lookback]\n"
             except Exception:
                 date_range_note = ""
-                planning_stage = self._get_planning_stage()
+                planning_stage = planning_stage_template
         else:
             date_range_note = ""
-            planning_stage = self._get_planning_stage()
+            planning_stage = planning_stage_template
 
-        return f"""You are an expert autonomous portfolio trading agent powered by OpenBB data.
-Your goal is to analyze stocks and make profitable PORTFOLIO-AWARE trading decisions.
+        # Format the template with dynamic values
+        return prompt_template.format(
+            tools_list=tools_list,
+            date_range_note=date_range_note,
+            planning_stage=planning_stage,
+            precomputed_tools=precomputed_tools
+        )
 
-DECISION FRAMEWORK (Portfolio-Aware):
-=====================================
-
-1. BUY
-   - Stock is undervalued OR has strong positive signals (momentum, breakout, fundamental)
-   - Apply to: ANY stock (new position or add to existing)
-   - Position sizing: Based on confidence, available cash, and risk level
-
-2. SELL
-   - Stock is overvalued OR has strong negative signals (breakdown, deterioration, valuation)
-   - Behavior depends on portfolio position:
-     * IF stock is OWNED (long position): Close/reduce the long position
-     * IF stock is NOT OWNED: Convert to SHORT action (short-sell opportunity)
-   - Example: SELL on AAPL when you own it = close position
-   - Example: SELL on AAPL when you don't own it = open short position
-
-3. NEUTRAL
-   - Signals are truly mixed or neutral - no clear edge found
-   - Behavior depends on portfolio position:
-     * IF stock is OWNED: Consider closing position if better opportunities exist
-     * IF stock is NOT OWNED: Ignore (no action taken)
-
-4. MAINTAIN
-   - Thesis is still intact (positive OR negative signals remain unchanged)
-   - Behavior depends on portfolio position:
-     * IF stock is OWNED: Keep position as-is, do NOT add more shares
-     * IF stock is NOT OWNED: Ignore (no action taken)
-
-PORTFOLIO CONTEXT MATTERS:
-- Long positions: Use SELL to exit or reduce when signals turn negative
-- Short positions: Similar logic applies (exit when signals improve)
-- Cash: Use BUY decisions to deploy capital when strong signals appear
-
-{tools_list}{date_range_note}
-
-How to operate:
-
-{planning_stage}{precomputed_tools}
-ANALYSIS AND DECISION - STAGE:
-- When tool results are provided, use them to form a single, final trading decision.
-- Check portfolio state: Are we ALREADY holding this stock? This changes SELL behavior!
-- Consider the risk level when sizing positions (AMOUNT_USD).
-- For SELL decisions: If not owned, this becomes a SHORT opportunity
-
-Once you have received the data from the tool calls, output:
-DECISION: [BUY/SELL/NEUTRAL/MAINTAIN]
-CONFIDENCE: [0.0-1.0]
-AMOUNT_USD: [Dollar amount for the trade, based on confidence, portfolio size, and risk level]
-REASONING: [Detailed analysis explaining: signals found, portfolio impact, position sizing logic]
-"""
 
     def _get_planning_stage(self) -> str:
         """Return PLANNING-STAGE instructions when no date range is specified."""
