@@ -264,7 +264,6 @@ class ReasoningAgent:
         execute_trade_after: bool = False,
         current_price: Optional[float] = None,
         max_tool_iterations: int = 5,
-        risk_level: str = "medium",
         notes: str = "",
         technical_data: Optional[Dict[str, Any]] = None,
     ) -> Dict:
@@ -284,7 +283,6 @@ class ReasoningAgent:
                     execute_trade_after=execute_trade_after,
                     current_price=current_price,
                     max_tool_iterations=max_tool_iterations,
-                    risk_level=risk_level,
                     notes=notes,
                     technical_data=technical_data,
                 )
@@ -298,17 +296,22 @@ class ReasoningAgent:
         execute_trade_after: bool,
         current_price: Optional[float],
         max_tool_iterations: int,
-        risk_level: str = "medium",
         notes: str = "",
         technical_data: Optional[Dict[str, Any]] = None,
         selected_categories: Optional[List[str]] = None,
         technical_indicators_date_range: Optional[int] = None,
+        allow_short_selling: bool = False,
     ) -> Dict:
         try:
             try:
                 mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
-                system_prompt = self._build_system_prompt(mcp_session, risk_level=risk_level, selected_categories=selected_categories, technical_indicators_date_range=technical_indicators_date_range)
+                system_prompt = self._build_system_prompt(
+                    mcp_session, 
+                    selected_categories=selected_categories, 
+                    technical_indicators_date_range=technical_indicators_date_range,
+                    allow_short_selling=allow_short_selling
+                )
                 user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, current_price=current_price, technical_data=technical_data, notes=notes)
 
                 messages = [
@@ -332,7 +335,11 @@ class ReasoningAgent:
 
                 tool_results: List[Dict[str, Any]] = []
                 iteration = 0
-
+                
+                # ... (rest of the method remains valid structure, but we just need to target the top part primarily)
+                # To minimize replacement size, we'll continue with the loop handling in a separate edit if needed, 
+                # but here we are replacing the signature and the start.
+                
                 while iteration < max_tool_iterations:
                     print(f"\n🔄 REACT ITERATION {iteration + 1}/{max_tool_iterations}")
                     print(f"📤 Calling LLM with {len(messages)} messages (planning/analysis stage)...")
@@ -643,7 +650,7 @@ class ReasoningAgent:
                     # Cleanup failures should not crash the calling flow
                     pass
 
-    def _build_system_prompt(self, mcp_session=None, selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None) -> str:
+    def _build_system_prompt(self, mcp_session=None, selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None, allow_short_selling: bool = False) -> str:
         # Load prompt template from JSON file (enables hot-reload without daemon restart)
         prompts_path = os.path.join(os.path.dirname(__file__), "prompts.json")
         try:
@@ -652,12 +659,30 @@ class ReasoningAgent:
             prompt_template = prompts_config.get("system_prompt", "")
             default_tools = prompts_config.get("default_tools_list", "")
             planning_stage_template = prompts_config.get("planning_stage", "")
+            
+            # Load strategy constraint templates
+            long_only_constraints = prompts_config.get("long_only_constraints", "")
+            long_short_constraints = prompts_config.get("long_short_constraints", "")
+            
+            # Load sell descriptions
+            if allow_short_selling:
+                strategy_constraints = long_short_constraints
+                sell_action_description = prompts_config.get("long_short_sell_description", "")
+                sell_decision_implication = prompts_config.get("long_short_sell_implication", "")
+            else:
+                strategy_constraints = long_only_constraints
+                sell_action_description = prompts_config.get("long_only_sell_description", "")
+                sell_decision_implication = prompts_config.get("long_only_sell_implication", "")
+                
         except Exception as e:
             print(f"⚠️  Failed to load prompts.json: {e}. Using fallback prompt.")
             # Fallback to minimal prompt if JSON fails
-            prompt_template = "You are an expert autonomous portfolio trading agent.\n{tools_list}\n{planning_stage}{precomputed_tools}\nOutput: DECISION, CONFIDENCE, AMOUNT_USD, REASONING"
+            prompt_template = "You are an expert autonomous portfolio trading agent.\n{strategy_constraints}\n{tools_list}\n{planning_stage}{precomputed_tools}\nOutput: DECISION, CONFIDENCE, AMOUNT_USD, REASONING"
             default_tools = "You have access to analysis tools."
             planning_stage_template = "Plan your tool calls first."
+            strategy_constraints = "TRADING STRATEGY: LONG ONLY"
+            sell_action_description = "Avoid Short Selling."
+            sell_decision_implication = "Neutral decision."
         
         # Build tools list based on selected categories
         if selected_categories:
@@ -697,11 +722,15 @@ class ReasoningAgent:
 
         # Format the template with dynamic values
         return prompt_template.format(
+            strategy_constraints=strategy_constraints,
+            sell_action_description=sell_action_description,
+            sell_decision_implication=sell_decision_implication,
             tools_list=tools_list,
             date_range_note=date_range_note,
             planning_stage=planning_stage,
             precomputed_tools=precomputed_tools
         )
+
 
 
     def _get_planning_stage(self) -> str:

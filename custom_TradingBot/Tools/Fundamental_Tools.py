@@ -188,3 +188,63 @@ def register_fundamental_tools(mcp):
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
+
+    # =========================================================================
+    # FMP DIRECT IMPLEMENTATIONS
+    # =========================================================================
+
+    @mcp.tool(name="get_fmp_income_statement")
+    def get_fmp_income_statement(symbol: str, limit: int = 5) -> Dict[str, Any]:
+        """Get income statement via FMP direct API."""
+        tool_name = "get_fmp_income_statement"
+        try:
+            params = {"symbol": symbol.upper(), "limit": limit}
+            data = _fmp_get("/income-statement", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:
+            return format_tool_result(tool_name, error=e)
+
+    @mcp.tool(name="get_fmp_balance_sheet")
+    def get_fmp_balance_sheet(symbol: str, limit: int = 5) -> Dict[str, Any]:
+        """Get balance sheet via FMP direct API."""
+        tool_name = "get_fmp_balance_sheet"
+        try:
+            params = {"symbol": symbol.upper(), "limit": limit}
+            data = _fmp_get("/balance-sheet-statement", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:
+            return format_tool_result(tool_name, error=e)
+
+    @mcp.tool(name="get_fmp_key_metrics")
+    def get_fmp_key_metrics(symbol: str, limit: int = 5) -> Dict[str, Any]:
+        """Get key metrics (historical) via FMP direct API."""
+        tool_name = "get_fmp_key_metrics"
+        try:
+            params = {"symbol": symbol.upper(), "limit": limit}
+            data = _fmp_get("/key-metrics", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:
+            return format_tool_result(tool_name, error=e)
+
+    @mcp.tool(name="get_fmp_ratings")
+    def get_fmp_ratings(symbol: str) -> Dict[str, Any]:
+        """Get analyst ratings snapshot via FMP direct API."""
+        tool_name = "get_fmp_ratings"
+        try:
+            params = {"symbol": symbol.upper()}
+            data = _fmp_get("/ratings-snapshot", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:
+            return format_tool_result(tool_name, error=e)
+
+    @mcp.tool(name="get_fmp_price_targets")
+    def get_fmp_price_targets(symbol: str) -> Dict[str, Any]:
+        """Get price target summary via FMP direct API."""
+        tool_name = "get_fmp_price_targets"
+        try:
+            params = {"symbol": symbol.upper()}
+            data = _fmp_get("/price-target-summary", params)
+            return format_tool_result(tool_name, data=data)
+        except Exception as e:
+            return format_tool_result(tool_name, error=e)
+

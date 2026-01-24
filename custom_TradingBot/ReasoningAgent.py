@@ -359,7 +359,6 @@ class ReasoningAgent:
         execute_trade_after: bool,
         current_price: Optional[float],
         max_tool_iterations: int,
-        risk_level: str = "medium",
         notes: str = "",
         technical_data: Optional[Dict[str, Any]] = None,
         selected_categories: Optional[List[str]] = None,
@@ -371,7 +370,7 @@ class ReasoningAgent:
             mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
             # 2. Build initial prompts
-            system_prompt = self._build_system_prompt(mcp_session, risk_level, selected_categories=selected_categories, technical_indicators_date_range=technical_indicators_date_range)
+            system_prompt = self._build_system_prompt(mcp_session, selected_categories=selected_categories, technical_indicators_date_range=technical_indicators_date_range)
             user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, current_price=current_price, technical_data=technical_data, notes=notes)
             
             messages = [
@@ -660,12 +659,11 @@ class ReasoningAgent:
             # await self._close_mcp_session()  # Commented out to preserve cache
             return self._create_error_decision(symbol, current_date, str(e))
 
-    def _build_system_prompt(self, mcp_session=None, risk_level: str = "medium", selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None) -> str:
+    def _build_system_prompt(self, mcp_session=None, selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None) -> str:
         """Build system prompt with tools from selected categories.
 
         Design:
-        - First LLM call is a PLANNING call: choose specific tools and tightly bounded
-          date ranges / limits. Do NOT make a final decision in the first call.
+        - First LLM call is a the date range PLANNING call:
         - After tools have been executed and summarized, a later call makes a single
           final DECISION using the returned data.
         - If technical_indicators_date_range is provided, skip PLANNING stage and use
@@ -745,7 +743,7 @@ class ReasoningAgent:
 
 """
 
-    def _build_user_prompt(self, symbol, current_date, portfolio_state, current_price: Optional[float] = None, technical_data: Optional[Dict[str, Any]] = None, risk_level: str = "medium", notes: str = "") -> str:
+    def _build_user_prompt(self, symbol, current_date, portfolio_state, current_price: Optional[float] = None, technical_data: Optional[Dict[str, Any]] = None, notes: str = "") -> str:
         notes_section = f"\n\nAdditional Instructions:\n{notes}" if notes else ""
 
         # Build current price section (if available)

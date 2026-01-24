@@ -138,7 +138,7 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
     # Fetch historical data (60-200 days), calculate, return current values ONLY
     # No direct FMP equivalents available
     # =========================================================================
-    "get_openbb_bbands": {
+    "calculate_bbands": {
         "category": "technical",
         "tier": "free",
         "provider": "openbb",
@@ -147,7 +147,7 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "has_fast_alternative": True,
         "returns_indicator_only": True
     },
-    "get_openbb_macd": {
+    "calculate_macd": {
         "category": "technical",
         "tier": "free",
         "provider": "openbb",
@@ -156,7 +156,7 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "has_fast_alternative": False,
         "returns_indicator_only": True
     },
-    "get_openbb_obv": {
+    "calculate_obv": {
         "category": "technical",
         "tier": "free",
         "provider": "openbb",
@@ -173,6 +173,14 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "description": "Volume-Weighted Average Price intraday (current day only)",
         "has_fast_alternative": False,
         "returns_indicator_only": True
+    },
+    "get_intraday_candles": {
+        "category": "technical",
+        "tier": "free",
+        "provider": "fmp",
+        "mcp_name": "get_intraday_candles",
+        "description": "Intraday price candles (30m/1h)",
+        "requires": ["has_fmp_access"]
     },
 
     # =========================================================================
@@ -246,6 +254,50 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "provider": "openbb",
         "mcp_name": "get_key_metrics",
         "description": "Key financial metrics and ratios"
+    },
+    
+    # =========================================================================
+    # FUNDAMENTAL - FMP DIRECT (New additions)
+    # =========================================================================
+    "get_fmp_income_statement": {
+        "category": "fundamental",
+        "tier": "starter",
+        "provider": "fmp",
+        "mcp_name": "get_fmp_income_statement",
+        "description": "Income statement (FMP direct)",
+        "requires": ["has_fmp_access"]
+    },
+    "get_fmp_balance_sheet": {
+        "category": "fundamental",
+        "tier": "starter",
+        "provider": "fmp",
+        "mcp_name": "get_fmp_balance_sheet",
+        "description": "Balance sheet (FMP direct)",
+        "requires": ["has_fmp_access"]
+    },
+    "get_fmp_key_metrics": {
+        "category": "fundamental",
+        "tier": "starter",
+        "provider": "fmp",
+        "mcp_name": "get_fmp_key_metrics",
+        "description": "Key metrics (FMP direct)",
+        "requires": ["has_fmp_access"]
+    },
+    "get_fmp_ratings": {
+        "category": "fundamental",
+        "tier": "starter",
+        "provider": "fmp",
+        "mcp_name": "get_fmp_ratings",
+        "description": "Analyst ratings snapshot",
+        "requires": ["has_fmp_access"]
+    },
+    "get_fmp_price_targets": {
+        "category": "fundamental",
+        "tier": "starter",
+        "provider": "fmp",
+        "mcp_name": "get_fmp_price_targets",
+        "description": "Price target summary",
+        "requires": ["has_fmp_access"]
     },
 
     # =========================================================================
@@ -345,6 +397,9 @@ TIER_DEFINITIONS: Dict[str, List[str]] = {
 DEDUPLICATION_PAIRS: List[tuple] = [
     ("calculate_rsi", "get_fmp_rsi"),           # Prefer FMP (faster, precomputed)
     ("calculate_ema", "get_fmp_ema"),           # Prefer FMP (faster, precomputed)
+    ("get_income_statement", "get_fmp_income_statement"),
+    ("get_balance_sheet", "get_fmp_balance_sheet"),
+    ("get_key_metrics", "get_fmp_key_metrics"),
     # Note: BBands, MACD, OBV, VWAP have no FMP equivalents (not in FMP free tier docs)
 ]
 
@@ -483,6 +538,11 @@ TOOL_CATEGORIES: Dict[str, Dict[str, List[str]]] = {
             "get_cash_flow",
             "get_analyst_estimates",
             "get_earnings_calendar",
+            "get_fmp_income_statement",
+            "get_fmp_balance_sheet",
+            "get_fmp_key_metrics",
+            "get_fmp_ratings",
+            "get_fmp_price_targets",
         ]
     },
     "sentiment": {

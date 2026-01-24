@@ -47,13 +47,17 @@ def _cached_company_news(
 ) -> Any:
     """Cached wrapper around FMP stock news search endpoint."""
     params: Dict[str, Any] = {
-        "symbols": symbol,
+        "tickers": symbol,
         "from": start_date,
         "to": end_date,
         "page": page,
         "limit": limit,
+        "apikey": FMP_API_KEY,
     }
-    return _fmp_get("/news/stock", params)
+    url = "https://financialmodelingprep.com/api/v3/stock_news"
+    resp = requests.get(url, params=params, timeout=30)
+    resp.raise_for_status()
+    return resp.json()
 
 
 @lru_cache(maxsize=512)
