@@ -1009,7 +1009,7 @@ async def run_single_trading_cycle(
     symbol: str,
     trade_date: date,
     starting_capital: Optional[float] = None,
-    risk_level: str = "medium",
+
     notes: str = "",
     mode: str = "paper",
     force_reset: bool = False,
@@ -1022,7 +1022,6 @@ async def run_single_trading_cycle(
         symbol: Ticker symbol
         trade_date: Date for trading
         starting_capital: Initial capital
-        risk_level: "low", "medium", or "high"
         notes: Additional notes
         mode: "paper", "analysis", or "alpaca_live"
         force_reset: Force reset portfolio (analysis mode only)
@@ -1196,7 +1195,6 @@ async def run_single_trading_cycle(
         execute_trade_after=execute_trades,
         current_price=current_price,
         max_tool_iterations=5,
-        risk_level=risk_level,
         notes=notes,
         technical_data=technical_data_for_prompt if technical_data_for_prompt else None,
         selected_categories=selected_categories,
@@ -1246,7 +1244,6 @@ async def run_single_trading_cycle(
 def run_daemon(
     symbol: str,
     starting_capital: Optional[float] = None,
-    risk_level: str = "medium",
     notes: str = "",
     mode: str = "paper",
     scheduled_times_gmt: Optional[List[str]] = None,
@@ -1265,7 +1262,6 @@ def run_daemon(
     Args:
         symbol: Ticker symbol
         starting_capital: Initial capital
-        risk_level: "low", "medium", or "high"
         notes: Additional notes
         mode: "paper" or "alpaca_live" (NOT "analysis" - analysis is one-shot only)
         scheduled_times_gmt: List of times in HH:MM format (GMT), e.g., ["13:00", "19:00"]
@@ -1332,14 +1328,13 @@ def run_daemon(
             except Exception as e:  # noqa: BLE001
                 _logger.warning(f"⚠️  Could not fetch current price: {e}")
 
-        asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, risk_level, notes, mode=mode, current_price=fresh_price))
+        asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, notes, mode=mode, current_price=fresh_price))
 
 
 def run_once(
     symbol: Optional[str] = None,
     symbols: Optional[List[str]] = None,
     starting_capital: Optional[float] = None,
-    risk_level: str = "medium",
     notes: str = "",
     mode: str = "paper",
     force_reset: bool = False,
@@ -1355,7 +1350,6 @@ def run_once(
         symbol: Single symbol (backward compatible)
         symbols: List of symbols for multi-stock mode
         starting_capital: Initial capital
-        risk_level: "low", "medium", or "high"
         notes: Additional notes
         mode: "paper", "analysis", or "alpaca_live"
         force_reset: Force reset portfolio (analysis mode only)
@@ -1392,7 +1386,6 @@ def run_once(
         orchestrator = PortfolioOrchestrator(
             symbols=symbols_to_trade,
             starting_capital=starting_capital or 50000,
-            risk_level=risk_level,
             notes=notes,
             mode=mode,
             force_reset=force_reset,
@@ -1406,7 +1399,7 @@ def run_once(
             f"🏁 Running trading cycle for {single_symbol} on "
             f"{trade_date.isoformat()} (NY date)"
         )
-        asyncio.run(run_single_trading_cycle(single_symbol, trade_date, starting_capital, risk_level, notes, mode=mode, force_reset=force_reset))
+        asyncio.run(run_single_trading_cycle(single_symbol, trade_date, starting_capital, notes, mode=mode, force_reset=force_reset))
 
 
 def _load_session_config() -> Optional[Dict[str, Any]]:
@@ -1452,7 +1445,6 @@ if __name__ == "__main__":
             # Use config if available
             symbols = session_config.get("symbols", [args.symbol.upper()])
             starting_capital = session_config.get("starting_capital")
-            risk_level = session_config.get("risk_level", "medium")
             notes = session_config.get("notes", "")
             # Map trade_mode to actual mode
             trade_mode = session_config.get("trade_mode", "paper")
@@ -1461,7 +1453,6 @@ if __name__ == "__main__":
             run_once(
                 symbols=symbols,
                 starting_capital=starting_capital,
-                risk_level=risk_level,
                 notes=notes,
                 mode=mode,
                 force_reset=session_config.get("force_reset_portfolio", False),
@@ -1474,7 +1465,6 @@ if __name__ == "__main__":
             symbols = session_config.get("symbols", [args.symbol.upper()])
             symbol = symbols[0] if symbols else args.symbol.upper()
             starting_capital = session_config.get("starting_capital")
-            risk_level = session_config.get("risk_level", "medium")
             notes = session_config.get("notes", "")
             # Map trade_mode to actual mode
             trade_mode = session_config.get("trade_mode", "paper")
@@ -1490,7 +1480,6 @@ if __name__ == "__main__":
             run_daemon(
                 symbol=symbol,
                 starting_capital=starting_capital,
-                risk_level=risk_level,
                 notes=notes,
                 mode=mode,
                 scheduled_times_gmt=scheduled_times_gmt,

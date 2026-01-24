@@ -52,7 +52,6 @@ class PortfolioOrchestrator:
         self,
         symbols: List[str],
         starting_capital: float,
-        risk_level: str = "medium",
         notes: str = "",
         data_dir: str = ".",
         mode: str = "paper",
@@ -65,7 +64,6 @@ class PortfolioOrchestrator:
         Args:
             symbols: List of stock ticker symbols to analyze
             starting_capital: Starting capital for portfolio
-            risk_level: Risk level for all stocks (low/medium/high)
             notes: Additional notes for context
             data_dir: Directory for saving state and logs
             mode: "paper", "analysis", or "alpaca_live"
@@ -74,7 +72,6 @@ class PortfolioOrchestrator:
         """
         self.symbols = symbols
         self.starting_capital = starting_capital
-        self.risk_level = risk_level
         self.notes = notes
         self.data_dir = Path(data_dir)
         self.mode = mode
@@ -282,7 +279,6 @@ class PortfolioOrchestrator:
                 execute_trade_after=False,
                 current_price=None,
                 max_tool_iterations=5,
-                risk_level=self.risk_level,
                 notes=self.notes,
             )
 

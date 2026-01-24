@@ -168,9 +168,11 @@ class SessionConfig:
     scheduled_times_gmt: List[str] | None = field(default=None)  # List of HH:MM format times in GMT (e.g., ["13:00", "19:00"])
     first_day_entry_time_gmt: str | None = None  # HH:MM format time in GMT for first day only
     # Tool Selection
+    user_tier: str = "starter"  # Default to starter to ensure fundamental tools are available
     selected_tool_categories: List[str] = field(default_factory=list)  # e.g., ["technical_indicators", "fundamental"]
     include_news: bool = False  # Toggle for news/sentiment tools
     technical_indicators_date_range: int | None = None  # Days of history for technical indicators (None = agent decides)
+    allow_short_selling: bool = False  # If True, agent can SHORT and COVER. If False, LONG and CLOSE only.
 
 
 def _render_header() -> Panel:
@@ -264,6 +266,38 @@ def _render_footer() -> Panel:
             style="dim yellow",
         )
     return Panel(footer_text, border_style="grey42")
+
+
+def _prompt_trading_strategy() -> bool:
+    """
+    Prompt for trading capability: Long Only vs. Long + Short.
+    
+    Returns:
+        bool: True if short selling is allowed, False otherwise.
+    """
+    prompt_text = (
+        "Select your **trading capabilities**:\n\n"
+        "[bold]1.[/bold] [bold green]Long Only[/bold green]\n"
+        "   • Buy stocks and close long positions\n"
+        "   • Safer, traditional investing approach\n\n"
+        "[bold]2.[/bold] [bold magenta]Long & Short[/bold magenta]\n"
+        "   • Buy, Sell, Short, and Cover capabilities\n"
+        "   • Allows profiting from downtrends (higher risk)\n"
+    )
+    console.print(Panel(prompt_text, title="Step 2 • Trading Strategy", border_style="cyan"))
+
+    while True:
+        choice = Prompt.ask(
+            "Select strategy [1=Long Only, 2=Long & Short]",
+            choices=["1", "2"],
+            default="1",
+            show_choices=False,
+        ).strip()
+
+        if choice == "1":
+            return False  # Short selling disabled
+        if choice == "2":
+            return True   # Short selling allowed
 
 
 def _banner() -> None:
@@ -767,6 +801,7 @@ def _review_config(cfg: SessionConfig) -> bool:
         )
     table.add_row("Notes", cfg.notes or "—")
     table.add_row("Tool categories", ", ".join(cfg.selected_tool_categories) if cfg.selected_tool_categories else "—")
+    table.add_row("Short selling", "Allowed" if cfg.allow_short_selling else "Disabled (Long Only)")
     table.add_row("Include news", "Yes" if cfg.include_news else "No")
     if cfg.technical_indicators_date_range:
         table.add_row("Tech data range", f"{cfg.technical_indicators_date_range} days")
