@@ -28,7 +28,6 @@ def test_portfolio_state_conversion():
         orchestrator = PortfolioOrchestrator(
             symbols=['MSFT', 'AAPL'],
             starting_capital=50000.0,
-            risk_level='medium',
             notes='Testing PortfolioState conversion',
             max_parallel=2
         )
@@ -87,5 +86,6 @@ def test_portfolio_state_conversion():
 
 if __name__ == "__main__":
     test_portfolio_state_conversion()
+
 
 

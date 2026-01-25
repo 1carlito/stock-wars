@@ -1,10 +1,8 @@
 {
   "symbols": [
-    "APLD",
-    "ONDS"
+    "NVDA"
   ],
-  "risk_level": "high",
-  "starting_capital": 60000.0,
+  "starting_capital": 20000.0,
   "trade_mode": "paper",
   "run_mode": "once",
   "analysis_mode": "analysis",
@@ -15,6 +13,16 @@
   "alpaca_api_secret": "",
   "alpaca_paper_trading": true,
   "force_reset_portfolio": false,
-  "user_tier": "free",
-  "has_fmp_access": false
+  "has_fmp_access": false,
+  "first_run_date": null,
+  "scheduled_times_gmt": null,
+  "first_day_entry_time_gmt": null,
+  "user_tier": "starter",
+  "selected_tool_categories": [
+    "technical_indicators",
+    "fundamental"
+  ],
+  "include_news": false,
+  "technical_indicators_date_range": null,
+  "allow_short_selling": false
 }

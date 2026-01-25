@@ -234,13 +234,6 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "mcp_name": "get_company_profile",
         "description": "Company profile and overview"
     },
-    "get_earnings_calendar": {
-        "category": "fundamental",
-        "tier": "starter",
-        "provider": "openbb",
-        "mcp_name": "get_earnings_calendar",
-        "description": "Earnings calendar and dates"
-    },
     "get_analyst_estimates": {
         "category": "fundamental",
         "tier": "starter",
@@ -377,7 +370,6 @@ _STARTER_TOOLS = _FREE_TOOLS + [
     "get_balance_sheet",
     "get_cash_flow",
     "get_company_profile",
-    "get_earnings_calendar",
     "get_analyst_estimates",
     "get_key_metrics",
 ]
@@ -537,7 +529,6 @@ TOOL_CATEGORIES: Dict[str, Dict[str, List[str]]] = {
             "get_balance_sheet",
             "get_cash_flow",
             "get_analyst_estimates",
-            "get_earnings_calendar",
             "get_fmp_income_statement",
             "get_fmp_balance_sheet",
             "get_fmp_key_metrics",
@@ -591,7 +582,6 @@ CATEGORY_TOOL_CALLS: Dict[str, List[Dict[str, Any]]] = {
         {"tool": "get_balance_sheet", "params": {"limit": 4}},
         {"tool": "get_cash_flow", "params": {"limit": 4}},
         {"tool": "get_analyst_estimates", "params": {}},
-        {"tool": "get_earnings_calendar", "params": {}},
     ],
     "sentiment": [
         {"tool": "get_company_news", "params": {"limit": 5}},

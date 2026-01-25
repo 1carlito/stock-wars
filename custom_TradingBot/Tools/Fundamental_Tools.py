@@ -66,12 +66,10 @@ def _cached_analyst_estimates(symbol: str):
 
 
 @lru_cache(maxsize=512)
-def _cached_earnings_calendar(start_date: str, end_date: str, symbol: Optional[str]):
-    return obb.equity.calendar.earnings(
-        start_date=start_date,
-        end_date=end_date,
-        symbol=symbol,
-    )
+def _cached_earnings_reports(symbol: str):
+    # Using FMP direct call for earnings reports as requested
+    params = {"symbol": symbol}
+    return _fmp_get("/earnings", params)
 
 def register_fundamental_tools(mcp):
     """Register all fundamental analysis tools with MCP server"""
@@ -112,49 +110,20 @@ def register_fundamental_tools(mcp):
         """Get company profile/overview for a stock."""
         return _cached_company_profile(symbol)
     
-    @mcp.tool(name="get_earnings_calendar")
-    def get_earnings_calendar(
-        start_date: str,
-        end_date: str,
-        symbol: Optional[str] = None,
-        current_date: Optional[str] = None,
+    @mcp.tool(name="get_earnings_reports")
+    def get_earnings_reports(
+        symbol: str,
     ) -> Dict[str, Any]:
         """
-        Get earnings calendar for a date range. Optionally filter by symbol.
-        If current_date is provided, only returns earnings up to that date (prevents lookahead bias).
-
-        NOTE: This endpoint may require a premium FMP subscription. When unavailable,
-        a friendly message is returned instead of a raw 402 error.
+        Get historical earnings reports.
         """
-        tool_name = "get_earnings_calendar"
+        tool_name = "get_earnings_reports"
         try:
-            # If current_date is provided, limit end_date to current_date
-            if current_date and current_date < end_date:
-                end_date = current_date
-
             # Use cached underlying earnings call
-            result = _cached_earnings_calendar(start_date, end_date, symbol)
-            data = _convert_openbb_result(result)
-
-            # If symbol is provided, filter results to only that symbol
-            if symbol and isinstance(data, dict) and "data" in data:
-                if isinstance(data["data"], list):
-                    data["data"] = [
-                        item for item in data["data"] if item.get("symbol") == symbol
-                    ]
-
-            return format_tool_result(tool_name, data=data)
-        except Exception as e:  # noqa: BLE001 - we want to surface any tool error
-            # Prefer a clean premium subscription message when applicable
-            return handle_premium_error(
-                tool_name,
-                e,
-                fallback_message=(
-                    "Earnings calendar data requires a premium FMP subscription. "
-                    "This feature is not available on the free tier. "
-                    "You can use get_company_profile to get basic earnings information."
-                ),
-            )
+            result = _cached_earnings_reports(symbol)
+            return format_tool_result(tool_name, data=result)
+        except Exception as e:
+            return format_tool_result(tool_name, error=e)
     
     @mcp.tool(name="get_analyst_estimates")
     @openbb_tool_wrapper("get_analyst_estimates")
@@ -166,25 +135,14 @@ def register_fundamental_tools(mcp):
     def get_key_metrics(symbol: str) -> Dict[str, Any]:
         """
         Get key financial metrics and ratios (TTM - Trailing Twelve Months).
-
-        Returns essential metrics including PE ratio, PB ratio, ROE, ROA, debt-to-equity,
-        current ratio, and other financial health indicators.
-
-        Args:
-            symbol: Stock ticker symbol
-
-        Returns:
-            Dict with key metrics including PE, PB, ROE, ROA, debt-to-equity, etc.
         """
         tool_name = "get_key_metrics"
         try:
             if not symbol:
                 raise ValueError("get_key_metrics requires a non-empty symbol")
 
-            params: Dict[str, Any] = {
-                "symbol": symbol.upper(),
-            }
-            data = _fmp_get("/key-metrics-ttm", params)
+            params = {"symbol": symbol.upper()}
+            data = _fmp_get("/key-metrics", params)
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)

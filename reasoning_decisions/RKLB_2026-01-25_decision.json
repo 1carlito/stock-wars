@@ -1,0 +1,380 @@
+{
+  "symbol": "RKLB",
+  "date": "2026-01-25",
+  "decision": "SELL",
+  "confidence": 0.65,
+  "amount_usd": 15000.0,
+  "reasoning": "The combination of extremely oversold CCI (-725.72) with strong trend momentum (ADX 44.86) suggests continued downward pressure. While the extreme CSI indicates potential for a bounce, the strong ADX suggests the trend may continue. Given we have no existing position, SELL means opening a short position. The confidence is moderate due to the conflicting signals (oversold but strong trend), so I'm sizing this as a smaller position ($15,000) to manage risk. The stock appears to be in a strong downtrend that may continue despite oversold conditions.",
+  "raw_response": "Based on the limited data available from my current tier, I can analyze RKLB using the ADX and CCI indicators along with the RSI data from the FMP source. Let me analyze what we have:\n\n**Available Data Analysis:**\n- **ADX (44.86)**: This indicates a very strong trend (ADX > 40 suggests a very strong directional movement)\n- **CCI (-725.72)**: Extremely oversold condition (CCI below -100 indicates oversold, below -200 is extremely oversold)\n- **RSI History**: Shows RKLB was at 74.66 on Dec 22, 2025, indicating overbought conditions, but the current CCI suggests a dramatic reversal\n\n**Key Observations:**\n1. The extremely negative CCI (-725.72) suggests RKLB is severely oversold\n2. The high ADX (44.86) indicates strong directional momentum (likely downward given the CCI)\n3. The stock closed at $87.98 on Jan 22, 2026 (latest available data point)\n\n**Portfolio Context:**\n- No existing positions in RKLB\n- $200,000 cash available\n- SELL decision would mean opening a short position\n\n**Risk Assessment:**\nThe extreme CCI reading suggests potential for a bounce or reversal, but the strong ADX indicates the trend momentum is powerful. This creates a high-risk, high-reward scenario.\n\nDECISION: SELL\nCONFIDENCE: 0.65\nAMOUNT_USD: $15,000\nREASONING: The combination of extremely oversold CCI (-725.72) with strong trend momentum (ADX 44.86) suggests continued downward pressure. While the extreme CSI indicates potential for a bounce, the strong ADX suggests the trend may continue. Given we have no existing position, SELL means opening a short position. The confidence is moderate due to the conflicting signals (oversold but strong trend), so I'm sizing this as a smaller position ($15,000) to manage risk. The stock appears to be in a strong downtrend that may continue despite oversold conditions.",
+  "tool_calls_made": 10,
+  "tool_results": [
+    {
+      "tool_name": "get_intraday_candles",
+      "error": "Tool 'get_intraday_candles' is not available in your tier (starter). Consider upgrading your tier or using an alternative tool.",
+      "available": false
+    },
+    {
+      "tool_name": "get_fmp_rsi",
+      "data": [
+        {
+          "date": "2025-12-22 00:00:00",
+          "close": 77.55,
+          "rsi": 74.65616988108158
+        },
+        {
+          "date": "2025-12-19 00:00:00",
+          "close": 70.52,
+          "rsi": 70.34941309569071
+        },
+        {
+          "date": "2025-12-18 00:00:00",
+          "close": 59.92,
+          "rsi": 61.09218969533208
+        },
+        {
+          "date": "2025-12-17 00:00:00",
+          "close": 53.96,
+          "rsi": 53.51483664276377
+        },
+        {
+          "date": "2025-12-16 00:00:00",
+          "close": 55.49,
+          "rsi": 56.12015048971362
+        },
+        {
+          "date": "2025-12-15 00:00:00",
+          "close": 55.41,
+          "rsi": 56.016184182059014
+        },
+        {
+          "date": "2025-12-12 00:00:00",
+          "close": 61.49,
+          "rsi": 67.2630948494389
+        },
+        {
+          "date": "2025-12-11 00:00:00",
+          "close": 63.53,
+          "rsi": 71.75150619123421
+        },
+        {
+          "date": "2025-12-10 00:00:00",
+          "close": 57.52,
+          "rsi": 65.44326785733921
+        },
+        {
+          "date": "2025-12-09 00:00:00",
+          "close": 53.43,
+          "rsi": 59.76553156723283
+        },
+        {
+          "date": "2025-12-08 00:00:00",
+          "close": 51.56,
+          "rsi": 56.74851877947446
+        },
+        {
+          "date": "2025-12-05 00:00:00",
+          "close": 49.06,
+          "rsi": 52.309077397825135
+        },
+        {
+          "date": "2025-12-04 00:00:00",
+          "close": 49.37,
+          "rsi": 52.93468887482754
+        },
+        {
+          "date": "2025-12-03 00:00:00",
+          "close": 44.72,
+          "rsi": 43.52720440221325
+        },
+        {
+          "date": "2025-12-02 00:00:00",
+          "close": 41.9,
+          "rsi": 36.36437956157633
+        },
+        {
+          "date": "2025-12-01 00:00:00",
+          "close": 40.37,
+          "rsi": 32.02046929874534
+        },
+        {
+          "date": "2025-11-28 00:00:00",
+          "close": 42.14,
+          "rsi": 34.55431397618605
+        },
+        {
+          "date": "2025-11-26 00:00:00",
+          "close": 41.93,
+          "rsi": 33.97874494600268
+        },
+        {
+          "date": "2025-11-25 00:00:00",
+          "close": 42.6,
+          "rsi": 34.88773685111576
+        },
+        {
+          "date": "2025-11-24 00:00:00",
+          "close": 42.45,
+          "rsi": 34.52359610802027
+        },
+        {
+          "date": "2025-11-21 00:00:00",
+          "close": 40.3,
+          "rsi": 29.25801583827814
+        },
+        {
+          "date": "2025-11-20 00:00:00",
+          "close": 39.48,
+          "rsi": 27.184162811447734
+        },
+        {
+          "date": "2025-11-19 00:00:00",
+          "close": 43.62,
+          "rsi": 31.515554932713243
+        },
+        {
+          "date": "2025-11-18 00:00:00",
+          "close": 42.78,
+          "rsi": 29.396048147127075
+        },
+        {
+          "date": "2025-11-17 00:00:00",
+          "close": 43.31,
+          "rsi": 29.938911821152317
+        },
+        {
+          "date": "2025-11-14 00:00:00",
+          "close": 45.54,
+          "rsi": 32.267030650131915
+        },
+        {
+          "date": "2025-11-13 00:00:00",
+          "close": 45.25,
+          "rsi": 31.624971403919773
+        },
+        {
+          "date": "2025-11-12 00:00:00",
+          "close": 49.97,
+          "rsi": 36.913282183326466
+        },
+        {
+          "date": "2025-11-11 00:00:00",
+          "close": 51.24,
+          "rsi": 38.52274556167047
+        },
+        {
+          "date": "2025-11-10 00:00:00",
+          "close": 51.9,
+          "rsi": 39.350699983498295
+        },
+        {
+          "date": "2025-11-07 00:00:00",
+          "close": 51.64,
+          "rsi": 38.87009569399167
+        },
+        {
+          "date": "2025-11-06 00:00:00",
+          "close": 49.61,
+          "rsi": 35.14403629994382
+        },
+        {
+          "date": "2025-11-05 00:00:00",
+          "close": 56.42,
+          "rsi": 43.38087954678539
+        },
+        {
+          "date": "2025-11-04 00:00:00",
+          "close": 56.57,
+          "rsi": 43.58983506841881
+        },
+        {
+          "date": "2025-11-03 00:00:00",
+          "close": 61.34,
+          "rsi": 50.817756503987894
+        },
+        {
+          "date": "2025-10-31 00:00:00",
+          "close": 62.98,
+          "rsi": 53.65833072310817
+        },
+        {
+          "date": "2025-10-30 00:00:00",
+          "close": 60.92,
+          "rsi": 50.42625863475795
+        },
+        {
+          "date": "2025-10-29 00:00:00",
+          "close": 66.16,
+          "rsi": 60.37164770214034
+        },
+        {
+          "date": "2025-10-28 00:00:00",
+          "close": 63.75,
+          "rsi": 56.72674750131383
+        },
+        {
+          "date": "2025-10-27 00:00:00",
+          "close": 65.62,
+          "rsi": 60.75286326316223
+        },
+        {
+          "date": "2025-10-24 00:00:00",
+          "close": 64.56,
+          "rsi": 59.22978962164229
+        },
+        {
+          "date": "2025-10-23 00:00:00",
+          "close": 63.57,
+          "rsi": 57.80985419056148
+        },
+        {
+          "date": "2025-10-22 00:00:00",
+          "close": 60.57,
+          "rsi": 53.22599137422353
+        },
+        {
+          "date": "2025-10-21 00:00:00",
+          "close": 65.4,
+          "rsi": 63.54798431797154
+        },
+        {
+          "date": "2025-10-20 00:00:00",
+          "close": 67.35,
+          "rsi": 68.53022561784537
+        },
+        {
+          "date": "2025-10-17 00:00:00",
+          "close": 66.27,
+          "rsi": 67.20803243302817
+        },
+        {
+          "date": "2025-10-16 00:00:00",
+          "close": 67,
+          "rsi": 69.02833294570347
+        },
+        {
+          "date": "2025-10-15 00:00:00",
+          "close": 69.27,
+          "rsi": 74.88477357343899
+        },
+        {
+          "date": "2025-10-14 00:00:00",
+          "close": 68.03,
+          "rsi": 73.7553460827951
+        },
+        {
+          "date": "2025-10-13 00:00:00",
+          "close": 65.42,
+          "rsi": 71.22633598478367
+        },
+        {
+          "date": "2025-10-10 00:00:00",
+          "close": 64.26,
+          "rsi": 70.03464990074198
+        },
+        {
+          "date": "2025-10-09 00:00:00",
+          "close": 66.42,
+          "rsi": 75.43672482082863
+        },
+        {
+          "date": "2025-10-08 00:00:00",
+          "close": 65.31,
+          "rsi": 74.49807152666438
+        },
+        {
+          "date": "2025-10-07 00:00:00",
+          "close": 61.51,
+          "rsi": 70.971807155897
+        },
+        {
+          "date": "2025-10-06 00:00:00",
+          "close": 58.5,
+          "rsi": 67.68525276040735
+        },
+        {
+          "date": "2025-10-03 00:00:00",
+          "close": 56.16,
+          "rsi": 64.80907166685878
+        },
+        {
+          "date": "2025-10-02 00:00:00",
+          "close": 52.47,
+          "rsi": 59.53535178191817
+        },
+        {
+          "date": "2025-10-01 00:00:00",
+          "close": 47.97,
+          "rsi": 51.264890216403174
+        },
+        {
+          "date": "2025-09-30 00:00:00",
+          "close": 47.91,
+          "rsi": 51.14125267513735
+        },
+        {
+          "date": "2025-09-29 00:00:00",
+          "close": 47.01,
+          "rsi": 49.351548894970335
+        }
+      ],
+      "truncated": true,
+      "truncated_note": "Trimmed data to last 60 items out of 81"
+    },
+    {
+      "tool_name": "calculate_macd",
+      "error": "Tool 'calculate_macd' is not available in your tier (starter). Consider upgrading your tier or using an alternative tool.",
+      "available": false
+    },
+    {
+      "tool_name": "calculate_ema",
+      "error": "Tool 'calculate_ema' is not available in your tier (starter). Consider upgrading your tier or using an alternative tool.",
+      "available": false
+    },
+    {
+      "tool_name": "calculate_bbands",
+      "error": "Tool 'calculate_bbands' is not available in your tier (starter). Consider upgrading your tier or using an alternative tool.",
+      "available": false
+    },
+    {
+      "tool_name": "calculate_rsi",
+      "error": "Tool 'calculate_rsi' is not available in your tier (starter). Consider upgrading your tier or using an alternative tool.",
+      "available": false
+    },
+    {
+      "tool_name": "calculate_adx",
+      "data": {
+        "tool_name": "calculate_adx",
+        "data": {
+          "symbol": "RKLB",
+          "timestamp": "2026-01-22",
+          "adx": 44.8596654736,
+          "current_close": 87.98,
+          "length": 14
+        }
+      }
+    },
+    {
+      "tool_name": "calculate_atr",
+      "error": "Tool 'calculate_atr' is not available in your tier (starter). Consider upgrading your tier or using an alternative tool.",
+      "available": false
+    },
+    {
+      "tool_name": "calculate_cci",
+      "data": {
+        "tool_name": "calculate_cci",
+        "data": {
+          "symbol": "RKLB",
+          "timestamp": "2026-01-22",
+          "cci": -725.7162162198,
+          "current_close": 87.98,
+          "length": 20
+        }
+      }
+    },
+    {
+      "tool_name": "calculate_obv",
+      "error": "Tool 'calculate_obv' is not available in your tier (starter). Consider upgrading your tier or using an alternative tool.",
+      "available": false
+    }
+  ]
+}

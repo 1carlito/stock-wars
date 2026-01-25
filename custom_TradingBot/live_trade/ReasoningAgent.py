@@ -24,7 +24,8 @@ try:
     from tool_registry import (
         resolve_enabled_tools,
         deduplicate_tools,
-        validate_tool_name
+        validate_tool_name,
+        DEDUPLICATION_PAIRS
     )
     TOOL_REGISTRY_AVAILABLE = True
 except ImportError:
@@ -306,6 +307,54 @@ class ReasoningAgent:
             try:
                 mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
+                # ------------------------------------------------------------------
+                # PRICE FETCHING (Always ensure we have a price)
+                # ------------------------------------------------------------------
+                if not current_price and mcp_session:
+                    try:
+                        print(f"🔍 Pre-fetching current_price for {symbol} on {current_date}...")
+                        price_tool_call = {
+                            "name": "get_current_price",
+                            "arguments": {
+                                "symbol": symbol,
+                                "current_date": current_date,
+                            },
+                        }
+                        # We use _execute_tool_via_mcp but need to be careful not to recurse weirdly
+                        # Since we are before the loop, this is safe.
+                        price_result = await self._execute_tool_via_mcp(
+                            mcp_session, price_tool_call, symbol, current_date
+                        )
+                        
+                        if "error" not in price_result:
+                            data = price_result.get("data", [])
+                            # Handle list vs dict return
+                            if isinstance(data, dict):
+                                start_val = (
+                                    data.get("close")
+                                    or data.get("price")
+                                    or data.get("last_price")
+                                    or data.get("prev_close")
+                                )
+                                if start_val:
+                                    current_price = float(start_val)
+                                    
+                            elif isinstance(data, list) and data:
+                                entry = data[0]
+                                start_val = (
+                                    entry.get("close")
+                                    or entry.get("price")
+                                    or entry.get("last_price")
+                                    or entry.get("prev_close")
+                                )
+                                if start_val:
+                                    current_price = float(start_val)
+                                    
+                        if current_price:
+                            print(f"✅ Pre-fetched current_price: ${float(current_price):.2f}")
+                    except Exception as e:
+                        print(f"⚠️  Failed to pre-fetch current_price: {e}")
+
                 system_prompt = self._build_system_prompt(
                     mcp_session, 
                     selected_categories=selected_categories, 
@@ -357,7 +406,11 @@ class ReasoningAgent:
                     )
                     has_decision = bool(decision_pattern.search(response_text))
 
-                    if has_decision and not tool_calls:
+                    if has_decision:
+                        print(f"🛑 Decision found (iteration {iteration+1}). Halting loop.")
+                        if tool_calls:
+                            print(f"   ⚠️  Ignoring {len(tool_calls)} post-decision tool calls.")
+                            tool_calls = []  # Clear tool calls to prevent execution
                         break
 
                     if mcp_session and tool_calls:
@@ -938,12 +991,78 @@ Avoid lookahead bias: do not use data from after {current_date}.
         import ast
 
         tool_calls: List[Dict[str, Any]] = []
-        pattern = r"TOOL_CALL:\s*(\w+)\s*\(([^)]*)\)"
-        matches = re.finditer(pattern, text, re.IGNORECASE | re.DOTALL)
+        
+        # Split text by "TOOL_CALL:" marker to robustly handle multiple calls
+        # We start looking from the first occurrence
+        parts = re.split(r"TOOL_CALL:\s*", text)
+        
+        # The first part is text before the first tool call (ignore)
+        # Subsequent parts are "tool_name(args...)" keys
+        for part in parts[1:]:
+            # Clean up the part
+            part = part.strip()
+            if not part:
+                continue
+                
+            # Attempt to separate tool name and args
+            # Expect format: name(args...)
+            match = re.match(r"^(\w+)\s*\((.*)\)", part, re.DOTALL)
+            if not match:
+                # Maybe it didn't match the closing paren at the VERY end?
+                # Sometimes LLMs add text after.
+                # Try to find the first opening paren and the matching closing paren logic
+                # But fallback: Look for name and args start
+                match_start = re.match(r"^(\w+)\s*\(", part)
+                if match_start:
+                    tool_name = match_start.group(1)
+                    # The args are everything after the first '(' until... where?
+                    # We'll use a stack-based extraction for the parens
+                    args_str_full = part[len(match_start.group(0)):]
+                    # Extract balanced parens
+                    depth = 1
+                    params_str = ""
+                    for char in args_str_full:
+                        if char == '(':
+                            depth += 1
+                        elif char == ')':
+                            depth -= 1
+                        
+                        if depth == 0:
+                            break
+                        params_str += char
+                    
+                    # If we exited loop successfully
+                    if depth == 0:
+                         pass # params_str is populated
+                    else:
+                         # Malformed or truncated - try valid recovery if mostly correct
+                         params_str = args_str_full.rstrip(')')
+                else:
+                    continue
+            else:
+                tool_name = match.group(1)
+                # Group 2 is "args...)" effectively if DOTALL is greedy
+                # We need to be careful. The split might have included subsequent text.
+                # Re-using the stack logic is safer than trusting the regex end.
+                
+                # Let's extract from the original part string to be safe
+                paren_start = part.find('(')
+                if paren_start == -1: 
+                    continue
+                    
+                args_str_full = part[paren_start+1:]
+                depth = 1
+                params_str = ""
+                for char in args_str_full:
+                    if char == '(':
+                        depth += 1
+                    elif char == ')':
+                        depth -= 1
+                    
+                    if depth == 0:
+                        break
+                    params_str += char
 
-        for match in matches:
-            tool_name = match.group(1)
-            params_str = match.group(2).strip()
 
             params: Dict[str, Any] = {}
             if params_str:
@@ -1030,10 +1149,30 @@ Avoid lookahead bias: do not use data from after {current_date}.
         arguments = tool_call["arguments"]
 
         # Check if tool is available in the user's tier
+        # Check if tool is available in the user's tier
         if tool_name not in self.available_tools:
-            return {
-                "tool_name": tool_name,
-                "error": f"Tool '{tool_name}' is not available in your tier ({self.user_tier}). "
+            # ------------------------------------------------------------------
+            # REDIRECTION LOGIC: Check if this is a "slow" tool that has a "fast" replacement
+            # that IS available. If so, redirect to the fast version.
+            # ------------------------------------------------------------------
+            redirected_name = None
+            try:
+                # DEDUPLICATION_PAIRS is list of (slow, fast)
+                for slow, fast in DEDUPLICATION_PAIRS:
+                    if tool_name == slow and fast in self.available_tools:
+                        redirected_name = fast
+                        break
+            except Exception:
+                pass
+
+            if redirected_name:
+                print(f"🔀 Redirecting '{tool_name}' -> '{redirected_name}' (available in tier)")
+                tool_name = redirected_name
+                tool_call["name"] = redirected_name
+            else:
+                return {
+                    "tool_name": tool_name,
+                    "error": f"Tool '{tool_name}' is not available in your tier ({self.user_tier}). "
                          f"Consider upgrading your tier or using an alternative tool.",
                 "available": False
             }
@@ -1065,14 +1204,6 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "get_analyst_estimates",
             "get_company_news",
         }
-
-        if tool_name in ["get_earnings_calendar", "fundamental_earnings_calendar"]:
-            arguments.setdefault("symbol", symbol)
-            if "current_date" not in arguments and current_date:
-                arguments["current_date"] = current_date
-        else:
-            if tool_name in tools_default_symbol and "symbol" not in arguments:
-                arguments["symbol"] = symbol
 
         if tool_name == "get_current_price" and "current_date" not in arguments:
             arguments["current_date"] = current_date

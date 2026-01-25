@@ -113,3 +113,4 @@ def test_company_sector_lookup_is_resilient():
         assert "industry" in data
 
 
+

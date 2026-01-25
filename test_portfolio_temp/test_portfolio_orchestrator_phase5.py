@@ -37,13 +37,11 @@ def test_portfolio_orchestrator_initialization():
     orchestrator = PortfolioOrchestrator(
         symbols=symbols,
         starting_capital=starting_capital,
-        risk_level="medium",
         max_parallel=3,
     )
 
     assert orchestrator.symbols == symbols
     assert orchestrator.starting_capital == starting_capital
-    assert orchestrator.risk_level == "medium"
     assert isinstance(orchestrator.token_tracker, TokenTracker)
     assert len(orchestrator.token_tracker.decisions) == 0
 
@@ -53,7 +51,6 @@ def test_sector_rankings_retrieval():
     orchestrator = PortfolioOrchestrator(
         symbols=["AAPL"],
         starting_capital=100000.0,
-        risk_level="medium",
         max_parallel=1,
     )
 
@@ -75,7 +72,6 @@ def test_decision_filter_and_enrich():
     orchestrator = PortfolioOrchestrator(
         symbols=["AAPL", "MSFT", "NVDA"],
         starting_capital=100000.0,
-        risk_level="medium",
         max_parallel=3,
     )
 
@@ -120,7 +116,6 @@ def test_waterfall_allocation_with_25_percent_cap():
     orchestrator = PortfolioOrchestrator(
         symbols=["AAPL", "MSFT", "NVDA"],
         starting_capital=100000.0,
-        risk_level="medium",
         max_parallel=3,
     )
 
@@ -166,7 +161,6 @@ def test_token_tracking_multi_stock():
     orchestrator = PortfolioOrchestrator(
         symbols=["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN"],
         starting_capital=100000,
-        risk_level="medium",
     )
 
     trade_date = "2026-01-11"
@@ -195,7 +189,6 @@ def test_budget_enforcement_behavior():
     orchestrator = PortfolioOrchestrator(
         symbols=["AAPL", "MSFT"],
         starting_capital=50000,
-        risk_level="high",
     )
 
     trade_date = "2026-01-11"
@@ -238,5 +231,6 @@ def test_portfolio_summary_structure():
     assert summary["portfolio_state"] is not None
     assert hasattr(summary["portfolio_state"], "cash")
     assert "total_decisions" in summary["token_tracker"]
+
 
 
