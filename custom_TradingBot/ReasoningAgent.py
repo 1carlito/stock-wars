@@ -58,7 +58,7 @@ TOOL_CONFIG: Dict[str, Dict[str, Any]] = {
     "get_company_news": {"trim": True, "max_items": 20},
     "get_world_news": {"trim": True, "max_items": 20},
     
-    # Other tools (company profile, earnings calendar, technical indicators, etc.)
+    # Other tools (company profile, technical indicators, etc.)
     # will use TOOL_DEFAULT_CONFIG unless explicitly overridden here.
 }
 
@@ -1052,7 +1052,6 @@ Avoid lookahead bias: do not use data from after {current_date}.
             pass
         
         # Fill in common parameters
-        # Note: earnings_calendar now accepts optional symbol parameter for filtering
         # and some tools (like world news) do NOT take a symbol at all.
         tools_default_symbol = {
             # Technical indicators (OpenBB & FMP)
@@ -1079,16 +1078,6 @@ Avoid lookahead bias: do not use data from after {current_date}.
             # News (company-scoped)
             "get_company_news",
         }
-
-        if tool_name in ["get_earnings_calendar", "fundamental_earnings_calendar"]:
-            # Always ensure symbol + current_date are present to avoid lookahead
-            arguments.setdefault("symbol", symbol)
-            if "current_date" not in arguments and current_date:
-                arguments["current_date"] = current_date
-        else:
-            # Only inject symbol for tools that actually expect it
-            if tool_name in tools_default_symbol and "symbol" not in arguments:
-                arguments["symbol"] = symbol
         
         # Add current_date to get_current_price to prevent lookahead bias   
         if tool_name == "get_current_price" and "current_date" not in arguments:

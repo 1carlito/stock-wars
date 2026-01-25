@@ -34,7 +34,6 @@ def test_single_stock_backward_compatibility():
     orch_single = PortfolioOrchestrator(
         symbols=["AAPL"],
         starting_capital=50000,
-        risk_level="medium",
     )
 
     assert len(orch_single.symbols) == 1
@@ -60,7 +59,6 @@ def test_multi_stock_forward_compatibility_and_budget():
     orch_multi = PortfolioOrchestrator(
         symbols=["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN"],
         starting_capital=100000,
-        risk_level="medium",
         max_parallel=5,
     )
 
@@ -230,7 +228,6 @@ def test_complete_workflow_token_and_freshness_summaries():
     workflow_orch = PortfolioOrchestrator(
         symbols=["AAPL", "MSFT"],
         starting_capital=50000,
-        risk_level="medium",
         max_parallel=2,
     )
 
@@ -316,5 +313,6 @@ def test_portfolio_state_persistence_structure():
     assert isinstance(initial_state, PortfolioState)
     assert hasattr(initial_state, "cash")
     assert hasattr(initial_state, "positions")
+
 
 
