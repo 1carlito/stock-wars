@@ -147,6 +147,86 @@ def register_fundamental_tools(mcp):
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
 
+    @mcp.tool(name="get_fundamental_summary")
+    @openbb_tool_wrapper("get_fundamental_summary")
+    def get_fundamental_summary(symbol: str) -> Dict[str, Any]:
+        """
+        Get a comprehensive fundamental summary for a stock.
+        This aggregates multiple OpenBB calls into one to ensure data availability and prevent tool errors.
+        
+        Includes:
+        - Company Profile
+        - Income Statement (last 4 years)
+        - Balance Sheet (last 4 years)
+        - Cash Flow (last 4 years)
+        - Analyst Estimates
+        
+        Args:
+            symbol: Stock ticker symbol (e.g., AAPL)
+            
+        Returns:
+            Dict containing all fundamental data.
+        """
+        tool_name = "get_fundamental_summary"
+        result = {"symbol": symbol}
+        
+        try:
+            # 1. Company Profile
+            try:
+                prof = _cached_company_profile(symbol)
+                # handle OBBject vs dict
+                if hasattr(prof, "results") and prof.results:
+                    p_data = prof.results[0]
+                    result["profile"] = p_data.model_dump() if hasattr(p_data, "model_dump") else (p_data.dict() if hasattr(p_data, "dict") else p_data)
+                elif isinstance(prof, dict):
+                    result["profile"] = prof
+            except Exception as e:
+                result["profile_error"] = str(e)
+
+            # 2. Financial Statements (Income, Balance, Cash) - Limit 4 years
+            limit = 4
+            for stmt_type in ["income", "balance", "cash"]:
+                try:
+                    if stmt_type == "income":
+                        data = _cached_income_statement(symbol, "annual", limit)
+                    elif stmt_type == "balance":
+                        data = _cached_balance_sheet(symbol, "annual", limit)
+                    else:
+                        data = _cached_cash_flow(symbol, "annual", limit)
+                        
+                    key_name = f"{stmt_type}_statement"
+                    
+                    if hasattr(data, "results") and data.results:
+                        processed_list = []
+                        for item in data.results:
+                            val = item.model_dump() if hasattr(item, "model_dump") else (item.dict() if hasattr(item, "dict") else item)
+                            processed_list.append(val)
+                        result[key_name] = processed_list
+                    elif isinstance(data, dict):
+                        result[key_name] = data
+                except Exception as e:
+                    result[f"{stmt_type}_error"] = str(e)
+
+            # 3. Analyst Estimates
+            try:
+                est = _cached_analyst_estimates(symbol)
+                if hasattr(est, "results") and est.results:
+                    processed_list = []
+                    for item in est.results:
+                        val = item.model_dump() if hasattr(item, "model_dump") else (item.dict() if hasattr(item, "dict") else item)
+                        processed_list.append(val)
+                    result["analyst_estimates"] = processed_list
+                elif isinstance(est, dict):
+                    result["analyst_estimates"] = est
+            except Exception as e:
+                result["estimates_error"] = str(e)
+
+            return format_tool_result(tool_name, data=result)
+
+        except Exception as e:
+            return format_tool_result(tool_name, error=f"Summary calc failed: {e}")
+
+
     # =========================================================================
     # FMP DIRECT IMPLEMENTATIONS
     # =========================================================================
