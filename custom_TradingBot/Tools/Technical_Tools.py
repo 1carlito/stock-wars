@@ -682,6 +682,13 @@ def register_technical_tools(mcp):
         """
         tool_name = "calculate_rsi"
         try:
+            # Enforce minimum lookback (90 days) to ensure convergence
+            s_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            e_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            if (e_dt - s_dt).days < 90:
+                s_dt = e_dt - timedelta(days=90)
+                start_date = s_dt.strftime("%Y-%m-%d")
+
             # Fetch price data first
             price_data = _fetch_price_data(symbol, start_date, end_date)
 
@@ -750,6 +757,13 @@ def register_technical_tools(mcp):
         """
         tool_name = "calculate_adx"
         try:
+            # Enforce minimum lookback (90 days)
+            s_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            e_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            if (e_dt - s_dt).days < 90:
+                s_dt = e_dt - timedelta(days=90)
+                start_date = s_dt.strftime("%Y-%m-%d")
+
             # Fetch price data first
             price_data = _fetch_price_data(symbol, start_date, end_date)
 
@@ -819,6 +833,13 @@ def register_technical_tools(mcp):
         """
         tool_name = "calculate_ema"
         try:
+            # Enforce minimum lookback (90 days)
+            s_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            e_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            if (e_dt - s_dt).days < 90:
+                s_dt = e_dt - timedelta(days=90)
+                start_date = s_dt.strftime("%Y-%m-%d")
+
             # Fetch price data first
             price_data = _fetch_price_data(symbol, start_date, end_date)
 
@@ -887,6 +908,13 @@ def register_technical_tools(mcp):
         """
         tool_name = "calculate_cci"
         try:
+            # Enforce minimum lookback (90 days)
+            s_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            e_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            if (e_dt - s_dt).days < 90:
+                s_dt = e_dt - timedelta(days=90)
+                start_date = s_dt.strftime("%Y-%m-%d")
+
             # Fetch price data first
             price_data = _fetch_price_data(symbol, start_date, end_date)
 
@@ -1032,9 +1060,9 @@ def register_technical_tools(mcp):
         return obb.equity.price.quote(symbol=symbol)
 
 
-    @mcp.tool(name="get_openbb_bbands")
-    @openbb_tool_wrapper("get_openbb_bbands")
-    def get_openbb_bbands(
+    @mcp.tool(name="calculate_bbands")
+    @openbb_tool_wrapper("calculate_bbands")
+    def calculate_bbands(
         symbol: str,
         length: int = 20,
         std: float = 2.0,
@@ -1075,7 +1103,7 @@ def register_technical_tools(mcp):
             )
 
             if not bbands_result or not bbands_result.results:
-                return format_tool_result("get_openbb_bbands", error="Could not calculate BBands")
+                return format_tool_result("calculate_bbands", error="Could not calculate BBands")
 
             # Get latest values only (no history)
             latest = bbands_result.results[-1]
@@ -1105,7 +1133,7 @@ def register_technical_tools(mcp):
                     lower_key = key
 
             return format_tool_result(
-                "get_openbb_bbands",
+                "calculate_bbands",
                 data={
                     "symbol": symbol,
                     "timestamp": latest_dict.get("date"),
@@ -1118,11 +1146,11 @@ def register_technical_tools(mcp):
                 }
             )
         except Exception as e:  # noqa: BLE001
-            return format_tool_result("get_openbb_bbands", error=e)
+            return format_tool_result("calculate_bbands", error=e)
 
-    @mcp.tool(name="get_openbb_macd")
-    @openbb_tool_wrapper("get_openbb_macd")
-    def get_openbb_macd(
+    @mcp.tool(name="calculate_macd")
+    @openbb_tool_wrapper("calculate_macd")
+    def calculate_macd(
         symbol: str,
         fast: int = 12,
         slow: int = 26,
@@ -1148,6 +1176,9 @@ def register_technical_tools(mcp):
             Dict with current MACD values (macd_line, signal_line, histogram, close)
         """
         try:
+            if days_back < 90:
+                days_back = 90
+            
             # Calculate end date as today, start date as days_back ago
             end_date = (datetime.now().date()).strftime("%Y-%m-%d")
             start_date = (datetime.now().date() - timedelta(days=days_back)).strftime("%Y-%m-%d")
@@ -1165,7 +1196,7 @@ def register_technical_tools(mcp):
             )
 
             if not macd_result or not macd_result.results:
-                return format_tool_result("get_openbb_macd", error="Could not calculate MACD")
+                return format_tool_result("calculate_macd", error="Could not calculate MACD")
 
             # Get latest values only (no history)
             latest = macd_result.results[-1]
@@ -1201,7 +1232,7 @@ def register_technical_tools(mcp):
             )
 
             return format_tool_result(
-                "get_openbb_macd",
+                "calculate_macd",
                 data={
                     "symbol": symbol,
                     "timestamp": latest_dict.get("date"),
@@ -1215,11 +1246,11 @@ def register_technical_tools(mcp):
                 }
             )
         except Exception as e:  # noqa: BLE001
-            return format_tool_result("get_openbb_macd", error=e)
+            return format_tool_result("calculate_macd", error=e)
 
-    @mcp.tool(name="get_openbb_obv")
-    @openbb_tool_wrapper("get_openbb_obv")
-    def get_openbb_obv(
+    @mcp.tool(name="calculate_obv")
+    @openbb_tool_wrapper("calculate_obv")
+    def calculate_obv(
         symbol: str,
         days_back: int = 60
     ) -> Dict[str, Any]:
@@ -1248,7 +1279,7 @@ def register_technical_tools(mcp):
             obv_result = obb.technical.obv(data=price_data, offset=0)
 
             if not obv_result or not obv_result.results:
-                return format_tool_result("get_openbb_obv", error="Could not calculate OBV")
+                return format_tool_result("calculate_obv", error="Could not calculate OBV")
 
             # Get latest values only (no history)
             latest = obv_result.results[-1]
@@ -1264,7 +1295,7 @@ def register_technical_tools(mcp):
                 latest_dict = {}
 
             return format_tool_result(
-                "get_openbb_obv",
+                "calculate_obv",
                 data={
                     "symbol": symbol,
                     "timestamp": latest_dict.get("date"),
@@ -1274,11 +1305,11 @@ def register_technical_tools(mcp):
                 }
             )
         except Exception as e:  # noqa: BLE001
-            return format_tool_result("get_openbb_obv", error=e)
+            return format_tool_result("calculate_obv", error=e)
 
-    @mcp.tool(name="get_openbb_vwap")
-    @openbb_tool_wrapper("get_openbb_vwap")
-    def get_openbb_vwap(
+    @mcp.tool(name="calculate_vwap")
+    @openbb_tool_wrapper("calculate_vwap")
+    def calculate_vwap(
         symbol: str,
         anchor: str = "D"
     ) -> Dict[str, Any]:
@@ -1305,7 +1336,7 @@ def register_technical_tools(mcp):
             vwap_result = obb.technical.vwap(data=price_data, anchor=anchor, offset=0)
 
             if not vwap_result or not vwap_result.results:
-                return format_tool_result("get_openbb_vwap", error="Could not calculate VWAP")
+                return format_tool_result("calculate_vwap", error="Could not calculate VWAP")
 
             # Get latest values only (no history)
             latest = vwap_result.results[-1]
@@ -1323,7 +1354,7 @@ def register_technical_tools(mcp):
             vwap_key = f'VWAP_{anchor}'
 
             return format_tool_result(
-                "get_openbb_vwap",
+                "calculate_vwap",
                 data={
                     "symbol": symbol,
                     "timestamp": latest_dict.get("date"),
@@ -1334,7 +1365,7 @@ def register_technical_tools(mcp):
                 }
             )
         except Exception as e:  # noqa: BLE001
-            return format_tool_result("get_openbb_vwap", error=e)
+            return format_tool_result("calculate_vwap", error=e)
 
     # -----------------------------------------------------------------------
     # FMP PRECOMPUTED TECHNICAL INDICATORS (RSI, EMA)
@@ -1521,3 +1552,191 @@ def register_technical_tools(mcp):
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
+
+
+    @mcp.tool(name="get_technical_summary")
+    @openbb_tool_wrapper("get_technical_summary")
+    def get_technical_summary(
+        symbol: str,
+        end_date: str,
+        lookback_days: int = 120
+    ) -> Dict[str, Any]:
+        """
+        Calculate a comprehensive set of technical indicators for a given date.
+        Automatically fetches sufficient history (default 120 days) to ensure convergence.
+        Returns the LAST 60 DAYS of values for each indicator to provide deep trend context.
+        
+        Returns a single JSON object with series data for: 
+        - RSI (14)
+        - MACD (12, 26, 9)
+        - BBands (20, 2)
+        - ADX (14)
+        - ATR (14)
+        - CCI (20)
+        - OBV
+        - EMA (20)
+        - SMA (50)
+        
+        Args:
+            symbol: Stock ticker
+            end_date: The date to analyze (YYYY-MM-DD)
+            lookback_days: Days of history to fetch (default: 120, to be safe)
+            
+        Returns:
+            Dict containing 60-day history series for indicators ending on end_date.
+        """
+        tool_name = "get_technical_summary"
+        try:
+            # Auto-calculate start date
+            ed = datetime.strptime(end_date, "%Y-%m-%d")
+            sd = ed - timedelta(days=lookback_days)
+            start_date = sd.strftime("%Y-%m-%d")
+
+            # 1. Fetch Price History ONCE
+            price_data = _fetch_price_data(symbol, start_date, end_date)
+            
+            # Helper to get series of values (last N days)
+            def _get_series(data, key_fragment, num_days=60):
+                if not data or not hasattr(data, "results") or not data.results:
+                    return []
+                
+                # Get all results first
+                all_results = data.results
+                
+                # Trim to last N entries
+                series_data = all_results[-num_days:] if len(all_results) > num_days else all_results
+                
+                values = []
+                for item in series_data:
+                    # Handle OBBject vs Dict vs Pandas
+                    item_dict = {}
+                    if hasattr(item, "model_dump"):
+                        item_dict = item.model_dump()
+                    elif hasattr(item, "dict"):
+                        item_dict = item.dict()
+                    elif isinstance(item, dict):
+                        item_dict = item
+                    
+                    found_val = None
+                    for k, v in item_dict.items():
+                        if key_fragment.lower() in str(k).lower():
+                            found_val = v
+                            break
+                    values.append(found_val)
+                return values
+
+            # Helper to get corresponding dates
+            def _get_dates(data, num_days=60):
+                if not data or not hasattr(data, "results") or not data.results:
+                    return []
+                series_data = data.results[-num_days:] if len(data.results) > num_days else data.results
+                dates = []
+                for item in series_data:
+                    d = None
+                    if hasattr(item, "date"): d = item.date
+                    elif isinstance(item, dict): d = item.get("date")
+                    if d: dates.append(str(d))
+                return dates
+
+            indicators = {}
+            
+            # 2. RSI (14)
+            try:
+                rsi = obb.technical.rsi(data=price_data, length=14)
+                indicators["RSI_14"] = _get_series(rsi, "rsi")
+            except Exception:
+                indicators["RSI_14"] = []
+
+            # 3. MACD (12, 26, 9)
+            try:
+                macd = obb.technical.macd(data=price_data, fast=12, slow=26, signal=9)
+                indicators["MACD"] = _get_series(macd, "macd")
+                indicators["MACD_Signal"] = _get_series(macd, "signal")
+                indicators["MACD_Hist"] = _get_series(macd, "hist")
+            except Exception:
+                indicators["MACD"] = []
+                
+            # 4. BBands (20, 2)
+            try:
+                bb = obb.technical.bbands(data=price_data, length=20, std=2)
+                indicators["BB_Upper"] = _get_series(bb, "upper")
+                indicators["BB_Middle"] = _get_series(bb, "middle")
+                indicators["BB_Lower"] = _get_series(bb, "lower")
+            except Exception:
+                indicators["BB_Upper"] = []
+
+            # 5. ADX (14)
+            try:
+                adx = obb.technical.adx(data=price_data, length=14)
+                indicators["ADX_14"] = _get_series(adx, "adx")
+            except Exception:
+                indicators["ADX_14"] = []
+
+            # 6. ATR (14)
+            try:
+                atr = obb.technical.atr(data=price_data, length=14)
+                indicators["ATR_14"] = _get_series(atr, "atr")
+            except Exception:
+                indicators["ATR_14"] = []
+                
+            # 7. CCI (20)
+            try:
+                cci = obb.technical.cci(data=price_data, length=20)
+                indicators["CCI_20"] = _get_series(cci, "cci")
+            except Exception:
+                indicators["CCI_20"] = []
+                
+            # 8. OBV
+            try:
+                obv = obb.technical.obv(data=price_data)
+                indicators["OBV"] = _get_series(obv, "obv")
+            except Exception:
+                indicators["OBV"] = []
+                
+            # 9. EMA (20) & SMA (50)
+            try:
+                ema = obb.technical.ema(data=price_data, length=20)
+                indicators["EMA_20"] = _get_series(ema, "ema")
+            except Exception:
+                indicators["EMA_20"] = []
+
+            try:
+                sma = obb.technical.sma(data=price_data, length=50)
+                indicators["SMA_50"] = _get_series(sma, "sma")
+            except Exception:
+                indicators["SMA_50"] = []
+
+            # Get Price Series
+            dates = []
+            closes = []
+            try:
+                if hasattr(price_data, "results") and price_data.results:
+                    subset = price_data.results[-60:] if len(price_data.results) > 60 else price_data.results
+                    for item in subset:
+                        d = None
+                        c = None
+                        if hasattr(item, "date"): d = item.date
+                        elif isinstance(item, dict): d = item.get("date")
+                        
+                        if hasattr(item, "close"): c = item.close
+                        elif isinstance(item, dict): c = item.get("close")
+                        
+                        if d: dates.append(str(d))
+                        if c: closes.append(c)
+            except Exception:
+                pass
+
+            return format_tool_result(
+                tool_name,
+                data={
+                    "symbol": symbol,
+                    "end_date": end_date,
+                    "dates": dates,
+                    "closing_prices": closes,
+                    "indicators": indicators
+                }
+            )
+
+        except Exception as e:
+            return format_tool_result(tool_name, error=f"Summary calc failed: {e}")
+

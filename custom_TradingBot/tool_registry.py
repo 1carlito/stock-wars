@@ -68,6 +68,14 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "description": "RSI indicator (slow - fetches ~200 days)",
         "has_fast_alternative": True
     },
+    "get_technical_summary": {
+        "category": "technical",
+        "tier": "free",
+        "provider": "openbb",
+        "mcp_name": "get_technical_summary",
+        "description": "FULL technical summary (RSI, MACD, ADX, etc.). Returns last 14 days of values for trend analysis.",
+        "has_fast_alternative": False
+    },
     "calculate_ema": {
         "category": "technical",
         "tier": "free",
@@ -142,7 +150,7 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "category": "technical",
         "tier": "free",
         "provider": "openbb",
-        "mcp_name": "get_openbb_bbands",
+        "mcp_name": "calculate_bbands",
         "description": "Bollinger Bands (requires history fetch, returns current values only)",
         "has_fast_alternative": True,
         "returns_indicator_only": True
@@ -151,7 +159,7 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "category": "technical",
         "tier": "free",
         "provider": "openbb",
-        "mcp_name": "get_openbb_macd",
+        "mcp_name": "calculate_macd",
         "description": "MACD (requires history fetch, returns current values only)",
         "has_fast_alternative": False,
         "returns_indicator_only": True
@@ -160,16 +168,16 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "category": "technical",
         "tier": "free",
         "provider": "openbb",
-        "mcp_name": "get_openbb_obv",
+        "mcp_name": "calculate_obv",
         "description": "On-Balance Volume (requires history fetch, returns current values only)",
         "has_fast_alternative": True,
         "returns_indicator_only": True
     },
-    "get_openbb_vwap": {
+    "calculate_vwap": {
         "category": "technical",
         "tier": "free",
         "provider": "openbb",
-        "mcp_name": "get_openbb_vwap",
+        "mcp_name": "calculate_vwap",
         "description": "Volume-Weighted Average Price intraday (current day only)",
         "has_fast_alternative": False,
         "returns_indicator_only": True
@@ -206,6 +214,22 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
     # =========================================================================
     # FUNDAMENTAL ANALYSIS - OpenBB (STARTER tier)
     # =========================================================================
+    "get_fundamental_summary": {
+        "category": "fundamental",
+        "tier": "starter",
+        "provider": "openbb",
+        "mcp_name": "get_fundamental_summary",
+        "description": "Comprehensive fundamental summary (Profile, Income, Balance, Cash, Estimates) in one call.",
+        "has_fast_alternative": False
+    },
+    "get_fundamental_summary": {
+        "category": "fundamental",
+        "tier": "starter",
+        "provider": "openbb",
+        "mcp_name": "get_fundamental_summary",
+        "description": "Comprehensive fundamental summary (Profile, Income, Balance, Cash, Estimates) in one call.",
+        "has_fast_alternative": False
+    },
     "get_income_statement": {
         "category": "fundamental",
         "tier": "starter",
@@ -349,10 +373,10 @@ _FREE_TOOLS = [
     "calculate_adx",
     "calculate_cci",
     # Technical (OpenBB intraday - new indicators)
-    "get_openbb_bbands",
-    "get_openbb_macd",
-    "get_openbb_obv",
-    "get_openbb_vwap",
+    "calculate_bbands",
+    "calculate_macd",
+    "calculate_obv",
+    "calculate_vwap",
     # News
     "get_company_news",
     "get_world_news",
@@ -508,6 +532,7 @@ TOOL_CATEGORIES: Dict[str, Dict[str, List[str]]] = {
     "technical_indicators": {
         "description": "Technical analysis tools (RSI, EMA, MACD, etc.) + intraday candles",
         "tools": [
+            "get_technical_summary", # NEW - Unified summary tool
             "get_intraday_candles",  # NEW - latest 30m/1h candle for today
             "calculate_rsi",
             "calculate_ema",
@@ -524,6 +549,7 @@ TOOL_CATEGORIES: Dict[str, Dict[str, List[str]]] = {
     "fundamental": {
         "description": "Fundamental analysis (financials, earnings, analyst estimates)",
         "tools": [
+            "get_fundamental_summary", # NEW - Unified summary tool
             "get_company_profile",
             "get_income_statement",
             "get_balance_sheet",

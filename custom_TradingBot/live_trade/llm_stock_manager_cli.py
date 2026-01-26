@@ -1602,6 +1602,9 @@ def run_interactive() -> None:
     # Step 2: Mode Selection (so we know how to interpret symbols/portfolio)
     analysis_mode = _prompt_analysis_mode()
 
+    # Step 3: Strategy Selection (Long Only vs. Long/Short) - As requested (2nd question)
+    allow_short_selling = _prompt_trading_strategy()
+
 
     # Step 4: Starting Capital
     capital = _prompt_starting_capital()
@@ -1615,6 +1618,12 @@ def run_interactive() -> None:
         # Mode 2 (paper) -> always use Alpaca paper environment
         # Mode 3 (alpaca_live) -> always use Alpaca live environment
         alpaca_paper_trading = analysis_mode == "paper"
+
+    # Initialize these variables for all paths
+    portfolio_mode: PortfolioMode = "new"
+    portfolio = None
+    force_reset = False
+    technical_indicators_date_range = None
 
     # Analysis vs Alpaca-specific branching
     if analysis_mode == "analysis":
@@ -1728,6 +1737,7 @@ def run_interactive() -> None:
         selected_tool_categories=selected_tool_categories,
         include_news=include_news,
         technical_indicators_date_range=technical_indicators_date_range,
+        allow_short_selling=allow_short_selling,
     )
 
     console.print()
