@@ -2,6 +2,7 @@ import sys
 import os
 import json
 from types import ModuleType
+from datetime import datetime
 
 # Setup paths
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -13,6 +14,16 @@ mock_obb = ModuleType("obb")
 mock_equity = ModuleType("equity")
 mock_price = ModuleType("price")
 mock_technical = ModuleType("technical")
+
+# Mock cache_manager
+mock_cm_module = ModuleType("cache_manager")
+class MockCacheManager:
+    def __init__(self, *args, **kwargs): pass
+    def get(self, key): return None
+    def set(self, key, val): pass
+
+mock_cm_module.CacheManager = MockCacheManager
+sys.modules["cache_manager"] = mock_cm_module
 
 # Define mock functions
 def mock_historical(*args, **kwargs):
@@ -27,15 +38,23 @@ def mock_rsi(*args, **kwargs):
     class Res:
         results = []
         def __init__(self):
-            for i in range(2):
-                self.results.append({
-                    "date": "2024-01-01", 
-                    "close": 150.0,
-                    "RSI_14_": 50.0 + i
-                })
-        def model_dump(self):
-            return {"data": self.results} # Not really used since we iterate manually
-            
+             self.results.append({
+                 "date": "2024-01-01", 
+                 "close": 150.0,
+                 "RSI_14_CLOSE": 55.5 # Tricky key
+             })
+        def model_dump(self): return {"data": self.results}
+    return Res()
+
+def mock_ema(*args, **kwargs):
+    class Res:
+        results = []
+        def __init__(self):
+             self.results.append({
+                 "date": "2024-01-01", 
+                 "EMA_50": 145.0 # Tricky key
+             })
+        def model_dump(self): return {"data": self.results}
     return Res()
 
 # Stitch mocks together
@@ -44,20 +63,11 @@ mock_equity.price = mock_price
 mock_obb.equity = mock_equity
 
 mock_technical.rsi = mock_rsi
+mock_technical.ema = mock_ema
 mock_obb.technical = mock_technical
 
 mock_obb_module.obb = mock_obb
 sys.modules["openbb"] = mock_obb_module
-
-# Mock cache_manager to avoid disk cache issues with local classes
-mock_cm_module = ModuleType("cache_manager")
-class MockCacheManager:
-    def __init__(self, *args, **kwargs): pass
-    def get(self, key): return None
-    def set(self, key, val): pass
-
-mock_cm_module.CacheManager = MockCacheManager
-sys.modules["cache_manager"] = mock_cm_module
 
 # Now import
 from Tools import openbb_technical_tools
@@ -77,43 +87,55 @@ try:
     mcp = MockMCP()
     openbb_technical_tools.register_openbb_technical_tools(mcp)
     
-    print("\n--- Testing calculate_rsi ---")
+    print("\n--- Testing calculate_rsi (Found key: RSI_14_CLOSE) ---")
     if "calculate_rsi" in mcp.tools:
-        # Call the tool
-        # Since we mocked openbb, we can call it without errors hopefully!
-        print("Calling calculate_rsi...")
+        # Call with NO dates to test defaults
+        print("Calling calculate_rsi without dates...")
         try:
-            result = mcp.tools["calculate_rsi"](symbol="AAPL", start_date="2024-01-01", end_date="2024-01-10")
+            result = mcp.tools["calculate_rsi"](symbol="AAPL")
             print("Result received.")
-            # Check structure
-            # Expecting: {'tool_name': 'calculate_rsi', 'data': [{'date': '2024-01-01', 'rsi': ..., ...}]}
             
-            print(f"Result keys: {result.keys()}")
+            # Check for wrapper dict
+            data = result
+            if isinstance(result, dict) and "data" in result:
+                data = result["data"]
             
-            data = result.get("data")
-            if isinstance(data, list):
-                print(f"✅ Data is list (len={len(data)})")
-                if len(data) > 0:
-                    print(f"Sample item keys: {data[0].keys()}")
-                    if "rsi" in data[0]:
-                        print("✅ Item has 'rsi'")
-                    else:
-                        print(f"❌ Item missing 'rsi': {data[0]}")
-            elif isinstance(data, dict):
-                print("❌ Data is dict (Double wrapping detected? or empty?)")
-                print(data)
+            if isinstance(data, list) and len(data) > 0:
+                print(f"✅ Data is list. Item: {data[0]}")
+                if data[0].get("rsi") == 55.5:       
+                    print("✅ Fuzzy extraction worked for RSI")
+                else: 
+                    print(f"❌ Fuzzy extraction failed. RSI: {data[0].get('rsi')}")
             else:
-                print(f"❌ Data is unknown type: {type(data)}")
-                if "error" in result:
-                    print(f"Error message: {result['error']}")
-                
+                 print(f"❌ Unexpected result format: {result}")
         except Exception as e:
-            print(f"❌ Error during execution: {e}")
+            print(f"❌ Error: {e}")
             import traceback
             traceback.print_exc()
+
+    print("\n--- Testing calculate_ema (Found key: EMA_50) ---")
+    if "calculate_ema" in mcp.tools:
+        print("Calling calculate_ema...")
+        try:
+            result = mcp.tools["calculate_ema"](symbol="AAPL") 
             
-    else:
-        print("❌ calculate_rsi not registered")
+            # Check for wrapper dict
+            data = result
+            if isinstance(result, dict) and "data" in result:
+                data = result["data"]
+
+            if isinstance(data, list) and len(data) > 0:
+                print(f"✅ Data is list. Item: {data[0]}")
+                if data[0].get("ema") == 145.0:       
+                    print("✅ Fuzzy extraction worked for EMA")
+                else: 
+                    print(f"❌ Fuzzy extraction failed. EMA: {data[0].get('ema')}")
+            else:
+                 print(f"❌ Unexpected result format: {result}")
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            import traceback
+            traceback.print_exc()
 
 except Exception as e:
     print(f"❌ Script Error: {e}")

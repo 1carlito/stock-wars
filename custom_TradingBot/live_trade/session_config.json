@@ -1,27 +1,28 @@
 {
   "symbols": [
-    "ONDS"
+    "VERI"
   ],
-  "starting_capital": 121212.0,
-  "trade_mode": "paper",
-  "run_mode": "once",
-  "analysis_mode": "analysis",
+  "starting_capital": 21212.0,
+  "trade_mode": "live",
+  "run_mode": "daemon",
+  "analysis_mode": "paper",
   "portfolio_mode": "new",
   "portfolio": null,
   "notes": "",
-  "alpaca_api_key": "",
-  "alpaca_api_secret": "",
+  "alpaca_api_key": "PKX43G67WRDNZY7FE6TARDUTBY",
+  "alpaca_api_secret": "PrxmVEW3vpMmqB93we2TbDaKgvVrQvaqWTzZsrewPZC",
   "alpaca_paper_trading": true,
   "force_reset_portfolio": false,
   "has_fmp_access": false,
-  "first_run_date": null,
+  "first_run_date": "2026-01-27",
   "scheduled_times_gmt": null,
-  "first_day_entry_time_gmt": null,
+  "first_day_entry_time_gmt": "16:17",
   "user_tier": "starter",
   "selected_tool_categories": [
-    "technical_indicators"
+    "technical_indicators",
+    "sentiment"
   ],
-  "include_news": false,
+  "include_news": true,
   "technical_indicators_date_range": null,
   "allow_short_selling": false
 }
