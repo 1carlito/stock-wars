@@ -80,21 +80,61 @@ try:
         spec.loader.exec_module(module)
         return module
     
-    # Load modules from specific file paths
-    fundamental_tools_path = os.path.join(tools_dir, "Fundamental_Tools.py")
-    technical_tools_path = os.path.join(tools_dir, "Technical_Tools.py")
+    # Load News and Sector tools (Always shared/same)
     news_tools_path = os.path.join(tools_dir, "News_Tools.py")
     sector_tools_path = os.path.join(tools_dir, "Sector_Tools.py")
-
-    Fundamental_Tools = load_module_from_path("Fundamental_Tools", fundamental_tools_path)
-    Technical_Tools = load_module_from_path("Technical_Tools", technical_tools_path)
+    
     News_Tools = load_module_from_path("News_Tools", news_tools_path)
     Sector_Tools = load_module_from_path("Sector_Tools", sector_tools_path)
-
-    register_fundamental_tools = Fundamental_Tools.register_fundamental_tools
-    register_technical_tools = Technical_Tools.register_technical_tools
+    
     register_news_tools = News_Tools.register_news_tools
     register_sector_tools = Sector_Tools.register_sector_tools
+
+    # Load Fundamental and Technical Tools - Conditional Logic
+    fmp_api_key = os.getenv("fmp_api_key")
+    has_fmp = bool(fmp_api_key)
+
+    register_fundamental_tools = None
+    register_technical_tools = None
+    
+    # -- Fundamental Tools --
+    if has_fmp:
+        # Load FMP Fundamental Tools
+        fmp_fund_path = os.path.join(tools_dir, "fmp_fundamental_tools.py")
+        FMP_Fundamental = load_module_from_path("fmp_fundamental_tools", fmp_fund_path)
+        register_fundamental_tools = FMP_Fundamental.register_fmp_fundamental_tools
+        print("✅ Using FMP Fundamental Tools")
+    else:
+        # Load OpenBB Fundamental Tools
+        obb_fund_path = os.path.join(tools_dir, "openbb_fundamental_tools.py")
+        OBB_Fundamental = load_module_from_path("openbb_fundamental_tools", obb_fund_path)
+        register_fundamental_tools = OBB_Fundamental.register_openbb_fundamental_tools
+        print("✅ Using OpenBB Fundamental Tools")
+
+    # -- Technical Tools --
+    # Always load OpenBB Technical Tools because of forced default indicators (atr, macd, etc.)
+    obb_tech_path = os.path.join(tools_dir, "openbb_technical_tools.py")
+    OBB_Technical = load_module_from_path("openbb_technical_tools", obb_tech_path)
+    register_openbb_tech = OBB_Technical.register_openbb_technical_tools
+    
+    register_fmp_tech = None
+    if has_fmp:
+        fmp_tech_path = os.path.join(tools_dir, "fmp_technical_tools.py")
+        FMP_Technical = load_module_from_path("fmp_technical_tools", fmp_tech_path)
+        register_fmp_tech = FMP_Technical.register_fmp_technical_tools
+        print("✅ Using FMP Technical Tools (+ OpenBB for advanced)")
+    else:
+        print("✅ Using OpenBB Technical Tools")
+
+    # Wrapper to register technical tools
+    def register_technical_tools_combined(mcp):
+        if register_fmp_tech:
+            register_fmp_tech(mcp)
+        # Always register OpenBB tech (it handles unique indicators like ATR, BBands not in FMP free tier/simple wrappers)
+        if register_openbb_tech:
+             register_openbb_tech(mcp)
+            
+    register_technical_tools = register_technical_tools_combined
 
 except Exception as e:
     print(f"⚠️  Tool modules not available: {e}")

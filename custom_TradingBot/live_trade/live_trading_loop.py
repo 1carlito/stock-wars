@@ -1188,6 +1188,17 @@ async def run_single_trading_cycle(
     except Exception as e:
         _logger.debug(f"Could not load config: {e}")
 
+    # Load allow_short_selling from config
+    allow_short_selling = False
+    try:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+                allow_short_selling = config_data.get("allow_short_selling", False)
+    except Exception as e:
+        _logger.debug(f"Could not load allow_short_selling from config: {e}")
+
     decision_result = await agent._make_decision_async(
         symbol=symbol,
         current_date=trade_date.isoformat(),
@@ -1199,6 +1210,7 @@ async def run_single_trading_cycle(
         technical_data=technical_data_for_prompt if technical_data_for_prompt else None,
         selected_categories=selected_categories,
         technical_indicators_date_range=technical_indicators_date_range,
+        allow_short_selling=allow_short_selling,
     )
 
     # 5. Close MCP session cleanly
@@ -1389,7 +1401,7 @@ def run_once(
             notes=notes,
             mode=mode,
             force_reset=force_reset,
-            max_parallel=min(5, len(symbols_to_trade))
+            max_parallel=min(1, len(symbols_to_trade))
         )
         asyncio.run(orchestrator.process_portfolio(trade_date))
     else:
