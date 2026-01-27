@@ -20,6 +20,15 @@ import requests
 
 # Import tool registry for filtering (from parent directory)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+# Import LLM Client
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+try:
+    from llm_client import get_llm_client
+except ImportError:
+    print("⚠️  llm_client not found. Make sure it exists in the same directory.")
+    # Fallback or raise error? For now, we'll let it fail later if not found.
+
 try:
     from tool_registry import (
         resolve_enabled_tools,
@@ -84,8 +93,17 @@ class ReasoningAgent:
     def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True, config_path=None):
         self.data_dir = data_dir
         self.decision_save_dir = os.path.join(self.data_dir, "reasoning_decisions")
-        self.model = MODEL_NAME
-        self.api_key = api_key_override or DEFAULT_API_TOKEN
+        
+        # LLM Provider Configuration
+        self.llm_provider = os.getenv("LLM_PROVIDER", "chutes").lower()
+        
+        if self.llm_provider == "openai":
+            self.model = os.getenv("OPENAI_MODEL_NAME", "gpt-4o")
+            self.api_key = os.getenv("OPENAI_API_KEY")
+        else:
+            self.model = MODEL_NAME
+            self.api_key = api_key_override or DEFAULT_API_TOKEN
+
         self.use_mcp_client = use_mcp_client and MCP_CLIENT_AVAILABLE
         self.mcp_session = None
         self.available_tools: List[str] = []
@@ -96,7 +114,17 @@ class ReasoningAgent:
         self._load_user_tier_config(config_path)
 
         if not self.api_key:
-            raise ValueError("No API token provided. Set DEEPSEEK_API_KEY in environment.")
+             if self.llm_provider == "openai":
+                raise ValueError("No OpenAI API Key provided. Set OPENAI_API_KEY in environment.")
+             else:
+                raise ValueError("No API token provided. Set DEEPSEEK_API_KEY in environment.")
+
+        # Initialize LLM Client
+        try:
+             self.llm_client = get_llm_client(self.llm_provider, self.api_key, self.model)
+             print(f"✅ LLM Client initialized: {self.llm_provider} ({self.model})")
+        except Exception as e:
+             raise ValueError(f"Failed to initialize LLM client: {e}")
 
         if self.use_mcp_client:
             self._init_mcp_client()
@@ -208,7 +236,7 @@ class ReasoningAgent:
                             self.available_tools = list(deduplicate_tools(filtered_tools))
                             print(f"   📋 Tier {self.user_tier} + FMP={self.has_fmp_access} → {len(self.available_tools)} tools available")
                             if len(self.available_tools) < len(discovered_tools):
-                                removed = set(discovered_tools) - self.available_tools
+                                removed = set(discovered_tools) - set(self.available_tools)
                                 print(f"   🔒 Filtered out {len(removed)} tools (not in tier)")
                         else:
                             # No tool registry: use all discovered tools
@@ -392,7 +420,7 @@ class ReasoningAgent:
                 while iteration < max_tool_iterations:
                     print(f"\n🔄 REACT ITERATION {iteration + 1}/{max_tool_iterations}")
                     print(f"📤 Calling LLM with {len(messages)} messages (planning/analysis stage)...")
-                    response_text = self._call_chutes_api(messages)
+                    response_text = self.llm_client.chat_completion(messages)
                     print(f"📥 LLM RESPONSE ({len(response_text)} chars):")
                     print("-" * 80)
                     print(response_text)
@@ -401,7 +429,7 @@ class ReasoningAgent:
                     tool_calls = self._extract_tool_calls(response_text)
 
                     decision_pattern = re.compile(
-                        r"^\s*DECISION:\s*(BUY|SELL|SHORT|HOLD|CLOSE)",
+                        r"^\s*(?:\*\*)?DECISION:(?:\*\*)?\s*(BUY|SELL|NEUTRAL|MAINTAIN|SHORT|HOLD|CLOSE)",
                         re.IGNORECASE | re.MULTILINE,
                     )
                     has_decision = bool(decision_pattern.search(response_text))
@@ -522,6 +550,24 @@ class ReasoningAgent:
                                     "content": f"Tool execution failed: {str(e)}",
                                 }
                             )
+
+                            messages.append(
+                                {
+                                    "role": "user",
+                                    "content": f"Tool execution failed: {str(e)}",
+                                }
+                            )
+
+                    elif not has_decision and not tool_calls:
+                        # Fallback: If no decision and no tools, append the response so the LLM knows what it said.
+                        # This prevents the "stuck loop" where it retries with the exact same prompt.
+                        print("⚠️  No decision and no tools found. Appending response to history to continue conversation.")
+                        messages.append(
+                            {
+                                "role": "assistant",
+                                "content": response_text,
+                            }
+                        )
 
                     iteration += 1
 
@@ -717,25 +763,34 @@ class ReasoningAgent:
             long_only_constraints = prompts_config.get("long_only_constraints", "")
             long_short_constraints = prompts_config.get("long_short_constraints", "")
             
-            # Load sell descriptions
+            # Determine strategy mode & load specific descriptions
             if allow_short_selling:
+                print("🔵 Strategy Mode: LONG-SHORT (Short selling ENABLED)")
                 strategy_constraints = long_short_constraints
-                sell_action_description = prompts_config.get("long_short_sell_description", "")
-                sell_decision_implication = prompts_config.get("long_short_sell_implication", "")
+                sell_action_description = prompts_config.get("long_short_sell_description", "If not owned, this becomes a SHORT opportunity.")
+                sell_decision_implication = prompts_config.get("long_short_sell_implication", "You can profit from downside moves by shorting.")
             else:
+                print("🔵 Strategy Mode: LONG-ONLY (Short selling DISABLED)")
                 strategy_constraints = long_only_constraints
-                sell_action_description = prompts_config.get("long_only_sell_description", "")
-                sell_decision_implication = prompts_config.get("long_only_sell_implication", "")
+                sell_action_description = prompts_config.get("long_only_sell_description", "If not owned, NO ACTION.")
+                sell_decision_implication = prompts_config.get("long_only_sell_implication", "You can only SELL what you currently own.")
                 
         except Exception as e:
-            print(f"⚠️  Failed to load prompts.json: {e}. Using fallback prompt.")
+            print(f"⚠️  Failed to load or parse prompts.json: {e}. Using fallback prompt.")
             # Fallback to minimal prompt if JSON fails
-            prompt_template = "You are an expert autonomous portfolio trading agent.\n{strategy_constraints}\n{tools_list}\n{planning_stage}{precomputed_tools}\nOutput: DECISION, CONFIDENCE, AMOUNT_USD, REASONING"
+            prompt_template = "You are an expert autonomous portfolio trading agent.\n{strategy_constraints}\n{tools_list}\n{precomputed_tools}\nOutput: DECISION, CONFIDENCE, AMOUNT_USD, REASONING"
             default_tools = "You have access to analysis tools."
             planning_stage_template = "Plan your tool calls first."
             strategy_constraints = "TRADING STRATEGY: LONG ONLY"
             sell_action_description = "Avoid Short Selling."
             sell_decision_implication = "Neutral decision."
+            
+        # Ensure all variables are bound to at least empty strings or defaults to prevent NameError
+        # (Though they should be covered above)
+        sell_action_description = locals().get('sell_action_description', "No description")
+        sell_decision_implication = locals().get('sell_decision_implication', "No implication")
+        strategy_constraints = locals().get('strategy_constraints', "No constraints")
+
         
         # Build tools list based on selected categories
         if selected_categories:
@@ -745,6 +800,12 @@ class ReasoningAgent:
                 for cat in selected_categories:
                     if cat in TOOL_CATEGORIES:
                         category_tools.extend(TOOL_CATEGORIES[cat]["tools"])
+                
+                # Filter by available tools to prevent hallucinations
+                if self.available_tools:
+                    valid_tools = set(self.available_tools)
+                    category_tools = [t for t in category_tools if t in valid_tools]
+                
                 tools_list = "You have access to the following tools:\n"
                 tools_list += "\n".join([f"- {tool}" for tool in sorted(set(category_tools))])
             except Exception:
@@ -843,25 +904,7 @@ Please use the available tools to gather additional data and make a decision.
 Avoid lookahead bias: do not use data from after {current_date}.
 """
 
-    def _call_chutes_api(self, messages: List[Dict]) -> str:
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-        body = {
-            "model": self.model,
-            "messages": messages,
-            "stream": False,
-            "max_tokens": 4096,
-            "temperature": 0.1,
-        }
 
-        total_chars = sum(len(str(msg.get("content", ""))) for msg in messages)
-        print(f"  📤 API Request: {len(messages)} messages, {total_chars:,} total chars")
-
-        response = requests.post(CHUTES_API_URL, headers=headers, json=body, timeout=120)
-        response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
 
     def _parse_response(self, text: str, symbol: str, date: str) -> Dict:
         decision = "NEUTRAL"  # Changed default from HOLD to NEUTRAL (portfolio-aware)
@@ -991,34 +1034,96 @@ Avoid lookahead bias: do not use data from after {current_date}.
         import ast
 
         tool_calls: List[Dict[str, Any]] = []
-        
-        # Split text by "TOOL_CALL:" marker to robustly handle multiple calls
-        # We start looking from the first occurrence
+
+        # --------------------------------------------------------------------------
+        # STRATEGY 1: Parse Python Code Blocks (Common with OpenAI/Coding LLMs)
+        # --------------------------------------------------------------------------
+        # Look for ```python ... ``` blocks
+        code_block_pattern = re.compile(r"```python(.*?)```", re.DOTALL)
+        code_blocks = code_block_pattern.findall(text)
+
+        for block in code_blocks:
+            # Simple line-by-line parser for function calls in code blocks
+            # We look for: var = func(arg=val, ...) or just func(arg=val)
+            # Regex to capture: function_name( arguments )
+            # This is heuristic and assumes mostly simple calls
+            lines = block.strip().split('\n')
+            for line in lines:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                
+                # Match "var = func(...)" or "func(...)"
+                # Capture group 1: func name, Capture group 2: args
+                call_match = re.match(r"(?:[\w_]+\s*=\s*)?([a-zA-Z_][\w_]*)\s*\((.*)\)", line)
+                if call_match:
+                    tool_name = call_match.group(1)
+                    args_str = call_match.group(2)
+                    
+                    # Skip common non-tool functions if needed (e.g. print)
+                    if tool_name == "print":
+                        continue
+
+                    params: Dict[str, Any] = {}
+                    try:
+                        # Attempt to parse arguments using AST for safety/correctness
+                        # We wrap it in a function call to make it valid python for parsing
+                        dummy_code = f"foo({args_str})"
+                        tree = ast.parse(dummy_code)
+                        call_node = tree.body[0].value
+                        if isinstance(call_node, ast.Call):
+                            for keyword in call_node.keywords:
+                                key = keyword.arg
+                                # Evaluate the value (literals only)
+                                try:
+                                    value = ast.literal_eval(keyword.value)
+                                    params[key] = value
+                                except Exception:
+                                    # Fallback for simple values if AST eval fails or complex expr
+                                    # For string/numbers, ast.literal_eval is best.
+                                    pass
+                    except Exception:
+                        pass
+                    
+                    # Fallback manual parsing if AST failed to get ANY params but args_str exists
+                    # (This handles simple cases that might be malformed python but readable)
+                    if not params and args_str:
+                        # ... (Reuse existing manual parser logic if needed, or simple split)
+                        pass
+                            
+                    # If AST worked, we have params. If not, maybe we rely on the manual parser?
+                    # Let's rely on the manual parser below for robustness if AST failed or returned empty
+                    # but we see potential arguments.
+                    
+                    # Actually, let's just add what we found via AST. 
+                    # If AST failed, we skip this line to avoid garbage.
+                    if params or not args_str.strip():
+                         tool_calls.append({
+                            "name": tool_name,
+                            "arguments": params
+                        })
+
+        if tool_calls:
+            return tool_calls
+
+        # --------------------------------------------------------------------------
+        # STRATEGY 2: Legacy TOOL_CALL: format (DeepSeek/Chutes standard instruction)
+        # --------------------------------------------------------------------------
         parts = re.split(r"TOOL_CALL:\s*", text)
         
-        # The first part is text before the first tool call (ignore)
         # Subsequent parts are "tool_name(args...)" keys
         for part in parts[1:]:
-            # Clean up the part
             part = part.strip()
             if not part:
                 continue
                 
             # Attempt to separate tool name and args
-            # Expect format: name(args...)
             match = re.match(r"^(\w+)\s*\((.*)\)", part, re.DOTALL)
             if not match:
-                # Maybe it didn't match the closing paren at the VERY end?
-                # Sometimes LLMs add text after.
-                # Try to find the first opening paren and the matching closing paren logic
-                # But fallback: Look for name and args start
                 match_start = re.match(r"^(\w+)\s*\(", part)
                 if match_start:
                     tool_name = match_start.group(1)
-                    # The args are everything after the first '(' until... where?
-                    # We'll use a stack-based extraction for the parens
                     args_str_full = part[len(match_start.group(0)):]
-                    # Extract balanced parens
                     depth = 1
                     params_str = ""
                     for char in args_str_full:
@@ -1026,30 +1131,19 @@ Avoid lookahead bias: do not use data from after {current_date}.
                             depth += 1
                         elif char == ')':
                             depth -= 1
-                        
                         if depth == 0:
                             break
                         params_str += char
                     
-                    # If we exited loop successfully
-                    if depth == 0:
-                         pass # params_str is populated
-                    else:
-                         # Malformed or truncated - try valid recovery if mostly correct
+                    if depth != 0:
                          params_str = args_str_full.rstrip(')')
                 else:
                     continue
             else:
                 tool_name = match.group(1)
-                # Group 2 is "args...)" effectively if DOTALL is greedy
-                # We need to be careful. The split might have included subsequent text.
-                # Re-using the stack logic is safer than trusting the regex end.
-                
-                # Let's extract from the original part string to be safe
                 paren_start = part.find('(')
                 if paren_start == -1: 
                     continue
-                    
                 args_str_full = part[paren_start+1:]
                 depth = 1
                 params_str = ""
@@ -1058,11 +1152,9 @@ Avoid lookahead bias: do not use data from after {current_date}.
                         depth += 1
                     elif char == ')':
                         depth -= 1
-                    
                     if depth == 0:
                         break
                     params_str += char
-
 
             params: Dict[str, Any] = {}
             if params_str:

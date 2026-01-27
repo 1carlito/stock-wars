@@ -24,7 +24,7 @@ load_dotenv(dotenv_path=env_path)
 # Add path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from ReasoningAgent import ReasoningAgent
+from ReasoningAgent_backtest import ReasoningAgent
 
 async def test_workflow():
     """

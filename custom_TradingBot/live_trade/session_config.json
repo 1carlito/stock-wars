@@ -1,8 +1,8 @@
 {
   "symbols": [
-    "NVDA"
+    "ONDS"
   ],
-  "starting_capital": 20000.0,
+  "starting_capital": 121212.0,
   "trade_mode": "paper",
   "run_mode": "once",
   "analysis_mode": "analysis",
@@ -19,8 +19,7 @@
   "first_day_entry_time_gmt": null,
   "user_tier": "starter",
   "selected_tool_categories": [
-    "technical_indicators",
-    "fundamental"
+    "technical_indicators"
   ],
   "include_news": false,
   "technical_indicators_date_range": null,

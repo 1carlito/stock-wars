@@ -33,6 +33,8 @@ def _convert_openbb_result(result: Any) -> Any:
         return df.to_dict("records")
     elif isinstance(result, dict):
         return result
+    elif isinstance(result, list):
+        return result
     else:
         return {"data": str(result)}
 

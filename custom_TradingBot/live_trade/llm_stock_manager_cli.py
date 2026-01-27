@@ -1361,20 +1361,6 @@ def _prompt_tool_categories() -> List[str]:
     return selected
 
 
-def _prompt_include_news() -> bool:
-    """Prompt user to enable/disable news and sentiment analysis tools."""
-    prompt_text = (
-        "[bold]Include News & Sentiment?[/bold]\n\n"
-        "News tools allow the LLM to incorporate company news, world events,\n"
-        "and market sentiment into decisions.\n\n"
-        "• Improves analysis quality but uses additional API calls\n"
-        "• Can be turned on/off separately from other tools"
-    )
-    console.print(Panel(prompt_text, title="Step • News & Sentiment", border_style="cyan"))
-
-    return Confirm.ask("Include news and sentiment tools?", default=False)
-
-
 def _prompt_technical_date_range() -> int | None:
     """Prompt for technical indicators date range (optional)."""
     prompt_text = (
@@ -1680,7 +1666,7 @@ def run_interactive() -> None:
 
     # Step 10: Tool Selection
     selected_tool_categories = _prompt_tool_categories()
-    include_news = _prompt_include_news()
+    include_news = "sentiment" in selected_tool_categories
     technical_indicators_date_range = _prompt_technical_date_range()
 
     # Step 11: Scheduling (only if daemon mode)

@@ -53,6 +53,12 @@ else:
 
 
 # Import helper function from utils module (project‑level)
+import sys
+# Ensure project root is in sys.path so we can import utils
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if base_dir not in sys.path:
+    sys.path.insert(0, base_dir)
+
 from utils import _convert_openbb_result  # type: ignore  # noqa: E402
 
 
@@ -83,22 +89,41 @@ try:
         return module
 
     # Load modules from specific file paths
-    fundamental_tools_path = os.path.join(tools_dir, "Fundamental_Tools.py")
-    technical_tools_path = os.path.join(tools_dir, "Technical_Tools.py")
+    # Fundamental Tools (FMP & OpenBB)
+    fmp_fundamental_tools_path = os.path.join(tools_dir, "fmp_fundamental_tools.py")
+    openbb_fundamental_tools_path = os.path.join(tools_dir, "openbb_fundamental_tools.py")
+    
+    # Technical Tools (FMP & OpenBB)
+    fmp_technical_tools_path = os.path.join(tools_dir, "fmp_technical_tools.py")
+    openbb_technical_tools_path = os.path.join(tools_dir, "openbb_technical_tools.py")
+    
+    # News Tools
     news_tools_path = os.path.join(tools_dir, "News_Tools.py")
 
-    Fundamental_Tools = load_module_from_path("Fundamental_Tools", fundamental_tools_path)
-    Technical_Tools = load_module_from_path("Technical_Tools", technical_tools_path)
+    # Load Modules
+    FMP_Fundamental_Tools = load_module_from_path("fmp_fundamental_tools", fmp_fundamental_tools_path)
+    OpenBB_Fundamental_Tools = load_module_from_path("openbb_fundamental_tools", openbb_fundamental_tools_path)
+    
+    FMP_Technical_Tools = load_module_from_path("fmp_technical_tools", fmp_technical_tools_path)
+    OpenBB_Technical_Tools = load_module_from_path("openbb_technical_tools", openbb_technical_tools_path)
+    
     News_Tools = load_module_from_path("News_Tools", news_tools_path)
 
-    register_fundamental_tools = Fundamental_Tools.register_fundamental_tools
-    register_technical_tools = Technical_Tools.register_technical_tools
+    # Get Register Functions
+    register_fmp_fundamental_tools = FMP_Fundamental_Tools.register_fmp_fundamental_tools
+    register_openbb_fundamental_tools = OpenBB_Fundamental_Tools.register_openbb_fundamental_tools
+    
+    register_fmp_technical_tools = FMP_Technical_Tools.register_fmp_technical_tools
+    register_openbb_technical_tools = OpenBB_Technical_Tools.register_openbb_technical_tools
+    
     register_news_tools = News_Tools.register_news_tools
 
 except Exception as e:  # noqa: BLE001
     print(f"⚠️  Tool modules not available: {e}")
-    register_fundamental_tools = None
-    register_technical_tools = None
+    register_fmp_fundamental_tools = None
+    register_openbb_fundamental_tools = None
+    register_fmp_technical_tools = None
+    register_openbb_technical_tools = None
     register_news_tools = None
 
 
@@ -373,8 +398,12 @@ if mcp:
             print(f"⚠️  Failed to register {module_name}: {e}")
 
     # Register fundamental, technical, and news tools
-    _register_tool_module(register_fundamental_tools, "fundamental analysis tools")
-    _register_tool_module(register_technical_tools, "technical analysis tools")
+    _register_tool_module(register_fmp_fundamental_tools, "FMP fundamental tools")
+    _register_tool_module(register_openbb_fundamental_tools, "OpenBB fundamental tools")
+    
+    _register_tool_module(register_fmp_technical_tools, "FMP technical tools")
+    _register_tool_module(register_openbb_technical_tools, "OpenBB technical tools")
+    
     _register_tool_module(register_news_tools, "news tools")
 
 
