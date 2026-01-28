@@ -1129,9 +1129,9 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                 console.print(
                     Panel(
                         "[bold cyan]Daemon Mode:[/bold cyan]\n"
-                        f"The agent will trade {first_symbol} on a fixed schedule:\n"
+                        f"The agent will trade {', '.join(cfg.symbols)} on a fixed schedule:\n"
                         f"  • Schedule: {schedule_display}{first_day_display}\n\n"
-                        "[dim]Daemon mode trades one symbol at a time. For multi-symbol portfolio management, use 'analysis' mode.[/dim]\n"
+
                         "[yellow]Press Ctrl+C to stop the daemon.[/yellow]",
                         border_style="cyan",
                     )
@@ -1139,7 +1139,7 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                 # Engine mode: use Alpaca-backed portfolio for both paper (2) and live (3)
                 engine_mode = "analysis" if cfg.analysis_mode == "analysis" else "alpaca_live"
                 run_daemon(
-                    symbol=first_symbol,
+                    symbols=cfg.symbols,
                     starting_capital=cfg.starting_capital,
                     notes=cfg.notes,
                     mode=engine_mode,

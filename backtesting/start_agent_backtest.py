@@ -25,7 +25,7 @@ load_dotenv(dotenv_path=env_path)
 # Add path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from ReasoningAgent_backtest import ReasoningAgent
+from custom_TradingBot.live_trade.ReasoningAgent import ReasoningAgent
 
 
 def calculate_unrealized_pnl(portfolio_state: dict) -> float:

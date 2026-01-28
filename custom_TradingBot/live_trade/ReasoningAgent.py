@@ -335,6 +335,12 @@ class ReasoningAgent:
             try:
                 mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
+                # If MCP client is enabled but session failed to initialize, return error
+                if self.use_mcp_client and mcp_session is None:
+                    error_msg = "MCP session failed to initialize. Check OpenBBMCPServer.py and dependencies."
+                    print(f"❌ {error_msg}")
+                    return self._create_error_decision(symbol, current_date, error_msg)
+
                 # ------------------------------------------------------------------
                 # PRICE FETCHING (Always ensure we have a price)
                 # ------------------------------------------------------------------
@@ -751,7 +757,7 @@ class ReasoningAgent:
 
     def _build_system_prompt(self, mcp_session=None, selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None, allow_short_selling: bool = False) -> str:
         # Load prompt template from JSON file (enables hot-reload without daemon restart)
-        prompts_path = os.path.join(os.path.dirname(__file__), "prompts.json")
+        prompts_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "prompts.json")
         try:
             with open(prompts_path, "r") as f:
                 prompts_config = json.load(f)
