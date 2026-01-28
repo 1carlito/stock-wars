@@ -751,7 +751,7 @@ class ReasoningAgent:
 
     def _build_system_prompt(self, mcp_session=None, selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None, allow_short_selling: bool = False) -> str:
         # Load prompt template from JSON file (enables hot-reload without daemon restart)
-        prompts_path = os.path.join(os.path.dirname(__file__), "prompts.json")
+        prompts_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "prompts.json")
         try:
             with open(prompts_path, "r") as f:
                 prompts_config = json.load(f)

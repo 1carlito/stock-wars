@@ -263,6 +263,7 @@ class PortfolioOrchestrator:
         Returns:
             Dict with decision, confidence, and token usage
         """
+        agent = None
         try:
             _logger.info(f"  📈 Analyzing {symbol}...")
 
@@ -373,6 +374,16 @@ class PortfolioOrchestrator:
                 "success": False,
                 "error": error_msg,
             }
+        
+        finally:
+            # Explicitly cleanup MCP session to prevent async context errors
+            # when running parallel analyses via asyncio.gather()
+            if agent is not None:
+                try:
+                    await agent._close_mcp_session()
+                except Exception:
+                    # Suppress any cleanup errors - analysis is already complete
+                    pass
 
     async def _get_sector_rankings(self, trade_date: str) -> Dict[str, Any]:
         """

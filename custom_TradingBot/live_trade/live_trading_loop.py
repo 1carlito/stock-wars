@@ -1007,8 +1007,322 @@ def get_next_run_time(
 
 
 
-def run_daemon(
+async def run_single_trading_cycle(
     symbol: str,
+    trade_date: date,
+    starting_capital: Optional[float] = None,
+    notes: str = "",
+    mode: str = "paper",
+    force_reset: bool = False,
+    current_price: Optional[float] = None,
+) -> None:
+    """
+    Execute a single trading cycle (Analysis -> Decision -> Execution).
+
+    1. Load/Initialize Portfolio State
+    2. Setup Reasoning Agent
+    3. Run Decision Logic (Agent)
+    4. Execute Trades (if applicable)
+    5. Update State & Persist
+    """
+    _logger.info("=" * 80)
+    _logger.info(f"🚀 Starting Trading Cycle: {symbol} | Date: {trade_date}")
+    _logger.info(f"   Mode: {mode} | Notes: {notes or 'None'}")
+    _logger.info("=" * 80)
+
+    # 1. Load Portfolio State
+    #
+    # In 'analysis' mode, we might want to start fresh each time (theoretical),
+    # or continue a theoretical portfolio. The 'force_reset' flag controls this.
+    try:
+        state = load_portfolio_state(
+            starting_capital=starting_capital,
+            mode=mode,
+            force_reset=force_reset
+        )
+    except Exception as e:
+        _logger.error(f"❌ Failed to load portfolio state: {e}")
+        return
+
+    # If in 'alpaca_live' mode, we might want to sync positions manually if needed,
+    # but load_portfolio_state should have already fetched them.
+    # However, for hybrid paper/manual usage, let's respect manual overrides if any.
+    if mode == "paper":
+        # Optional: check if there's a manual override file to merge?
+        # For now, just proceed.
+        pass
+
+    # For Analysis mode, if we didn't force reset, we just loaded the
+    # existing theoretical portfolio.
+    if mode == "analysis":
+         _logger.info(f"📊 Analysis Mode: Cash=${state.cash:,.2f} (Theoretical)")
+
+    # Check for manual portfolio overrides (e.g. user manually edited the JSON)
+    # This is a bit advanced, but useful for debugging.
+    # We'll skip complex merging logic for now to keep it robust.
+    # But we will re-validate the state.
+    validate_portfolio_state(state)
+
+    # If mult-stock context is needed (e.g. portfolio rebalancing),
+    # the ReasoningAgent might need awareness of other positions.
+    # Here we just pass the full state to the agent.
+
+    # 1.5 Handle multiple positions for context
+    # Use load_portfolio_state to get all positions, not just the current symbol.
+    # The agent._make_decision_async now accepts the full portfolio_state dict.
+    # We just need to make sure we don't accidentally overwrite strict existing positions
+    # if the file was edited manually while the script was running (race condition).
+    # Since this is a single-threaded loop per symbol (or sequential), strictly speaking
+    # we should re-load state right before decision if we want to be super detailed,
+    # but we just did load_portfolio_state() above.
+
+    # Re-fetch state for safety if we are in a long loop?
+    # No, we just loaded it.
+
+    # BUT, if we are running multiple symbols in sequence (run_once with list),
+    # the state file might have changed by the previous symbol's run.
+    # So actually, we SHOULD reload the state if we suspect it changed.
+    # Ideally load_portfolio_state handles the file locking or atomic writes.
+    # Here we assume we are the only writer for this file.
+
+    # However, for 'alpaca_live', the state comes from the API, so it's always fresh.
+
+    # For 'analysis' mode, we might want to clear previous positions for this symbol
+    # if we want a "fresh look" every time? No, that's what force_reset is for.
+
+    # If there are manual/external updates to the JSON file, they are loaded now.
+    # Let's verify we have the symbol's position if it exists.
+    # (Just logging)
+    pos = state.positions.get(symbol)
+    if pos:
+        _logger.info(f"   Existing position: {pos.get('shares', 0)} shares @ ${pos.get('avg_price', 0):.2f}")
+    else:
+        _logger.info("   No existing position for this symbol.")
+
+    # In Multi-stock mode, the Orchestrator might have passed in a known state.
+    # If so, we should use it?
+    # Currently run_single_trading_cycle loads its own state.
+    # This might be a conflict if Orchestrator is running parallel tasks.
+    #
+    # FIX: If we are running in parallel (PortfolioOrchestrator), we shouldn't
+    # all try to read/write the same JSON file at the same time.
+    # The PortfolioOrchestrator handles this by gathering decisions first,
+    # then executing.
+    #
+    # This function run_single_trading_cycle is the "old" standalone way or
+    # the "executor" for a single thread.
+    #
+    # If used by Orchestrator, Orchestrator usually calls agent directly.
+    # Let's check PortfolioOrchestrator.
+    #
+    # Actually, looking at run_once:
+    #     orchestrator = PortfolioOrchestrator(...)
+    #     asyncio.run(orchestrator.process_portfolio(trade_date))
+    #
+    # So Orchestrator does NOT use run_single_trading_cycle.
+    # This function is used by run_daemon (single stock) and run_once (single stock).
+    # So we are safe from race conditions here.
+
+    # 1.6 Merge any "investment_only" or "manual" positions if needed?
+    # (Skipping for simplicity)
+
+    # 1.7 Add any manual Analysis inputs?
+    # We have 'notes'.
+
+    # If we are in 'analysis' mode, we might want to check if there is an existing
+    # "theoretical_portfolio.json" ... load_portfolio_state handles that.
+
+    # If we are in 'paper' mode, check if there is a 'manual_portfolio.json' to merge?
+    # (Feature for later)
+    manual_path = os.path.join(_get_live_trade_dir(), "manual_portfolio.json")
+    if os.path.exists(manual_path) and mode == "paper":
+        try:
+            with open(manual_path, "r") as f:
+                manual_data = json.load(f)
+                manual_positions = manual_data.get("positions", {})
+                # Merge into state
+                positions_dict = state.positions or {}
+                for s, p in manual_positions.items():
+                    positions_dict[s] = p
+                    _logger.info(f"   Merged manual position for {s}")
+                state.positions = positions_dict
+        except Exception as e:
+            _logger.warning(f"⚠️  Failed to merge manual analysis portfolio into state: {e}")
+
+    # 2. Initialize ReasoningAgent (MCP client connects lazily on first use)
+    agent = ReasoningAgent(
+        data_dir=os.path.dirname(BASE_DIR),  # project root for reasoning_decisions
+        use_mcp_client=True,
+    )
+
+    # 3. Build portfolio_state dict expected by ReasoningAgent
+    portfolio_state_dict: Dict[str, Any] = state.to_dict()
+
+    # 3.5 Fetch technical data based on user-selected tool categories
+    #
+    technical_data_for_prompt = {}
+
+    if mode in ("paper", "alpaca_live"):
+        try:
+            # Import tools for data fetching
+            sys.path.insert(0, os.path.join(BASE_DIR, ".."))
+            from Tools.Technical_Tools import fetch_selected_tools_data
+
+            # Load selected tool categories from config (or use defaults)
+            selected_categories = ["technical_indicators"]  # Default
+            tech_date_range = None  # Agent decides by default
+
+            # Try to load from session config if available
+            try:
+                config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+                if os.path.exists(config_path):
+                    with open(config_path, 'r') as f:
+                        config_data = json.load(f)
+                        if config_data.get("selected_tool_categories"):
+                            selected_categories = config_data["selected_tool_categories"]
+                        if config_data.get("technical_indicators_date_range"):
+                            tech_date_range = config_data["technical_indicators_date_range"]
+            except Exception as e:
+                _logger.debug(f"Could not load tool categories from config: {e}")
+
+            # Fetch data for selected categories
+            has_fmp = os.getenv("fmp_api_key") is not None
+            include_news = "sentiment" in selected_categories or False
+            tech_data = fetch_selected_tools_data(
+                symbol=symbol,
+                trade_date=trade_date.isoformat(),
+                selected_categories=selected_categories,
+                include_news=include_news,
+                tech_date_range=tech_date_range,
+                has_fmp_access=has_fmp,
+            )
+
+            # Extract technical indicators data if available
+            if tech_data and tech_data.get("technical_indicators") and not tech_data["technical_indicators"].get("error"):
+                technical_data_for_prompt = tech_data["technical_indicators"]
+                if technical_data_for_prompt.get("current_price"):
+                    current_price = technical_data_for_prompt.get("current_price") or current_price
+                    _logger.info(
+                        f"📈 Technical data: "
+                        f"source={technical_data_for_prompt.get('source')}, "
+                        f"interval={technical_data_for_prompt.get('interval')}, "
+                        f"price=${current_price:.2f}"
+                    )
+            else:
+                error_msg = tech_data.get("error") if tech_data else "Unknown error"
+                _logger.debug(f"Technical data not available: {error_msg}")
+
+                # Fallback: try to get fresh current price
+                if not current_price:
+                    try:
+                        from openbb import obb
+                        price_data = obb.equity.price.historical(
+                            symbol=symbol,
+                            start_date=trade_date.isoformat(),
+                            end_date=trade_date.isoformat(),
+                            interval="5m",
+                            provider="yfinance",
+                            extended_hours=True,
+                        )
+                        if price_data and price_data.results:
+                            latest = price_data.results[-1]
+                            latest_dict = latest.model_dump() if hasattr(latest, "model_dump") else latest.dict() if hasattr(latest, "dict") else latest
+                            current_price = latest_dict.get("close")
+                    except Exception:  # noqa: BLE001
+                        pass
+
+        except Exception as e:  # noqa: BLE001
+            _logger.warning(f"⚠️  Technical data pipeline error: {e}")
+
+    # 4. Run decision
+    #
+    # For "analysis" mode (mode 1), disable trade execution entirely so that
+    # this path becomes pure investment analysis with no theoretical trades.
+    execute_trades = mode != "analysis"
+
+    # Load selected_categories and technical_indicators_date_range from config
+    selected_categories = ["technical_indicators"]  # Default
+    technical_indicators_date_range = None  # Optional optimization parameter
+    try:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+                if config_data.get("selected_tool_categories"):
+                    selected_categories = config_data["selected_tool_categories"]
+                if config_data.get("technical_indicators_date_range"):
+                    technical_indicators_date_range = config_data["technical_indicators_date_range"]
+    except Exception as e:
+        _logger.debug(f"Could not load config: {e}")
+
+    # Load allow_short_selling from config
+    allow_short_selling = False
+    try:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+                allow_short_selling = config_data.get("allow_short_selling", False)
+    except Exception as e:
+        _logger.debug(f"Could not load allow_short_selling from config: {e}")
+
+    decision_result = await agent._make_decision_async(
+        symbol=symbol,
+        current_date=trade_date.isoformat(),
+        portfolio_state=portfolio_state_dict,
+        execute_trade_after=execute_trades,
+        current_price=current_price,
+        max_tool_iterations=5,
+        notes=notes,
+        technical_data=technical_data_for_prompt if technical_data_for_prompt else None,
+        selected_categories=selected_categories,
+        technical_indicators_date_range=technical_indicators_date_range,
+        allow_short_selling=allow_short_selling,
+    )
+
+    # 5. Close MCP session cleanly
+    try:
+        await agent._close_mcp_session()
+    except Exception:
+        # Cleanup errors are non-fatal in this orchestrator
+        pass
+
+    # 6. Update portfolio state from decision_result
+    updated_state_dict = decision_result.get("portfolio_state_updated") or portfolio_state_dict
+    updated_state = PortfolioState.from_dict(updated_state_dict)
+    updated_state.last_run_date = trade_date.isoformat()
+
+    if mode == "analysis":
+        # Investment‑only mode:
+        # - Do NOT persist portfolio JSON
+        # - Do NOT append portfolio history
+        # - Do NOT mirror to Alpaca
+        #
+        # Instead, save a lightweight investment‑only result snapshot that
+        # captures the thesis/decision without creating a portfolio history.
+        try:
+            _save_investment_only_result(symbol, trade_date, decision_result, updated_state)
+        except Exception as e:  # noqa: BLE001
+            _logger.warning(f"⚠️  Failed to save investment‑only result for {symbol}: {e}")
+    else:
+        # Paper / Alpaca‑backed modes: persist updated portfolio + history and
+        # optionally mirror trades to Alpaca.
+        save_portfolio_state(updated_state, mode=mode)
+        append_portfolio_history(updated_state, symbol, trade_date, decision_result)
+        _maybe_execute_with_alpaca(symbol, trade_date, decision_result)
+
+    _logger.info("=" * 80)
+    _logger.info(
+        f"✅ Trading cycle complete for {symbol} on {trade_date.isoformat()} | "
+        f"decision={decision_result.get('decision')} "
+        f"amount={decision_result.get('amount_usd')}"
+    )
+    _logger.info("=" * 80)
+
+
+def run_daemon(
+    symbols: Optional[List[str]] = None,
+    symbol: Optional[str] = None,
     starting_capital: Optional[float] = None,
     notes: str = "",
     mode: str = "paper",
@@ -1022,11 +1336,12 @@ def run_daemon(
     - First day: if specified, runs at first_day_entry_time_gmt.
     - After first day: uses scheduled_times_gmt times.
     - Sleeps until then.
-    - Runs one trading cycle.
+    - Runs trading cycles for all symbols (uses PortfolioOrchestrator for multi-stock).
     - Repeats indefinitely.
 
     Args:
-        symbol: Ticker symbol
+        symbols: List of ticker symbols to trade (multi-stock mode)
+        symbol: Single ticker symbol (backward compatibility)
         starting_capital: Initial capital
         notes: Additional notes
         mode: "paper" or "alpaca_live" (NOT "analysis" - analysis is one-shot only)
@@ -1038,11 +1353,14 @@ def run_daemon(
         _logger.error("❌ Analysis mode only supports one-shot runs, not daemon mode")
         return
 
+    # Determine which symbols to trade
+    symbols_to_trade = symbols if symbols else ([symbol] if symbol else ["AAPL"])
+
     # Default to 1 PM GMT and 7 PM GMT if not specified
     if scheduled_times_gmt is None:
         scheduled_times_gmt = ["13:00", "19:00"]
 
-    _logger.info(f"📡 Live trading daemon starting for symbol={symbol} (mode={mode})")
+    _logger.info(f"📡 Live trading daemon starting for symbols={symbols_to_trade} (mode={mode})")
     _logger.info(f"   Schedule (GMT): {', '.join(scheduled_times_gmt)}")
     if first_run_date and first_day_entry_time_gmt:
         _logger.info(f"   First day ({first_run_date}): entry at {first_day_entry_time_gmt} GMT")
@@ -1073,28 +1391,50 @@ def run_daemon(
         # Use NY timezone for trade date to match market days
         trade_date = datetime.now(tz=NY_TZ).date()
 
-        # Fetch fresh current price before running trading cycle
-        fresh_price = None
-        if mode in ("paper", "alpaca_live"):
-            try:
-                from openbb import obb
-                price_data = obb.equity.price.historical(
-                    symbol=symbol,
-                    start_date=trade_date.isoformat(),
-                    end_date=trade_date.isoformat(),
-                    interval="5m",
-                    provider="yfinance",
-                    extended_hours=True,
-                )
-                if price_data and price_data.results:
-                    latest = price_data.results[-1]
-                    latest_dict = latest.model_dump() if hasattr(latest, "model_dump") else latest.dict() if hasattr(latest, "dict") else latest
-                    fresh_price = latest_dict.get("close")
-                    _logger.info(f"💰 Pre-cycle price fetch: {symbol} = ${fresh_price:.2f}")
-            except Exception as e:  # noqa: BLE001
-                _logger.warning(f"⚠️  Could not fetch current price: {e}")
+        # Use PortfolioOrchestrator for multi-stock mode (same as run_once)
+        if len(symbols_to_trade) > 1:
+            _logger.info(
+                f"🔄 Running multi-stock portfolio cycle for "
+                f"{', '.join(symbols_to_trade)} on {trade_date.isoformat()}"
+            )
+            from portfolio_orchestrator import PortfolioOrchestrator
+            
+            orchestrator = PortfolioOrchestrator(
+                symbols=symbols_to_trade,
+                starting_capital=starting_capital or 50000,
+                notes=notes,
+                mode=mode,
+                force_reset=False,
+                max_parallel=min(5, len(symbols_to_trade))
+            )
+            asyncio.run(orchestrator.process_portfolio(trade_date))
+        else:
+            # Single-stock mode: use run_single_trading_cycle
+            single_symbol = symbols_to_trade[0]
+            _logger.info(f"🔄 Processing {single_symbol} in daemon cycle...")
+            
+            # Fetch fresh current price before running trading cycle
+            fresh_price = None
+            if mode in ("paper", "alpaca_live"):
+                try:
+                    from openbb import obb
+                    price_data = obb.equity.price.historical(
+                        symbol=single_symbol,
+                        start_date=trade_date.isoformat(),
+                        end_date=trade_date.isoformat(),
+                        interval="5m",
+                        provider="yfinance",
+                        extended_hours=True,
+                    )
+                    if price_data and price_data.results:
+                        latest = price_data.results[-1]
+                        latest_dict = latest.model_dump() if hasattr(latest, "model_dump") else latest.dict() if hasattr(latest, "dict") else latest
+                        fresh_price = latest_dict.get("close")
+                        _logger.info(f"💰 Pre-cycle price fetch: {single_symbol} = ${fresh_price:.2f}")
+                except Exception as e:  # noqa: BLE001
+                    _logger.warning(f"⚠️  Could not fetch current price for {single_symbol}: {e}")
 
-        asyncio.run(run_single_trading_cycle(symbol, trade_date, starting_capital, notes, mode=mode, current_price=fresh_price))
+            asyncio.run(run_single_trading_cycle(single_symbol, trade_date, starting_capital, notes, mode=mode, current_price=fresh_price))
 
 
 def run_once(
@@ -1229,7 +1569,6 @@ if __name__ == "__main__":
         if session_config:
             # Use config if available
             symbols = session_config.get("symbols", [args.symbol.upper()])
-            symbol = symbols[0] if symbols else args.symbol.upper()
             starting_capital = session_config.get("starting_capital")
             notes = session_config.get("notes", "")
             # Map trade_mode to actual mode
@@ -1244,7 +1583,7 @@ if __name__ == "__main__":
             _logger.info(f"📋 Loaded config: symbols={symbols}, mode={mode}, first_day={first_run_date}")
 
             run_daemon(
-                symbol=symbol,
+                symbols=symbols,
                 starting_capital=starting_capital,
                 notes=notes,
                 mode=mode,
@@ -1253,6 +1592,6 @@ if __name__ == "__main__":
                 first_day_entry_time_gmt=first_day_entry_time_gmt,
             )
         else:
-            run_daemon(args.symbol.upper())
+            run_daemon(symbol=args.symbol.upper())
 
 
