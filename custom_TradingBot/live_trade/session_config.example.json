@@ -1,0 +1,24 @@
+{
+    "symbols": [
+        "AAPL"
+    ],
+    "starting_capital": 10000.0,
+    "trade_mode": "live",
+    "run_mode": "daemon",
+    "analysis_mode": "paper",
+    "portfolio_mode": "new",
+    "portfolio": null,
+    "notes": "",
+    "alpaca_api_key": "",
+    "alpaca_api_secret": "",
+    "alpaca_paper_trading": true,
+    "force_reset_portfolio": false,
+    "has_fmp_access": false,
+    "user_tier": "starter",
+    "selected_tool_categories": [
+        "technical_indicators",
+        "sentiment"
+    ],
+    "include_news": true,
+    "allow_short_selling": false
+}
