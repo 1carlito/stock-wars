@@ -18,6 +18,28 @@ from typing import Dict, List, Optional, Any
 from dotenv import load_dotenv
 import requests
 
+# Import tool registry for filtering (from parent directory)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+# Import LLM Client
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+try:
+    from llm_client import get_llm_client
+except ImportError:
+    print("⚠️  llm_client not found. Make sure it exists in the same directory.")
+    # Fallback or raise error? For now, we'll let it fail later if not found.
+
+try:
+    from tool_registry import (
+        resolve_enabled_tools,
+        deduplicate_tools,
+        validate_tool_name,
+        DEDUPLICATION_PAIRS
+    )
+    TOOL_REGISTRY_AVAILABLE = True
+except ImportError:
+    TOOL_REGISTRY_AVAILABLE = False
+
 # Load environment variables
 load_dotenv()
 
@@ -68,24 +90,48 @@ except ImportError:
 
 
 class ReasoningAgent:
-    def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True):
+    def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True, config_path=None):
         self.data_dir = data_dir
         self.decision_save_dir = os.path.join(self.data_dir, "reasoning_decisions")
-        self.model = MODEL_NAME
-        self.api_key = api_key_override or DEFAULT_API_TOKEN
+        
+        # LLM Provider Configuration
+        self.llm_provider = os.getenv("LLM_PROVIDER", "chutes").lower()
+        
+        if self.llm_provider == "openai":
+            self.model = os.getenv("OPENAI_MODEL_NAME", "gpt-4o")
+            self.api_key = os.getenv("OPENAI_API_KEY")
+        else:
+            self.model = MODEL_NAME
+            self.api_key = api_key_override or DEFAULT_API_TOKEN
+
         self.use_mcp_client = use_mcp_client and MCP_CLIENT_AVAILABLE
         self.mcp_session = None
         self.available_tools: List[str] = []
 
+        # Load tool tier and FMP access from session config
+        self.user_tier = "free"
+        self.has_fmp_access = False
+        self._load_user_tier_config(config_path)
+
         if not self.api_key:
-            raise ValueError("No API token provided. Set DEEPSEEK_API_KEY in environment.")
+             if self.llm_provider == "openai":
+                raise ValueError("No OpenAI API Key provided. Set OPENAI_API_KEY in environment.")
+             else:
+                raise ValueError("No API token provided. Set DEEPSEEK_API_KEY in environment.")
+
+        # Initialize LLM Client
+        try:
+             self.llm_client = get_llm_client(self.llm_provider, self.api_key, self.model)
+             print(f"✅ LLM Client initialized: {self.llm_provider} ({self.model})")
+        except Exception as e:
+             raise ValueError(f"Failed to initialize LLM client: {e}")
 
         if self.use_mcp_client:
             self._init_mcp_client()
         else:
             print("⚠️  MCP client not available, using direct imports")
 
-        print(f"✅ ReasoningAgent (live_trade) initialized with {self.model}")
+        print(f"✅ ReasoningAgent (live_trade) initialized with {self.model} (tier={self.user_tier}, fmp={self.has_fmp_access})")
 
     def _init_mcp_client(self):
         """Initialize MCP client connection to live_trade OpenBB MCP Server."""
@@ -99,6 +145,38 @@ class ReasoningAgent:
         except Exception as e:  # noqa: BLE001
             print(f"⚠️  Failed to initialize MCP client: {e}")
             self.use_mcp_client = False
+
+    def _load_user_tier_config(self, config_path=None):
+        """Load user tier and FMP access from session config."""
+        try:
+            # Determine config path to check
+            if config_path is None:
+                # Try to find session_config.json in data_dir or common locations
+                candidates = [
+                    os.path.join(self.data_dir, "session_config.json"),
+                    os.path.join(self.data_dir, "..", "session_config.json"),
+                    "session_config.json",
+                ]
+                config_path = None
+                for candidate in candidates:
+                    if os.path.exists(candidate):
+                        config_path = candidate
+                        break
+
+            if config_path and os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                    self.user_tier = config.get("user_tier", "free")
+                    self.has_fmp_access = config.get("has_fmp_access", False)
+            else:
+                # Silently default to free tier and no FMP access
+                self.user_tier = "free"
+                self.has_fmp_access = False
+        except Exception as e:
+            # On any error, silently fall back to defaults
+            print(f"⚠️  Could not load tier config: {e}. Using defaults (free tier, no FMP)")
+            self.user_tier = "free"
+            self.has_fmp_access = False
 
     async def _get_mcp_session(self):
         """Get or create MCP client session."""
@@ -140,11 +218,30 @@ class ReasoningAgent:
                             await asyncio.sleep(wait_time)
 
                         tools_response = await self.mcp_session.list_tools()
-                        self.available_tools = [tool.name for tool in tools_response.tools]
+                        discovered_tools = [tool.name for tool in tools_response.tools]
                         print(
-                            f"✅ Discovered {len(self.available_tools)} MCP tools: "
-                            f"{', '.join(self.available_tools[:5])}..."
+                            f"✅ Discovered {len(discovered_tools)} MCP tools: "
+                            f"{', '.join(discovered_tools[:5])}..."
                         )
+
+                        # Filter tools based on user tier and FMP access
+                        if TOOL_REGISTRY_AVAILABLE:
+                            enabled_tools = resolve_enabled_tools(
+                                user_tier=self.user_tier,
+                                has_fmp_access=self.has_fmp_access
+                            )
+                            # Intersect with discovered tools (only use what MCP actually registered)
+                            filtered_tools = set(discovered_tools) & enabled_tools
+                            # Deduplicate: prefer FMP versions when both available
+                            self.available_tools = list(deduplicate_tools(filtered_tools))
+                            print(f"   📋 Tier {self.user_tier} + FMP={self.has_fmp_access} → {len(self.available_tools)} tools available")
+                            if len(self.available_tools) < len(discovered_tools):
+                                removed = set(discovered_tools) - set(self.available_tools)
+                                print(f"   🔒 Filtered out {len(removed)} tools (not in tier)")
+                        else:
+                            # No tool registry: use all discovered tools
+                            self.available_tools = discovered_tools
+                            print(f"   ⚠️  Tool registry not available, using all {len(self.available_tools)} discovered tools")
                         break
                     except Exception as tools_error:  # noqa: BLE001
                         if attempt < max_retries - 1:
@@ -196,6 +293,8 @@ class ReasoningAgent:
         execute_trade_after: bool = False,
         current_price: Optional[float] = None,
         max_tool_iterations: int = 5,
+        notes: str = "",
+        technical_data: Optional[Dict[str, Any]] = None,
     ) -> Dict:
         try:
             _ = asyncio.get_running_loop()
@@ -207,12 +306,14 @@ class ReasoningAgent:
         except RuntimeError:
             return asyncio.run(
                 self._make_decision_async(
-                    symbol,
-                    current_date,
-                    portfolio_state,
-                    execute_trade_after,
-                    current_price,
-                    max_tool_iterations,
+                    symbol=symbol,
+                    current_date=current_date,
+                    portfolio_state=portfolio_state,
+                    execute_trade_after=execute_trade_after,
+                    current_price=current_price,
+                    max_tool_iterations=max_tool_iterations,
+                    notes=notes,
+                    technical_data=technical_data,
                 )
             )
 
@@ -224,225 +325,22 @@ class ReasoningAgent:
         execute_trade_after: bool,
         current_price: Optional[float],
         max_tool_iterations: int,
-        risk_level: str = "medium",
         notes: str = "",
+        technical_data: Optional[Dict[str, Any]] = None,
+        selected_categories: Optional[List[str]] = None,
+        technical_indicators_date_range: Optional[int] = None,
+        allow_short_selling: bool = False,
     ) -> Dict:
         try:
-            mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
-
-            system_prompt = self._build_system_prompt(mcp_session, risk_level=risk_level)
-            user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, notes=notes)
-
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ]
-
-            print("\n" + "=" * 80)
-            print("🔵 FIRST STAGE REACT LOOP - INPUT TO LLM (live_trade)")
-            print("=" * 80)
-            print(f"\n📋 SYSTEM PROMPT ({len(system_prompt)} chars):")
-            print("-" * 80)
-            print(system_prompt)
-            print(f"\n📋 USER PROMPT ({len(user_prompt)} chars):")
-            print("-" * 80)
-            print(user_prompt)
-            print(f"\n📋 FULL MESSAGES (JSON):")
-            print("-" * 80)
-            print(json.dumps(messages, indent=2))
-            print("=" * 80 + "\n")
-
-            tool_results: List[Dict[str, Any]] = []
-            iteration = 0
-
-            while iteration < max_tool_iterations:
-                print(f"\n🔄 REACT ITERATION {iteration + 1}/{max_tool_iterations}")
-                print(f"📤 Calling LLM with {len(messages)} messages (planning/analysis stage)...")
-                response_text = self._call_chutes_api(messages)
-                print(f"📥 LLM RESPONSE ({len(response_text)} chars):")
-                print("-" * 80)
-                print(response_text)
-                print("-" * 80)
-
-                tool_calls = self._extract_tool_calls(response_text)
-
-                decision_pattern = re.compile(
-                    r"^\s*DECISION:\s*(BUY|SELL|SHORT|HOLD|CLOSE)",
-                    re.IGNORECASE | re.MULTILINE,
-                )
-                has_decision = bool(decision_pattern.search(response_text))
-
-                if has_decision and not tool_calls:
-                    break
-
-                if mcp_session and tool_calls:
-                    tool_tasks = [
-                        self._execute_tool_via_mcp(mcp_session, tool_call, symbol, current_date)
-                        for tool_call in tool_calls
-                    ]
-
-                    try:
-                        timeout = 30 * len(tool_calls)
-                        tool_results_batch = await asyncio.wait_for(
-                            asyncio.gather(*tool_tasks, return_exceptions=True),
-                            timeout=timeout,
-                        )
-
-                        messages.append(
-                            {
-                                "role": "assistant",
-                                "content": response_text,
-                            }
-                        )
-                        user_tool_messages: List[str] = []
-
-                        for tool_call, tool_result in zip(tool_calls, tool_results_batch):
-                            if isinstance(tool_result, Exception):
-                                print(f"⚠️  Tool '{tool_call['name']}' error: {tool_result}")
-                                tool_result = {
-                                    "error": str(tool_result),
-                                    "tool": tool_call["name"],
-                                    "tool_name": tool_call["name"],
-                                }
-
-                            if isinstance(tool_result, dict) and "tool_name" not in tool_result:
-                                tool_result["tool_name"] = tool_call["name"]
-
-                            trimmed_result = self._trim_tool_result(tool_result)
-                            tool_results.append(trimmed_result)
-
-                            tool_result_str = json.dumps(trimmed_result, indent=2)
-                            result_size = len(tool_result_str)
-                            max_chars = 2000
-                            if result_size > max_chars:
-                                print(
-                                    f"  📊 Tool '{tool_call['name']}' result: {result_size} chars "
-                                    f"(will truncate for prompt)"
-                                )
-                                tool_result_str = (
-                                    tool_result_str[:max_chars]
-                                    + f"\n... truncated tool '{tool_call['name']}' output to {max_chars} chars ..."
-                                )
-                            else:
-                                print(f"  📊 Tool '{tool_call['name']}' result: {result_size} chars")
-
-                            user_tool_messages.append(
-                                f"Tool '{tool_call['name']}' result:\n{tool_result_str}"
-                            )
-
-                        if user_tool_messages:
-                            messages.append(
-                                {
-                                    "role": "user",
-                                    "content": "\n\n".join(user_tool_messages),
-                                }
-                            )
-
-                    except asyncio.TimeoutError:
-                        print(f"⚠️  Tool execution timed out after {timeout}s")
-                        messages.append(
-                            {
-                                "role": "assistant",
-                                "content": response_text,
-                            }
-                        )
-                        timeout_msgs: List[str] = []
-                        for tool_call in tool_calls:
-                            tool_result = {
-                                "error": "Tool execution timed out",
-                                "tool": tool_call["name"],
-                                "tool_name": tool_call["name"],
-                            }
-                            tool_results.append(tool_result)
-                            timeout_msgs.append(
-                                f"Tool '{tool_call['name']}' timed out after {timeout}s"
-                            )
-                        messages.append(
-                            {
-                                "role": "user",
-                                "content": "\n".join(timeout_msgs),
-                            }
-                        )
-                    except Exception as e:  # noqa: BLE001
-                        print(f"⚠️  Batch tool execution error: {e}")
-                        for tool_call in tool_calls:
-                            tool_result = {
-                                "error": str(e),
-                                "tool": tool_call["name"],
-                                "tool_name": tool_call["name"],
-                            }
-                            tool_results.append(tool_result)
-                        messages.append(
-                            {
-                                "role": "assistant",
-                                "content": response_text,
-                            }
-                        )
-                        messages.append(
-                            {
-                                "role": "user",
-                                "content": f"Tool execution failed: {str(e)}",
-                            }
-                        )
-
-                iteration += 1
-
-            decision_result = self._parse_response(response_text, symbol, current_date)
-            decision_result["tool_calls_made"] = len(tool_results)
-            decision_result["tool_results"] = tool_results
             try:
-                self._save_raw_prompt(symbol, current_date, messages)
-            except Exception as e:  # noqa: BLE001
-                print(f"⚠️  Failed to save raw LLM prompt: {e}")
-            self._save_decision(decision_result)
+                mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
-            if not current_price:
-                price_history_data = None
-                for tool_result in tool_results:
-                    if tool_result.get("error"):
-                        continue
-
-                    tool_name = tool_result.get("tool_name", "")
-                    if tool_name == "get_current_price":
-                        data = tool_result.get("data", [])
-                        if data and isinstance(data, list):
-                            entry = data[0]
-                            current_price = (
-                                entry.get("close")
-                                or entry.get("price")
-                                or entry.get("last_price")
-                                or entry.get("prev_close")
-                            )
-                            if current_price:
-                                break
-                    elif tool_name == "get_price_history":
-                        data = tool_result.get("data", [])
-                        if data and isinstance(data, list):
-                            price_history_data = data
-                            for entry in reversed(data):
-                                entry_date = entry.get("date", "")
-                                if entry_date == current_date:
-                                    price = entry.get("close")
-                                    if price:
-                                        current_price = price
-                                        break
-                            if current_price:
-                                break
-
-                if not current_price and price_history_data:
-                    for entry in reversed(price_history_data):
-                        price = entry.get("close")
-                        if price:
-                            current_price = price
-                            break
-
-            if current_price:
-                print(f"📊 Current price today is ${float(current_price):.2f}")
-
-            if execute_trade_after and TRADE_EXECUTION_AVAILABLE:
+                # ------------------------------------------------------------------
+                # PRICE FETCHING (Always ensure we have a price)
+                # ------------------------------------------------------------------
                 if not current_price and mcp_session:
                     try:
-                        print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
+                        print(f"🔍 Pre-fetching current_price for {symbol} on {current_date}...")
                         price_tool_call = {
                             "name": "get_current_price",
                             "arguments": {
@@ -450,11 +348,256 @@ class ReasoningAgent:
                                 "current_date": current_date,
                             },
                         }
+                        # We use _execute_tool_via_mcp but need to be careful not to recurse weirdly
+                        # Since we are before the loop, this is safe.
                         price_result = await self._execute_tool_via_mcp(
                             mcp_session, price_tool_call, symbol, current_date
                         )
+                        
                         if "error" not in price_result:
                             data = price_result.get("data", [])
+                            # Handle list vs dict return
+                            if isinstance(data, dict):
+                                start_val = (
+                                    data.get("close")
+                                    or data.get("price")
+                                    or data.get("last_price")
+                                    or data.get("prev_close")
+                                )
+                                if start_val:
+                                    current_price = float(start_val)
+                                    
+                            elif isinstance(data, list) and data:
+                                entry = data[0]
+                                start_val = (
+                                    entry.get("close")
+                                    or entry.get("price")
+                                    or entry.get("last_price")
+                                    or entry.get("prev_close")
+                                )
+                                if start_val:
+                                    current_price = float(start_val)
+                                    
+                        if current_price:
+                            print(f"✅ Pre-fetched current_price: ${float(current_price):.2f}")
+                    except Exception as e:
+                        print(f"⚠️  Failed to pre-fetch current_price: {e}")
+
+                system_prompt = self._build_system_prompt(
+                    mcp_session, 
+                    selected_categories=selected_categories, 
+                    technical_indicators_date_range=technical_indicators_date_range,
+                    allow_short_selling=allow_short_selling
+                )
+                user_prompt = self._build_user_prompt(symbol, current_date, portfolio_state, current_price=current_price, technical_data=technical_data, notes=notes)
+
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ]
+
+                print("\n" + "=" * 80)
+                print("🔵 FIRST STAGE REACT LOOP - INPUT TO LLM (live_trade)")
+                print("=" * 80)
+                print(f"\n📋 SYSTEM PROMPT ({len(system_prompt)} chars):")
+                print("-" * 80)
+                print(system_prompt)
+                print(f"\n📋 USER PROMPT ({len(user_prompt)} chars):")
+                print("-" * 80)
+                print(user_prompt)
+                print(f"\n📋 FULL MESSAGES (JSON):")
+                print("-" * 80)
+                print(json.dumps(messages, indent=2))
+                print("=" * 80 + "\n")
+
+                tool_results: List[Dict[str, Any]] = []
+                iteration = 0
+                
+                # ... (rest of the method remains valid structure, but we just need to target the top part primarily)
+                # To minimize replacement size, we'll continue with the loop handling in a separate edit if needed, 
+                # but here we are replacing the signature and the start.
+                
+                while iteration < max_tool_iterations:
+                    print(f"\n🔄 REACT ITERATION {iteration + 1}/{max_tool_iterations}")
+                    print(f"📤 Calling LLM with {len(messages)} messages (planning/analysis stage)...")
+                    response_text = self.llm_client.chat_completion(messages)
+                    print(f"📥 LLM RESPONSE ({len(response_text)} chars):")
+                    print("-" * 80)
+                    print(response_text)
+                    print("-" * 80)
+
+                    tool_calls = self._extract_tool_calls(response_text)
+
+                    decision_pattern = re.compile(
+                        r"^\s*(?:\*\*)?DECISION:(?:\*\*)?\s*(BUY|SELL|NEUTRAL|MAINTAIN|SHORT|HOLD|CLOSE)",
+                        re.IGNORECASE | re.MULTILINE,
+                    )
+                    has_decision = bool(decision_pattern.search(response_text))
+
+                    if has_decision:
+                        print(f"🛑 Decision found (iteration {iteration+1}). Halting loop.")
+                        if tool_calls:
+                            print(f"   ⚠️  Ignoring {len(tool_calls)} post-decision tool calls.")
+                            tool_calls = []  # Clear tool calls to prevent execution
+                        break
+
+                    if mcp_session and tool_calls:
+                        tool_tasks = [
+                            self._execute_tool_via_mcp(mcp_session, tool_call, symbol, current_date)
+                            for tool_call in tool_calls
+                        ]
+
+                        try:
+                            timeout = 30 * len(tool_calls)
+                            tool_results_batch = await asyncio.wait_for(
+                                asyncio.gather(*tool_tasks, return_exceptions=True),
+                                timeout=timeout,
+                            )
+
+                            messages.append(
+                                {
+                                    "role": "assistant",
+                                    "content": response_text,
+                                }
+                            )
+                            user_tool_messages: List[str] = []
+
+                            for tool_call, tool_result in zip(tool_calls, tool_results_batch):
+                                if isinstance(tool_result, Exception):
+                                    print(f"⚠️  Tool '{tool_call['name']}' error: {tool_result}")
+                                    tool_result = {
+                                        "error": str(tool_result),
+                                        "tool": tool_call["name"],
+                                        "tool_name": tool_call["name"],
+                                    }
+
+                                if isinstance(tool_result, dict) and "tool_name" not in tool_result:
+                                    tool_result["tool_name"] = tool_call["name"]
+
+                                trimmed_result = self._trim_tool_result(tool_result)
+                                tool_results.append(trimmed_result)
+
+                                tool_result_str = json.dumps(trimmed_result, indent=2)
+                                result_size = len(tool_result_str)
+                                max_chars = 2000
+                                if result_size > max_chars:
+                                    print(
+                                        f"  📊 Tool '{tool_call['name']}' result: {result_size} chars "
+                                        f"(will truncate for prompt)"
+                                    )
+                                    tool_result_str = (
+                                        tool_result_str[:max_chars]
+                                        + f"\n... truncated tool '{tool_call['name']}' output to {max_chars} chars ..."
+                                    )
+                                else:
+                                    print(f"  📊 Tool '{tool_call['name']}' result: {result_size} chars")
+
+                                user_tool_messages.append(
+                                    f"Tool '{tool_call['name']}' result:\n{tool_result_str}"
+                                )
+
+                            if user_tool_messages:
+                                messages.append(
+                                    {
+                                        "role": "user",
+                                        "content": "\n\n".join(user_tool_messages),
+                                    }
+                                )
+
+                        except asyncio.TimeoutError:
+                            print(f"⚠️  Tool execution timed out after {timeout}s")
+                            messages.append(
+                                {
+                                    "role": "assistant",
+                                    "content": response_text,
+                                }
+                            )
+                            timeout_msgs: List[str] = []
+                            for tool_call in tool_calls:
+                                tool_result = {
+                                    "error": "Tool execution timed out",
+                                    "tool": tool_call["name"],
+                                    "tool_name": tool_call["name"],
+                                }
+                                tool_results.append(tool_result)
+                                timeout_msgs.append(
+                                    f"Tool '{tool_call['name']}' timed out after {timeout}s"
+                                )
+                            messages.append(
+                                {
+                                    "role": "user",
+                                    "content": "\n".join(timeout_msgs),
+                                }
+                            )
+                        except Exception as e:  # noqa: BLE001
+                            print(f"⚠️  Batch tool execution error: {e}")
+                            for tool_call in tool_calls:
+                                tool_result = {
+                                    "error": str(e),
+                                    "tool": tool_call["name"],
+                                    "tool_name": tool_call["name"],
+                                }
+                                tool_results.append(tool_result)
+                            messages.append(
+                                {
+                                    "role": "assistant",
+                                    "content": response_text,
+                                }
+                            )
+                            messages.append(
+                                {
+                                    "role": "user",
+                                    "content": f"Tool execution failed: {str(e)}",
+                                }
+                            )
+
+                            messages.append(
+                                {
+                                    "role": "user",
+                                    "content": f"Tool execution failed: {str(e)}",
+                                }
+                            )
+
+                    elif not has_decision and not tool_calls:
+                        # Fallback: If no decision and no tools, append the response so the LLM knows what it said.
+                        # This prevents the "stuck loop" where it retries with the exact same prompt.
+                        print("⚠️  No decision and no tools found. Appending response to history to continue conversation.")
+                        messages.append(
+                            {
+                                "role": "assistant",
+                                "content": response_text,
+                            }
+                        )
+
+                    iteration += 1
+
+                decision_result = self._parse_response(response_text, symbol, current_date)
+                decision_result["tool_calls_made"] = len(tool_results)
+                decision_result["tool_results"] = tool_results
+                try:
+                    self._save_raw_prompt(symbol, current_date, messages)
+                except Exception as e:  # noqa: BLE001
+                    print(f"⚠️  Failed to save raw LLM prompt: {e}")
+                self._save_decision(decision_result)
+
+                if not current_price:
+                    # Try to recover a usable current_price from any available tool data.
+                    # Strategy:
+                    #   1) Prefer explicit get_current_price results
+                    #   2) Next, look for a bar on current_date from get_price_history
+                    #   3) Finally, fall back to the latest available close on/before current_date
+                    #      from ANY tool that returns OHLC data (e.g. OBV price history)
+                    price_history_entries: list[dict] = []
+
+                    for tool_result in tool_results:
+                        if tool_result.get("error"):
+                            continue
+
+                        tool_name = tool_result.get("tool_name", "")
+                        data = tool_result.get("data", [])
+
+                        # 1) Direct get_current_price result (historical or quote)
+                        if tool_name == "get_current_price":
                             if data and isinstance(data, list):
                                 entry = data[0]
                                 current_price = (
@@ -464,171 +607,307 @@ class ReasoningAgent:
                                     or entry.get("prev_close")
                                 )
                                 if current_price:
-                                    print(f"✅ Fetched current_price: ${float(current_price):.2f}")
-                                    print(f"📊 Current price today is ${float(current_price):.2f}")
-                    except Exception as e:  # noqa: BLE001
-                        print(f"⚠️  Failed to fetch current_price: {e}")
+                                    break
+                            continue
 
-                if not current_price:
-                    print(
-                        "⚠️  Cannot execute trade: current_price not provided "
-                        "and could not be fetched"
-                    )
-                    print(f"   Tool results: {len(tool_results)} results")
+                        # 2) Collect any OHLC-style history (date + close) we can find
+                        candidates = []
+                        if isinstance(data, list):
+                            candidates = data
+                        elif isinstance(data, dict) and isinstance(data.get("data"), list):
+                            candidates = data.get("data", [])
+
+                        for entry in candidates:
+                            if isinstance(entry, dict) and "date" in entry and "close" in entry:
+                                price_history_entries.append(entry)
+
+                    # 3) Prefer a bar exactly on current_date if present
+                    if not current_price and price_history_entries:
+                        same_day = [
+                            e for e in price_history_entries
+                            if e.get("date") == current_date and e.get("close")
+                        ]
+                        if same_day:
+                            # Use the last bar for the current_date
+                            current_price = same_day[-1].get("close")
+
+                    # 4) If still nothing, fall back to the latest close on/before current_date
+                    if not current_price and price_history_entries:
+                        # Sort by date string (YYYY-MM-DD) just in case entries are unordered
+                        price_history_entries.sort(key=lambda e: e.get("date", ""))
+                        for entry in reversed(price_history_entries):
+                            entry_date = entry.get("date", "")
+                            if entry_date and entry_date <= current_date:
+                                price = entry.get("close")
+                                if price:
+                                    current_price = price
+                                    break
+
+                if current_price:
+                    # Log and expose the resolved current price so downstream
+                    # orchestrators can reuse it for execution and portfolio
+                    # state updates.
+                    print(f"📊 Current price today is ${float(current_price):.2f}")
+                    try:
+                        decision_result["current_price"] = float(current_price)
+                    except Exception:
+                        # If casting fails, don't let it break the flow
+                        pass
+
+                if execute_trade_after and TRADE_EXECUTION_AVAILABLE:
+                    if not current_price and mcp_session:
+                        try:
+                            print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
+                            price_tool_call = {
+                                "name": "get_current_price",
+                                "arguments": {
+                                    "symbol": symbol,
+                                    "current_date": current_date,
+                                },
+                            }
+                            price_result = await self._execute_tool_via_mcp(
+                                mcp_session, price_tool_call, symbol, current_date
+                            )
+                            if "error" not in price_result:
+                                data = price_result.get("data", [])
+                                if data and isinstance(data, list):
+                                    entry = data[0]
+                                    current_price = (
+                                        entry.get("close")
+                                        or entry.get("price")
+                                        or entry.get("last_price")
+                                        or entry.get("prev_close")
+                                    )
+                                    if current_price:
+                                        print(f"✅ Fetched current_price: ${float(current_price):.2f}")
+                                        print(f"📊 Current price today is ${float(current_price):.2f}")
+                        except Exception as e:  # noqa: BLE001
+                            print(f"⚠️  Failed to fetch current_price: {e}")
+
+                    if not current_price:
+                        print(
+                            "⚠️  Cannot execute trade: current_price not provided "
+                            "and could not be fetched"
+                        )
+                        print(f"   Tool results: {len(tool_results)} results")
+                        decision = decision_result.get("decision", "").upper()
+                        if decision in ("BUY", "SELL", "SHORT", "CLOSE"):
+                            amount_usd = decision_result.get("amount_usd", 0)
+                            if decision == "CLOSE" or amount_usd > 0:
+                                return decision_result
+
                     decision = decision_result.get("decision", "").upper()
-                    if decision in ("BUY", "SELL", "SHORT", "CLOSE"):
+                    if decision in ("BUY", "SELL", "SHORT", "HOLD", "CLOSE"):
                         amount_usd = decision_result.get("amount_usd", 0)
                         if decision == "CLOSE" or amount_usd > 0:
-                            return decision_result
+                            try:
+                                trade_result = execute_trade(
+                                    symbol=symbol,
+                                    decision=decision,
+                                    amount_usd=amount_usd,
+                                    current_price=float(current_price),
+                                    current_date=current_date,
+                                    portfolio_state=portfolio_state,
+                                    market_cap_bil=portfolio_state.get("market_caps", {}).get(symbol),
+                                )
+                                decision_result["trade_execution"] = trade_result
+                                decision_result["portfolio_state_updated"] = trade_result.get(
+                                    "updated_portfolio_state"
+                                )
+                                print(
+                                    f"✅ Trade executed: {decision} {symbol} - "
+                                    f"{trade_result.get('trade_details', {}).get('action', 'UNKNOWN')}"
+                                )
+                            except Exception as e:  # noqa: BLE001
+                                print(f"❌ Trade execution failed: {e}")
+                                decision_result["trade_execution_error"] = str(e)
 
-                decision = decision_result.get("decision", "").upper()
-                if decision in ("BUY", "SELL", "SHORT", "HOLD", "CLOSE"):
-                    amount_usd = decision_result.get("amount_usd", 0)
-                    if decision == "CLOSE" or amount_usd > 0:
-                        try:
-                            trade_result = execute_trade(
-                                symbol=symbol,
-                                decision=decision,
-                                amount_usd=amount_usd,
-                                current_price=float(current_price),
-                                current_date=current_date,
-                                portfolio_state=portfolio_state,
-                                market_cap_bil=portfolio_state.get("market_caps", {}).get(symbol),
-                            )
-                            decision_result["trade_execution"] = trade_result
-                            decision_result["portfolio_state_updated"] = trade_result.get(
-                                "updated_portfolio_state"
-                            )
-                            print(
-                                f"✅ Trade executed: {decision} {symbol} - "
-                                f"{trade_result.get('trade_details', {}).get('action', 'UNKNOWN')}"
-                            )
-                        except Exception as e:  # noqa: BLE001
-                            print(f"❌ Trade execution failed: {e}")
-                            decision_result["trade_execution_error"] = str(e)
+                    if current_price and not decision_result.get("portfolio_state_updated"):
+                        updated_state = json.loads(json.dumps(portfolio_state))
+                        if "last_prices" not in updated_state:
+                            updated_state["last_prices"] = {}
+                        updated_state["last_prices"][symbol] = float(current_price)
+                        decision_result["portfolio_state_updated"] = updated_state
+                else:
+                    if current_price and not decision_result.get("portfolio_state_updated"):
+                        updated_state = json.loads(json.dumps(portfolio_state))
+                        if "last_prices" not in updated_state:
+                            updated_state["last_prices"] = {}
+                        updated_state["last_prices"][symbol] = float(current_price)
+                        decision_result["portfolio_state_updated"] = updated_state
 
-                if current_price and not decision_result.get("portfolio_state_updated"):
-                    updated_state = json.loads(json.dumps(portfolio_state))
-                    if "last_prices" not in updated_state:
-                        updated_state["last_prices"] = {}
-                    updated_state["last_prices"][symbol] = float(current_price)
-                    decision_result["portfolio_state_updated"] = updated_state
+                return decision_result
+
+            except Exception as e:  # noqa: BLE001
+                print(f"❌ Error for {symbol}: {e}")
+                return self._create_error_decision(symbol, current_date, str(e))
+        finally:
+            if self.use_mcp_client:
+                try:
+                    await self._close_mcp_session()
+                except Exception:
+                    # Cleanup failures should not crash the calling flow
+                    pass
+
+    def _build_system_prompt(self, mcp_session=None, selected_categories: Optional[List[str]] = None, technical_indicators_date_range: Optional[int] = None, allow_short_selling: bool = False) -> str:
+        # Load prompt template from JSON file (enables hot-reload without daemon restart)
+        prompts_path = os.path.join(os.path.dirname(__file__), "prompts.json")
+        try:
+            with open(prompts_path, "r") as f:
+                prompts_config = json.load(f)
+            prompt_template = prompts_config.get("system_prompt", "")
+            default_tools = prompts_config.get("default_tools_list", "")
+            planning_stage_template = prompts_config.get("planning_stage", "")
+            
+            # Load strategy constraint templates
+            long_only_constraints = prompts_config.get("long_only_constraints", "")
+            long_short_constraints = prompts_config.get("long_short_constraints", "")
+            
+            # Determine strategy mode & load specific descriptions
+            if allow_short_selling:
+                print("🔵 Strategy Mode: LONG-SHORT (Short selling ENABLED)")
+                strategy_constraints = long_short_constraints
+                sell_action_description = prompts_config.get("long_short_sell_description", "If not owned, this becomes a SHORT opportunity.")
+                sell_decision_implication = prompts_config.get("long_short_sell_implication", "You can profit from downside moves by shorting.")
             else:
-                if current_price and not decision_result.get("portfolio_state_updated"):
-                    updated_state = json.loads(json.dumps(portfolio_state))
-                    if "last_prices" not in updated_state:
-                        updated_state["last_prices"] = {}
-                    updated_state["last_prices"][symbol] = float(current_price)
-                    decision_result["portfolio_state_updated"] = updated_state
+                print("🔵 Strategy Mode: LONG-ONLY (Short selling DISABLED)")
+                strategy_constraints = long_only_constraints
+                sell_action_description = prompts_config.get("long_only_sell_description", "If not owned, NO ACTION.")
+                sell_decision_implication = prompts_config.get("long_only_sell_implication", "You can only SELL what you currently own.")
+                
+        except Exception as e:
+            print(f"⚠️  Failed to load or parse prompts.json: {e}. Using fallback prompt.")
+            # Fallback to minimal prompt if JSON fails
+            prompt_template = "You are an expert autonomous portfolio trading agent.\n{strategy_constraints}\n{tools_list}\n{precomputed_tools}\nOutput: DECISION, CONFIDENCE, AMOUNT_USD, REASONING"
+            default_tools = "You have access to analysis tools."
+            planning_stage_template = "Plan your tool calls first."
+            strategy_constraints = "TRADING STRATEGY: LONG ONLY"
+            sell_action_description = "Avoid Short Selling."
+            sell_decision_implication = "Neutral decision."
+            
+        # Ensure all variables are bound to at least empty strings or defaults to prevent NameError
+        # (Though they should be covered above)
+        sell_action_description = locals().get('sell_action_description', "No description")
+        sell_decision_implication = locals().get('sell_decision_implication', "No implication")
+        strategy_constraints = locals().get('strategy_constraints', "No constraints")
 
-            return decision_result
-
-        except Exception as e:  # noqa: BLE001
-            print(f"❌ Error for {symbol}: {e}")
-            return self._create_error_decision(symbol, current_date, str(e))
-
-    def _build_system_prompt(self, mcp_session=None, risk_level: str = "medium") -> str:
-        if mcp_session and self.available_tools:
+        
+        # Build tools list based on selected categories
+        if selected_categories:
+            try:
+                from tool_registry import TOOL_CATEGORIES
+                category_tools = []
+                for cat in selected_categories:
+                    if cat in TOOL_CATEGORIES:
+                        category_tools.extend(TOOL_CATEGORIES[cat]["tools"])
+                
+                # Filter by available tools to prevent hallucinations
+                if self.available_tools:
+                    valid_tools = set(self.available_tools)
+                    category_tools = [t for t in category_tools if t in valid_tools]
+                
+                tools_list = "You have access to the following tools:\n"
+                tools_list += "\n".join([f"- {tool}" for tool in sorted(set(category_tools))])
+            except Exception:
+                tools_list = "You have access to analysis tools (configured for your tier)"
+        elif mcp_session and self.available_tools:
             tools_list = "You have access to the following tools via MCP:\n"
             tools_list += "\n".join([f"- {tool}" for tool in self.available_tools[:20]])
             if len(self.available_tools) > 20:
                 tools_list += f"\n... and {len(self.available_tools) - 20} more tools"
-            tools_list += "\n\nTo use a tool, format your request as:\nTOOL_CALL: tool_name(param1=value1, param2=value2)"
         else:
-            tools_list = """You have access to the following analysis tools:
-- get_price_history(symbol, start_date, end_date)
-- calculate_rsi(symbol, start_date, end_date, length=14, target='close')
-- calculate_macd(symbol, start_date, end_date, fast=12, slow=26, signal=9, target='close')
-- calculate_bbands(symbol, start_date, end_date, length=20, std=2.0, target='close')
-- calculate_atr(symbol, start_date, end_date, length=14)
-- calculate_obv(symbol, start_date, end_date)
-- calculate_adx(symbol, start_date, end_date, length=14)
-- calculate_ema(symbol, start_date, end_date, length=50, target='close')
-- calculate_cci(symbol, start_date, end_date, length=20)
-- get_current_price(symbol, current_date=None)
-- get_earnings_calendar(start_date, end_date, symbol=None, current_date=None)
-- get_analyst_estimates(symbol)
-- get_company_profile(symbol)
-- get_income_statement(symbol, period='annual', limit=5)
-- get_balance_sheet(symbol, period='annual', limit=5)
-- get_cash_flow(symbol, period='annual', limit=5)
-- get_company_news(symbol, start_date, end_date, limit)
-- get_world_news(start_date, end_date, topics=None, limit)"""
+            tools_list = default_tools
 
-        # Risk level guidance for position sizing
-        risk_guidance = {
-            "low": "Capital preservation focus: Use small position sizes (5-10% of available cash per trade), prioritize stop-losses, avoid high volatility stocks.",
-            "medium": "Balanced approach: Use moderate position sizes (10-20% of available cash per trade), balanced risk/reward, standard stop-losses.",
-            "high": "Aggressive strategy: Use larger position sizes (25-30% of available cash per trade), higher drawdown tolerance, can take on more volatility.",
-        }.get(risk_level.lower(), "Balanced approach: Use moderate position sizes (10-20% of available cash per trade), balanced risk/reward, standard stop-losses.")
+        # Generate pre-computed tool calls if date range is specified
+        precomputed_tools = ""
+        planning_stage = ""
 
-        return f"""You are an expert autonomous trading agent powered by OpenBB data.
-Your goal is to analyze stocks and make profitable trading decisions (BUY, SELL, SHORT, HOLD).
+        if technical_indicators_date_range and selected_categories:
+            try:
+                from tool_registry import generate_precomputed_tool_calls
+                precomputed_tools = generate_precomputed_tool_calls(selected_categories, technical_indicators_date_range)
+                date_range_note = f"\n[Technical indicators configured for {technical_indicators_date_range}-day lookback]\n"
+            except Exception:
+                date_range_note = ""
+                planning_stage = planning_stage_template
+        else:
+            date_range_note = ""
+            planning_stage = planning_stage_template
 
-Risk Level: {risk_level.upper()}
-{risk_guidance}
+        # Format the template with dynamic values
+        return prompt_template.format(
+            strategy_constraints=strategy_constraints,
+            sell_action_description=sell_action_description,
+            sell_decision_implication=sell_decision_implication,
+            tools_list=tools_list,
+            date_range_note=date_range_note,
+            planning_stage=planning_stage,
+            precomputed_tools=precomputed_tools
+        )
 
-{tools_list}
 
-You operate in TWO CLEAR STAGES:
 
-STAGE 1 - PLANNING (FIRST RESPONSE ONLY):
-- Carefully decide which tools you need and with what parameters.
-- For technical indicators: Use date ranges of 60-90 days for fetching price history.
+    def _get_planning_stage(self) -> str:
+        """Return PLANNING-STAGE instructions when no date range is specified."""
+        return """PLANNING - STAGE:
+* Carefully decide the desired tool history window you want based on the users tool list.
+
+- For technical indicators: Use compact date ranges of ~60-90 days. These tools return pre-calculated indicator series (and may internally use longer price windows), so avoid redundant raw price-history calls unless you specifically need candles.
 - For fundamentals, request only as much history as you truly need.
 - For news, use short date windows and small limits.
 - Output ONLY tool calls in this format (no decision yet):
   TOOL_CALL: tool_name(param1=value1, param2=value2)
 
-STAGE 2 - ANALYSIS AND DECISION (AFTER YOU SEE TOOL RESULTS):
-- When tool results are provided, use them to form a single, final trading decision.
-- Consider the risk level when sizing positions (AMOUNT_USD).
-
-Once you have received the data from the tool calls, output:
-DECISION: [BUY/SELL/SHORT/HOLD]
-CONFIDENCE: [0.0-1.0]
-AMOUNT_USD: [Dollar amount for the trade, based on confidence, portfolio size, and risk level]
-REASONING: [Detailed analysis]
 """
 
-    def _build_user_prompt(self, symbol, current_date, portfolio_state, notes: str = "") -> str:
-        notes_section = f"\n\nAdditional Instructions:\n{notes}" if notes else ""
-        
-        return f"""Analyze {symbol} for trading date {current_date}.
+    def _build_user_prompt(self, symbol, current_date, portfolio_state, current_price: Optional[float] = None, technical_data: Optional[Dict[str, Any]] = None, notes: str = "") -> str:
+        notes_section = f"\n\nVerified News You Should Consider:\n{notes}" if notes else ""
 
-Portfolio State:
-- Cash: ${portfolio_state.get('cash', 0):,.2f}
-- Long Positions: {portfolio_state.get('positions', {})}
-- Short Positions: {portfolio_state.get('short_positions', {})}
-- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}
+        # Build current price section (if available)
+        current_price_section = ""
+        if current_price is not None:
+            current_price_section = f"\n🔴 CURRENT PRICE: {symbol} = ${current_price:.2f}"
+
+        # Build summary-only portfolio context (minimal tokens)
+        portfolio_context = f"Portfolio State:\n- Cash: ${portfolio_state.get('cash', 0):,.2f}\n"
+
+        # Long positions summary (symbol: shares @ avg_price)
+        positions = portfolio_state.get('positions', {})
+        if positions:
+            portfolio_context += "- Long Positions:\n"
+            for pos_symbol, pos_data in positions.items():
+                shares = pos_data.get('shares', 0)
+                avg_price = pos_data.get('avg_price', 0)
+                portfolio_context += f"  * {pos_symbol}: {shares} shares @ ${avg_price:.2f} avg\n"
+        else:
+            portfolio_context += "- Long Positions: None\n"
+
+        # Short positions summary
+        short_positions = portfolio_state.get('short_positions', {})
+        if short_positions:
+            portfolio_context += "- Short Positions:\n"
+            for pos_symbol, pos_data in short_positions.items():
+                shares = pos_data.get('shares', 0)
+                avg_price = pos_data.get('avg_price', 0)
+                portfolio_context += f"  * {pos_symbol}: {shares} shares @ ${avg_price:.2f} avg\n"
+        else:
+            portfolio_context += "- Short Positions: None\n"
+
+        portfolio_context += f"- Unrealized P&L: ${portfolio_state.get('unrealized_pnl', 0):,.2f}"
+
+        return f"""Analyze {symbol} for trading date {current_date}.{current_price_section}
+
+{portfolio_context}
 {notes_section}
 
-Please use the available tools to gather data and make a decision.
+Please use the available tools to gather additional data and make a decision.
 Avoid lookahead bias: do not use data from after {current_date}.
 """
 
-    def _call_chutes_api(self, messages: List[Dict]) -> str:
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-        body = {
-            "model": self.model,
-            "messages": messages,
-            "stream": False,
-            "max_tokens": 4096,
-            "temperature": 0.1,
-        }
 
-        total_chars = sum(len(str(msg.get("content", ""))) for msg in messages)
-        print(f"  📤 API Request: {len(messages)} messages, {total_chars:,} total chars")
-
-        response = requests.post(CHUTES_API_URL, headers=headers, json=body, timeout=120)
-        response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
 
     def _parse_response(self, text: str, symbol: str, date: str) -> Dict:
-        decision = "HOLD"
+        decision = "NEUTRAL"  # Changed default from HOLD to NEUTRAL (portfolio-aware)
         confidence = 0.0
         amount_usd = 0.0
         reasoning = text
@@ -636,7 +915,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
         decision_match = re.search(r"DECISION:\s*(\w+)", text, re.IGNORECASE)
         if decision_match:
             decision = decision_match.group(1).upper()
-            if decision not in ("BUY", "SELL", "SHORT", "HOLD", "CLOSE"):
+            # Updated valid decisions to include NEUTRAL and MAINTAIN
+            if decision not in ("BUY", "SELL", "NEUTRAL", "MAINTAIN", "SHORT", "HOLD", "CLOSE"):
                 decision = ""
 
         confidence_match = re.search(r"CONFIDENCE:\s*(\d+\.?\d*)", text, re.IGNORECASE)
@@ -672,6 +952,37 @@ Avoid lookahead bias: do not use data from after {current_date}.
         filename = f"{decision['symbol']}_{decision['date']}_decision.json"
         with open(os.path.join(self.decision_save_dir, filename), "w") as f:
             json.dump(decision, f, indent=2)
+
+        # Extract and save news findings separately
+        if "tool_results" in decision:
+            self._save_news_findings(decision["symbol"], decision["date"], decision["tool_results"])
+
+    def _extract_news_results(self, tool_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Extract only news tool results."""
+        news_tools = ["get_company_news", "get_world_news"]
+        return [r for r in tool_results if r.get("tool_name") in news_tools]
+
+    def _save_news_findings(self, symbol: str, date: str, tool_results: List[Dict[str, Any]]) -> None:
+        """Save raw news findings to dedicated folder."""
+        news_results = self._extract_news_results(tool_results)
+        if not news_results:
+            return  # No news to save
+
+        news_dir = os.path.join(self.data_dir, "news_decisions")
+        os.makedirs(news_dir, exist_ok=True)
+
+        filename = f"{symbol}_{date}_news.json"
+        filepath = os.path.join(news_dir, filename)
+
+        news_data = {
+            "symbol": symbol,
+            "date": date,
+            "news_findings": news_results,
+            "timestamp_utc": datetime.now().isoformat(),
+        }
+
+        with open(filepath, "w") as f:
+            json.dump(news_data, f, indent=2)
 
     def _save_raw_prompt(self, symbol: str, date: str, messages: List[Dict[str, Any]]) -> None:
         os.makedirs(self.decision_save_dir, exist_ok=True)
@@ -723,12 +1034,127 @@ Avoid lookahead bias: do not use data from after {current_date}.
         import ast
 
         tool_calls: List[Dict[str, Any]] = []
-        pattern = r"TOOL_CALL:\s*(\w+)\s*\(([^)]*)\)"
-        matches = re.finditer(pattern, text, re.IGNORECASE | re.DOTALL)
 
-        for match in matches:
-            tool_name = match.group(1)
-            params_str = match.group(2).strip()
+        # --------------------------------------------------------------------------
+        # STRATEGY 1: Parse Python Code Blocks (Common with OpenAI/Coding LLMs)
+        # --------------------------------------------------------------------------
+        # Look for ```python ... ``` blocks
+        code_block_pattern = re.compile(r"```python(.*?)```", re.DOTALL)
+        code_blocks = code_block_pattern.findall(text)
+
+        for block in code_blocks:
+            # Simple line-by-line parser for function calls in code blocks
+            # We look for: var = func(arg=val, ...) or just func(arg=val)
+            # Regex to capture: function_name( arguments )
+            # This is heuristic and assumes mostly simple calls
+            lines = block.strip().split('\n')
+            for line in lines:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                
+                # Match "var = func(...)" or "func(...)"
+                # Capture group 1: func name, Capture group 2: args
+                call_match = re.match(r"(?:[\w_]+\s*=\s*)?([a-zA-Z_][\w_]*)\s*\((.*)\)", line)
+                if call_match:
+                    tool_name = call_match.group(1)
+                    args_str = call_match.group(2)
+                    
+                    # Skip common non-tool functions if needed (e.g. print)
+                    if tool_name == "print":
+                        continue
+
+                    params: Dict[str, Any] = {}
+                    try:
+                        # Attempt to parse arguments using AST for safety/correctness
+                        # We wrap it in a function call to make it valid python for parsing
+                        dummy_code = f"foo({args_str})"
+                        tree = ast.parse(dummy_code)
+                        call_node = tree.body[0].value
+                        if isinstance(call_node, ast.Call):
+                            for keyword in call_node.keywords:
+                                key = keyword.arg
+                                # Evaluate the value (literals only)
+                                try:
+                                    value = ast.literal_eval(keyword.value)
+                                    params[key] = value
+                                except Exception:
+                                    # Fallback for simple values if AST eval fails or complex expr
+                                    # For string/numbers, ast.literal_eval is best.
+                                    pass
+                    except Exception:
+                        pass
+                    
+                    # Fallback manual parsing if AST failed to get ANY params but args_str exists
+                    # (This handles simple cases that might be malformed python but readable)
+                    if not params and args_str:
+                        # ... (Reuse existing manual parser logic if needed, or simple split)
+                        pass
+                            
+                    # If AST worked, we have params. If not, maybe we rely on the manual parser?
+                    # Let's rely on the manual parser below for robustness if AST failed or returned empty
+                    # but we see potential arguments.
+                    
+                    # Actually, let's just add what we found via AST. 
+                    # If AST failed, we skip this line to avoid garbage.
+                    if params or not args_str.strip():
+                         tool_calls.append({
+                            "name": tool_name,
+                            "arguments": params
+                        })
+
+        if tool_calls:
+            return tool_calls
+
+        # --------------------------------------------------------------------------
+        # STRATEGY 2: Legacy TOOL_CALL: format (DeepSeek/Chutes standard instruction)
+        # --------------------------------------------------------------------------
+        parts = re.split(r"TOOL_CALL:\s*", text)
+        
+        # Subsequent parts are "tool_name(args...)" keys
+        for part in parts[1:]:
+            part = part.strip()
+            if not part:
+                continue
+                
+            # Attempt to separate tool name and args
+            match = re.match(r"^(\w+)\s*\((.*)\)", part, re.DOTALL)
+            if not match:
+                match_start = re.match(r"^(\w+)\s*\(", part)
+                if match_start:
+                    tool_name = match_start.group(1)
+                    args_str_full = part[len(match_start.group(0)):]
+                    depth = 1
+                    params_str = ""
+                    for char in args_str_full:
+                        if char == '(':
+                            depth += 1
+                        elif char == ')':
+                            depth -= 1
+                        if depth == 0:
+                            break
+                        params_str += char
+                    
+                    if depth != 0:
+                         params_str = args_str_full.rstrip(')')
+                else:
+                    continue
+            else:
+                tool_name = match.group(1)
+                paren_start = part.find('(')
+                if paren_start == -1: 
+                    continue
+                args_str_full = part[paren_start+1:]
+                depth = 1
+                params_str = ""
+                for char in args_str_full:
+                    if char == '(':
+                        depth += 1
+                    elif char == ')':
+                        depth -= 1
+                    if depth == 0:
+                        break
+                    params_str += char
 
             params: Dict[str, Any] = {}
             if params_str:
@@ -814,6 +1240,35 @@ Avoid lookahead bias: do not use data from after {current_date}.
         tool_name = tool_call["name"]
         arguments = tool_call["arguments"]
 
+        # Check if tool is available in the user's tier
+        # Check if tool is available in the user's tier
+        if tool_name not in self.available_tools:
+            # ------------------------------------------------------------------
+            # REDIRECTION LOGIC: Check if this is a "slow" tool that has a "fast" replacement
+            # that IS available. If so, redirect to the fast version.
+            # ------------------------------------------------------------------
+            redirected_name = None
+            try:
+                # DEDUPLICATION_PAIRS is list of (slow, fast)
+                for slow, fast in DEDUPLICATION_PAIRS:
+                    if tool_name == slow and fast in self.available_tools:
+                        redirected_name = fast
+                        break
+            except Exception:
+                pass
+
+            if redirected_name:
+                print(f"🔀 Redirecting '{tool_name}' -> '{redirected_name}' (available in tier)")
+                tool_name = redirected_name
+                tool_call["name"] = redirected_name
+            else:
+                return {
+                    "tool_name": tool_name,
+                    "error": f"Tool '{tool_name}' is not available in your tier ({self.user_tier}). "
+                         f"Consider upgrading your tier or using an alternative tool.",
+                "available": False
+            }
+
         current_date_dt = None
         try:
             current_date_dt = datetime.strptime(current_date, "%Y-%m-%d")
@@ -822,7 +1277,6 @@ Avoid lookahead bias: do not use data from after {current_date}.
 
         tools_default_symbol = {
             "calculate_rsi",
-            "calculate_macd",
             "calculate_bbands",
             "calculate_atr",
             "calculate_obv",
@@ -831,6 +1285,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "calculate_cci",
             "calculate_moving_averages",
             "calculate_volatility",
+            "get_fmp_rsi",
+            "get_fmp_ema",
             "get_price_history",
             "get_current_price",
             "get_income_statement",
@@ -841,20 +1297,11 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "get_company_news",
         }
 
-        if tool_name in ["get_earnings_calendar", "fundamental_earnings_calendar"]:
-            arguments.setdefault("symbol", symbol)
-            if "current_date" not in arguments and current_date:
-                arguments["current_date"] = current_date
-        else:
-            if tool_name in tools_default_symbol and "symbol" not in arguments:
-                arguments["symbol"] = symbol
-
         if tool_name == "get_current_price" and "current_date" not in arguments:
             arguments["current_date"] = current_date
 
         technical_indicators_needing_dates = [
             "calculate_rsi",
-            "calculate_macd",
             "calculate_bbands",
             "calculate_atr",
             "calculate_obv",
@@ -863,6 +1310,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "calculate_cci",
             "calculate_moving_averages",
             "calculate_volatility",
+            "get_fmp_rsi",
+            "get_fmp_ema",
         ]
 
         if tool_name in technical_indicators_needing_dates:
@@ -906,6 +1355,20 @@ Avoid lookahead bias: do not use data from after {current_date}.
             if limit > 50:
                 limit = 50
             arguments["limit"] = limit
+
+            # Clamp excessively wide ranges to the last 12 days ending at end_date
+            if "start_date" in arguments and "end_date" in arguments:
+                try:
+                    sd = datetime.strptime(str(arguments["start_date"]), "%Y-%m-%d")
+                    ed = datetime.strptime(str(arguments["end_date"]), "%Y-%m-%d")
+                    if ed < sd:
+                        sd, ed = ed, sd
+                    if (ed - sd).days > 12:
+                        sd = ed - timedelta(days=12)
+                        arguments["start_date"] = sd.strftime("%Y-%m-%d")
+                        arguments["end_date"] = ed.strftime("%Y-%m-%d")
+                except Exception:
+                    pass
 
         if current_date_dt and "end_date" in arguments:
             try:
@@ -965,7 +1428,7 @@ Avoid lookahead bias: do not use data from after {current_date}.
                                     filtered.append(item)
                                     continue
                                 raw_date = None
-                                for key in ("date", "published_at", "datetime"):
+                                for key in ("date", "published_at", "publishedDate", "datetime"):
                                     value = item.get(key)
                                     if value:
                                         raw_date = str(value)[:10]

@@ -1,0 +1,690 @@
+2026-01-11 23:01:28 [WARNING] sync_wrapper:206 - Attempt 1/3 failed for load_portfolio_state: load_portfolio_state() takes from 0 to 1 positional arguments but 2 were given. Retrying in 1.0s...
+2026-01-11 23:01:29 [WARNING] sync_wrapper:206 - Attempt 2/3 failed for load_portfolio_state: load_portfolio_state() takes from 0 to 1 positional arguments but 2 were given. Retrying in 2.0s...
+2026-01-11 23:01:31 [ERROR] sync_wrapper:213 - All 3 attempts failed for load_portfolio_state: load_portfolio_state() takes from 0 to 1 positional arguments but 2 were given
+2026-01-11 23:02:02 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:02 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:02 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:14 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:14 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:14 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:14 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:45 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:45 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:45 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:45 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=2516.72, positions=1, shorts=0
+2026-01-11 23:02:45 [INFO] save_portfolio_state:587 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-11 23:02:45 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:03:08 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:03:08 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:03:08 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:03:08 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:03:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:03:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:03:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:03:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:07:55 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:07:55 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:07:55 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:08:04 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:08:04 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:08:04 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:08:04 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:08:04 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:08:08 [INFO] save_portfolio_state:587 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-11 23:08:08 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:00 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:00 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:10 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:10 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:10 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:10 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:10 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-11 23:09:20 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-12 22:01:16 [INFO] run_once:801 - 🏁 One‑shot mode: running trading cycle for AAPL on 2026-01-12 (NY date)
+2026-01-12 22:01:16 [INFO] run_single_trading_cycle:698 - ================================================================================
+2026-01-12 22:01:16 [INFO] run_single_trading_cycle:699 - 🚀 Live trading cycle for AAPL on 2026-01-12
+2026-01-12 22:01:16 [INFO] run_single_trading_cycle:700 - ================================================================================
+2026-01-12 22:01:16 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-12 22:02:15 [INFO] save_portfolio_state:587 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-12 22:05:23 [INFO] run_once:801 - 🏁 One‑shot mode: running trading cycle for AAPL on 2026-01-12 (NY date)
+2026-01-12 22:05:23 [INFO] run_single_trading_cycle:698 - ================================================================================
+2026-01-12 22:05:23 [INFO] run_single_trading_cycle:699 - 🚀 Live trading cycle for AAPL on 2026-01-12
+2026-01-12 22:05:23 [INFO] run_single_trading_cycle:700 - ================================================================================
+2026-01-12 22:05:23 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-12 22:06:14 [INFO] save_portfolio_state:587 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-12 22:06:14 [INFO] append_portfolio_history:660 - 📈 Logged portfolio history for AAPL on 2026-01-12 | equity=4242.72, cash=-22483.28
+2026-01-12 22:06:15 [INFO] _get_alpaca_client:431 - 🦙 Alpaca client initialised (paper mode).
+2026-01-12 22:06:15 [INFO] _get_alpaca_client:432 -    Account: PA3TTUN9XOP2 | Buying Power: $192,547.78
+2026-01-12 22:06:15 [INFO] run_single_trading_cycle:743 - ================================================================================
+2026-01-12 22:06:15 [INFO] run_single_trading_cycle:744 - ✅ Trading cycle complete for AAPL on 2026-01-12 | decision=HOLD amount=0.0
+2026-01-12 22:06:15 [INFO] run_single_trading_cycle:749 - ================================================================================
+2026-01-12 22:21:15 [INFO] run_once:801 - 🏁 One‑shot mode: running trading cycle for AAPL on 2026-01-12 (NY date)
+2026-01-12 22:21:15 [INFO] run_single_trading_cycle:698 - ================================================================================
+2026-01-12 22:21:15 [INFO] run_single_trading_cycle:699 - 🚀 Live trading cycle for AAPL on 2026-01-12
+2026-01-12 22:21:15 [INFO] run_single_trading_cycle:700 - ================================================================================
+2026-01-12 22:21:15 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-12 22:21:46 [INFO] save_portfolio_state:587 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-12 22:21:46 [INFO] append_portfolio_history:660 - 📈 Logged portfolio history for AAPL on 2026-01-12 | equity=4242.72, cash=-22483.28
+2026-01-12 22:21:47 [INFO] _get_alpaca_client:431 - 🦙 Alpaca client initialised (paper mode).
+2026-01-12 22:21:47 [INFO] _get_alpaca_client:432 -    Account: PA3TTUN9XOP2 | Buying Power: $192,549.18
+2026-01-12 22:21:47 [INFO] run_single_trading_cycle:743 - ================================================================================
+2026-01-12 22:21:47 [INFO] run_single_trading_cycle:744 - ✅ Trading cycle complete for AAPL on 2026-01-12 | decision=HOLD amount=0.0
+2026-01-12 22:21:47 [INFO] run_single_trading_cycle:749 - ================================================================================
+2026-01-12 22:43:50 [INFO] run_once:801 - 🏁 One‑shot mode: running trading cycle for AAPL on 2026-01-12 (NY date)
+2026-01-12 22:43:50 [INFO] run_single_trading_cycle:698 - ================================================================================
+2026-01-12 22:43:50 [INFO] run_single_trading_cycle:699 - 🚀 Live trading cycle for AAPL on 2026-01-12
+2026-01-12 22:43:50 [INFO] run_single_trading_cycle:700 - ================================================================================
+2026-01-12 22:43:50 [INFO] load_portfolio_state:562 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-12 22:44:32 [INFO] save_portfolio_state:587 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-12 22:44:32 [INFO] append_portfolio_history:660 - 📈 Logged portfolio history for AAPL on 2026-01-12 | equity=4242.72, cash=-22483.28
+2026-01-12 22:44:33 [INFO] _get_alpaca_client:431 - 🦙 Alpaca client initialised (paper mode).
+2026-01-12 22:44:33 [INFO] _get_alpaca_client:432 -    Account: PA3TTUN9XOP2 | Buying Power: $192,547.77
+2026-01-12 22:44:33 [INFO] run_single_trading_cycle:743 - ================================================================================
+2026-01-12 22:44:33 [INFO] run_single_trading_cycle:744 - ✅ Trading cycle complete for AAPL on 2026-01-12 | decision=HOLD amount=0.0
+2026-01-12 22:44:33 [INFO] run_single_trading_cycle:749 - ================================================================================
+2026-01-13 22:09:42 [INFO] run_once:826 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, AVGO on 2026-01-13 (NY date)
+2026-01-13 22:09:42 [INFO] load_portfolio_state:563 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-13 22:09:42 [INFO] save_portfolio_state:588 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 15:27:07 [INFO] run_once:828 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
+2026-01-14 15:27:07 [INFO] load_portfolio_state:563 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:27:11 [INFO] save_portfolio_state:588 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 15:35:12 [INFO] run_once:868 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
+2026-01-14 15:35:12 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:35:16 [INFO] save_portfolio_state:628 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 15:38:08 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:39:15 [INFO] run_once:868 - 🏁 One‑shot mode: running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
+2026-01-14 15:39:15 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:40:31 [INFO] save_portfolio_state:628 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 15:50:09 [INFO] run_once:868 - 🏁 One‑shot mode: running multi-stock portfolio cycle for OKLO, ONDS on 2026-01-14 (NY date)
+2026-01-14 15:50:09 [INFO] load_portfolio_state:603 - 📁 Loaded portfolio_state.json | cash=-22483.28, positions=1, shorts=0
+2026-01-14 15:51:35 [INFO] save_portfolio_state:628 - 💾 Saved portfolio_state.json | cash=-22483.28
+2026-01-14 22:31:57 [INFO] run_once:1045 - 🏁 One‑shot mode: mode=paper, force_reset=False
+2026-01-14 22:31:57 [INFO] run_once:1049 - 🏁 Running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-14 (NY date)
+2026-01-14 22:31:57 [WARNING] validate_portfolio_state:597 - ⚠️  Portfolio has negative cash: $-22,483.28
+2026-01-14 22:31:57 [INFO] load_portfolio_state:734 - 📁 Loaded portfolio | cash=$-22,483.28, positions=1, shorts=0
+2026-01-15 10:29:17 [INFO] run_once:1059 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-15 10:29:17 [INFO] run_once:1063 - 🏁 Running multi-stock portfolio cycle for APLD, MSFT on 2026-01-15 (NY date)
+2026-01-15 10:29:18 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-15 10:29:18 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-15 10:29:18 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-15 10:29:18 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-15 10:32:23 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-15 11:40:49 [INFO] run_once:1059 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-15 11:40:49 [INFO] run_once:1063 - 🏁 Running multi-stock portfolio cycle for MSFT, ALPD, NVDA, ASML on 2026-01-15 (NY date)
+2026-01-15 11:40:49 [INFO] load_portfolio_state:738 - 📁 No existing portfolio found. Initializing new state with cash=$20,000.00.
+2026-01-15 11:40:49 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 11:46:13 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:23:07 [INFO] run_once:1070 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-15 12:23:07 [INFO] run_once:1091 - 🏁 Running trading cycle for MSFT on 2026-01-15 (NY date)
+2026-01-15 12:23:07 [INFO] run_single_trading_cycle:920 - ================================================================================
+2026-01-15 12:23:07 [INFO] run_single_trading_cycle:921 - 🚀 Live trading cycle for MSFT on 2026-01-15
+2026-01-15 12:23:07 [INFO] run_single_trading_cycle:922 - ================================================================================
+2026-01-15 12:23:07 [INFO] load_portfolio_state:724 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260115_072307.json
+2026-01-15 12:23:07 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:23:07 [INFO] load_portfolio_state:731 - 📁 Reset theoretical portfolio with cash=$20,000.00
+2026-01-15 12:24:38 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:24:38 [INFO] append_portfolio_history:860 - 📈 Logged portfolio history for MSFT on 2026-01-15 | equity=20000.00, cash=20000.00
+2026-01-15 12:24:38 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-15 12:24:38 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-15 12:24:38 [INFO] run_single_trading_cycle:967 - ================================================================================
+2026-01-15 12:24:38 [INFO] run_single_trading_cycle:968 - ✅ Trading cycle complete for MSFT on 2026-01-15 | decision=HOLD amount=0.0
+2026-01-15 12:24:38 [INFO] run_single_trading_cycle:973 - ================================================================================
+2026-01-15 12:41:33 [INFO] run_once:1070 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-15 12:41:33 [INFO] run_once:1091 - 🏁 Running trading cycle for AVGO on 2026-01-15 (NY date)
+2026-01-15 12:41:33 [INFO] run_single_trading_cycle:920 - ================================================================================
+2026-01-15 12:41:33 [INFO] run_single_trading_cycle:921 - 🚀 Live trading cycle for AVGO on 2026-01-15
+2026-01-15 12:41:33 [INFO] run_single_trading_cycle:922 - ================================================================================
+2026-01-15 12:41:33 [INFO] load_portfolio_state:724 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260115_074133.json
+2026-01-15 12:41:33 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:41:33 [INFO] load_portfolio_state:731 - 📁 Reset theoretical portfolio with cash=$20,000.00
+2026-01-15 12:44:00 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$20000.00
+2026-01-15 12:44:00 [INFO] append_portfolio_history:860 - 📈 Logged portfolio history for AVGO on 2026-01-15 | equity=20000.00, cash=20000.00
+2026-01-15 12:44:01 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-15 12:44:01 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-15 12:44:01 [INFO] run_single_trading_cycle:967 - ================================================================================
+2026-01-15 12:44:01 [INFO] run_single_trading_cycle:968 - ✅ Trading cycle complete for AVGO on 2026-01-15 | decision=HOLD amount=0.0
+2026-01-15 12:44:01 [INFO] run_single_trading_cycle:973 - ================================================================================
+2026-01-16 10:31:53 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-16 10:31:53 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for APLD, ONDS on 2026-01-16 (NY date)
+2026-01-16 10:31:53 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$12000.00
+2026-01-16 10:31:53 [INFO] load_portfolio_state:731 - 📁 Reset theoretical portfolio with cash=$12,000.00
+2026-01-16 10:33:37 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$12000.00
+2026-01-16 10:55:14 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 10:55:14 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for ONDS, KOPN, LPTH on 2026-01-16 (NY date)
+2026-01-16 10:55:15 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 10:55:15 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 10:55:15 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 10:55:15 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 10:58:03 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 11:15:59 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 11:15:59 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for TEVA, PLTR on 2026-01-16 (NY date)
+2026-01-16 11:16:00 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 11:16:00 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 11:16:00 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 11:16:00 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 11:17:37 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 11:31:04 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-16 11:31:04 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AAPL, MSFT on 2026-01-16 (NY date)
+2026-01-16 11:31:04 [INFO] load_portfolio_state:724 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260116_063104.json
+2026-01-16 11:31:04 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-16 11:31:04 [INFO] load_portfolio_state:731 - 📁 Reset theoretical portfolio with cash=$50,000.00
+2026-01-16 11:33:45 [INFO] save_portfolio_state:786 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-16 11:43:06 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 11:43:06 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM, TSMC, TMC on 2026-01-16 (NY date)
+2026-01-16 11:43:06 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 11:43:06 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 11:43:06 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 11:43:06 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 11:46:28 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 12:35:18 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 12:35:18 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for ARM, AMZN on 2026-01-16 (NY date)
+2026-01-16 12:35:18 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 12:35:18 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 12:35:18 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 12:35:19 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 12:38:03 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:13:58 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:13:58 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM on 2026-01-16 (NY date)
+2026-01-16 13:13:59 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:13:59 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:13:59 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:13:59 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:13:59 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:16:01 [INFO] run_once:1097 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:16:01 [INFO] run_once:1101 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM on 2026-01-16 (NY date)
+2026-01-16 13:16:02 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:16:02 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:16:02 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:16:02 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:16:02 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:19:22 [INFO] run_once:1097 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:19:22 [INFO] run_once:1101 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM on 2026-01-16 (NY date)
+2026-01-16 13:19:24 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:19:24 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:19:24 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:19:24 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:19:24 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:25:54 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:25:54 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM on 2026-01-16 (NY date)
+2026-01-16 13:25:55 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:25:55 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:25:55 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:25:55 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:27:52 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 13:34:28 [INFO] run_once:1096 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 13:34:28 [INFO] run_once:1100 - 🏁 Running multi-stock portfolio cycle for AMZN, ARM, BMNR on 2026-01-16 (NY date)
+2026-01-16 13:34:29 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 13:34:29 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 13:34:29 [INFO] _fetch_alpaca_portfolio:638 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 13:34:29 [INFO] _fetch_alpaca_portfolio:683 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 13:37:58 [INFO] _maybe_execute_with_alpaca:522 - 🦙 Alpaca hook | date=2026-01-16 symbol=AMZN decision=BUY amount_usd=24968.0725 price=None
+2026-01-16 13:37:58 [WARNING] _maybe_execute_with_alpaca:530 - ⚠️  Alpaca: missing amount or price for BUY/SHORT; skipping broker order.
+2026-01-16 13:37:58 [INFO] _maybe_execute_with_alpaca:522 - 🦙 Alpaca hook | date=2026-01-16 symbol=BMNR decision=BUY amount_usd=15000.0 price=None
+2026-01-16 13:37:58 [WARNING] _maybe_execute_with_alpaca:530 - ⚠️  Alpaca: missing amount or price for BUY/SHORT; skipping broker order.
+2026-01-16 13:37:58 [DEBUG] save_portfolio_state:767 - 🦙 Alpaca mode - not saving to file
+2026-01-16 16:50:04 [INFO] run_once:1118 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 16:50:04 [INFO] run_once:1122 - 🏁 Running multi-stock portfolio cycle for AMZN, BMNR on 2026-01-16 (NY date)
+2026-01-16 16:50:04 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 16:50:04 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 16:50:04 [INFO] _fetch_alpaca_portfolio:660 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 16:50:04 [INFO] _fetch_alpaca_portfolio:705 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 16:53:04 [DEBUG] save_portfolio_state:789 - 🦙 Alpaca mode - not saving to file
+2026-01-16 16:57:54 [INFO] run_once:1118 - 🏁 One‑shot mode: mode=alpaca_live, force_reset=False
+2026-01-16 16:57:54 [INFO] run_once:1122 - 🏁 Running multi-stock portfolio cycle for ASML, AMZN, BMNR on 2026-01-16 (NY date)
+2026-01-16 16:57:54 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-16 16:57:54 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $199,744.58
+2026-01-16 16:57:54 [INFO] _fetch_alpaca_portfolio:660 - 🦙 Fetching portfolio from Alpaca...
+2026-01-16 16:57:55 [INFO] _fetch_alpaca_portfolio:705 - 🦙 Synced Alpaca portfolio: cash=$99,872.29, positions=0
+2026-01-16 17:03:34 [INFO] _maybe_execute_with_alpaca:534 - 🦙 Alpaca hook | date=2026-01-16 symbol=ASML decision=BUY amount_usd=24968.0725 price=1331.6
+2026-01-16 17:03:34 [INFO] _maybe_execute_with_alpaca:562 - ✅ Alpaca market BUY submitted: id=UUID('cd5df255-8ca7-4055-8b3c-08d846fcd498') client_order_id='90649069-b914-403f-9915-53fa0f970478' created_at=datetime.datetime(2026, 1, 16, 17, 3, 34, 513192, tzinfo=TzInfo(0)) updated_at=datetime.datetime(2026, 1, 16, 17, 3, 34, 523935, tzinfo=TzInfo(0)) submitted_at=datetime.datetime(2026, 1, 16, 17, 3, 34, 513192, tzinfo=TzInfo(0)) filled_at=None expired_at=None canceled_at=None failed_at=None replaced_at=None replaced_by=None replaces=None asset_id=UUID('6082378d-ba94-4bb7-a49e-ebe714131ca8') symbol='ASML' asset_class=<AssetClass.US_EQUITY: 'us_equity'> notional=None qty='18' filled_qty='0' filled_avg_price=None order_class=<OrderClass.SIMPLE: 'simple'> order_type=<OrderType.MARKET: 'market'> type=<OrderType.MARKET: 'market'> side=<OrderSide.BUY: 'buy'> time_in_force=<TimeInForce.DAY: 'day'> limit_price=None stop_price=None status=<OrderStatus.PENDING_NEW: 'pending_new'> extended_hours=False legs=None trail_percent=None trail_price=None hwm=None
+2026-01-16 17:03:34 [DEBUG] save_portfolio_state:789 - 🦙 Alpaca mode - not saving to file
+2026-01-17 01:12:05 [INFO] run_once:1118 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-17 01:12:05 [INFO] run_once:1139 - 🏁 Running trading cycle for AAPL on 2026-01-16 (NY date)
+2026-01-17 01:12:05 [INFO] run_single_trading_cycle:942 - ================================================================================
+2026-01-17 01:12:05 [INFO] run_single_trading_cycle:943 - 🚀 Live trading cycle for AAPL on 2026-01-16
+2026-01-17 01:12:05 [INFO] run_single_trading_cycle:944 - ================================================================================
+2026-01-17 01:12:05 [INFO] load_portfolio_state:746 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260116_201205.json
+2026-01-17 01:12:05 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-17 01:12:05 [INFO] load_portfolio_state:753 - 📁 Reset theoretical portfolio with cash=$50,000.00
+2026-01-17 01:12:57 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-17 01:12:57 [INFO] append_portfolio_history:882 - 📈 Logged portfolio history for AAPL on 2026-01-16 | equity=105490.00, cash=50000.00
+2026-01-17 01:12:58 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-17 01:12:58 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $175,570.40
+2026-01-17 01:12:58 [INFO] run_single_trading_cycle:1015 - ================================================================================
+2026-01-17 01:12:58 [INFO] run_single_trading_cycle:1016 - ✅ Trading cycle complete for AAPL on 2026-01-16 | decision=HOLD amount=0.0
+2026-01-17 01:12:58 [INFO] run_single_trading_cycle:1021 - ================================================================================
+2026-01-18 13:19:14 [INFO] run_once:1118 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-18 13:19:14 [INFO] run_once:1139 - 🏁 Running trading cycle for AAPL on 2026-01-18 (NY date)
+2026-01-18 13:19:14 [INFO] run_single_trading_cycle:942 - ================================================================================
+2026-01-18 13:19:14 [INFO] run_single_trading_cycle:943 - 🚀 Live trading cycle for AAPL on 2026-01-18
+2026-01-18 13:19:14 [INFO] run_single_trading_cycle:944 - ================================================================================
+2026-01-18 13:19:14 [WARNING] validate_portfolio_state:643 - ⚠️  Position AMZN missing last_price
+2026-01-18 13:19:14 [WARNING] validate_portfolio_state:643 - ⚠️  Position ASML missing last_price
+2026-01-18 13:19:14 [INFO] load_portfolio_state:770 - 📁 Loaded portfolio | cash=$50,000.00, positions=2, shorts=0
+2026-01-18 13:20:16 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$50000.00
+2026-01-18 13:20:16 [INFO] append_portfolio_history:882 - 📈 Logged portfolio history for AAPL on 2026-01-18 | equity=105490.00, cash=50000.00
+2026-01-18 13:20:17 [INFO] _get_alpaca_client:472 - 🦙 Alpaca client initialised (paper mode).
+2026-01-18 13:20:17 [INFO] _get_alpaca_client:473 -    Account: PA3TTUN9XOP2 | Buying Power: $175,570.74
+2026-01-18 13:20:17 [INFO] run_single_trading_cycle:1015 - ================================================================================
+2026-01-18 13:20:17 [INFO] run_single_trading_cycle:1016 - ✅ Trading cycle complete for AAPL on 2026-01-18 | decision=HOLD amount=0.0
+2026-01-18 13:20:17 [INFO] run_single_trading_cycle:1021 - ================================================================================
+2026-01-18 21:45:42 [INFO] run_once:1135 - 🏁 One‑shot mode: mode=analysis, force_reset=True
+2026-01-18 21:45:42 [INFO] run_once:1139 - 🏁 Running multi-stock portfolio cycle for AMZN, APLD on 2026-01-18 (NY date)
+2026-01-18 21:45:42 [INFO] load_portfolio_state:746 - 📁 Backed up theoretical portfolio to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/theoretical_portfolio_backup_20260118_164542.json
+2026-01-18 21:45:42 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$10000.00
+2026-01-18 21:45:42 [INFO] load_portfolio_state:753 - 📁 Reset theoretical portfolio with cash=$10,000.00
+2026-01-18 21:47:53 [INFO] save_portfolio_state:808 - 💾 Saved theoretical portfolio | cash=$10000.00
+2026-01-19 09:27:10 [INFO] run_once:1185 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-19 09:27:10 [INFO] run_once:1189 - 🏁 Running multi-stock portfolio cycle for APLD, ONDS on 2026-01-19 (NY date)
+2026-01-21 22:58:02 [INFO] run_once:1291 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-21 22:58:02 [INFO] run_once:1295 - 🏁 Running multi-stock portfolio cycle for TROX, ALMU on 2026-01-21 (NY date)
+2026-01-21 23:20:54 [INFO] run_once:1291 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-21 23:20:54 [INFO] run_once:1295 - 🏁 Running multi-stock portfolio cycle for ALMU, TROX on 2026-01-21 (NY date)
+2026-01-21 23:46:59 [INFO] run_daemon:1200 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-21 23:46:59 [INFO] run_daemon:1201 -    Schedule: twice per trading day at 13:00 (1 PM) and 19:00 (7 PM) America/New_York
+2026-01-21 23:46:59 [INFO] run_daemon:1207 - ⏰ Current NY time: 2026-01-21T18:46:59-05:00, next run at: 2026-01-21T19:00:00-05:00 (780s from now)
+2026-01-22 11:32:14 [INFO] run_daemon:1262 - 📡 Live trading daemon starting for symbol=AAPL (mode=paper)
+2026-01-22 11:32:14 [INFO] run_daemon:1263 -    Schedule (GMT): 13:00, 19:00
+2026-01-22 11:32:14 [INFO] run_daemon:1278 - ⏰ Current time: 2026-01-22T11:32:14+00:00 GMT / 2026-01-22T06:32:14-05:00 ET, next run at: 2026-01-22T13:00:00+00:00 GMT (5266s from now)
+2026-01-22 11:50:16 [INFO] run_daemon:1262 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 11:50:16 [INFO] run_daemon:1263 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 11:50:16 [INFO] run_daemon:1278 - ⏰ Current time: 2026-01-22T11:50:16+00:00 GMT / 2026-01-22T06:50:16-05:00 ET, next run at: 2026-01-22T15:00:00+00:00 GMT (11384s from now)
+2026-01-22 12:25:44 [INFO] run_daemon:1271 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 12:25:44 [INFO] run_daemon:1272 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 12:25:44 [INFO] run_daemon:1274 -    First day (2026-01-22): entry at 12:25 GMT
+2026-01-22 12:25:44 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-23 at 15:00 GMT
+2026-01-22 12:25:44 [INFO] run_daemon:1287 - ⏰ Current time: 2026-01-22T12:25:44+00:00 GMT / 2026-01-22T07:25:44-05:00 ET, next run at: 2026-01-23T15:00:00+00:00 GMT (95656s from now)
+2026-01-22 12:30:10 [INFO] run_daemon:1271 - 📡 Live trading daemon starting for symbol=AAPL (mode=paper)
+2026-01-22 12:30:10 [INFO] run_daemon:1272 -    Schedule (GMT): 13:00, 19:00
+2026-01-22 12:30:10 [INFO] run_daemon:1287 - ⏰ Current time: 2026-01-22T12:30:10+00:00 GMT / 2026-01-22T07:30:10-05:00 ET, next run at: 2026-01-22T13:00:00+00:00 GMT (1789s from now)
+2026-01-22 12:42:21 [INFO] run_daemon:1271 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 12:42:21 [INFO] run_daemon:1272 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 12:42:21 [INFO] run_daemon:1274 -    First day (2026-01-22): entry at 12:42 GMT
+2026-01-22 12:42:21 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-23 at 15:00 GMT
+2026-01-22 12:42:21 [INFO] run_daemon:1287 - ⏰ Current time: 2026-01-22T12:42:21+00:00 GMT / 2026-01-22T07:42:21-05:00 ET, next run at: 2026-01-23T15:00:00+00:00 GMT (94658s from now)
+2026-01-22 12:42:48 [INFO] <module>:1476 - 📋 Loaded config: symbols=['ALMU', 'TROX'], mode=alpaca_live, first_day=2026-01-22
+2026-01-22 12:42:48 [INFO] run_daemon:1271 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 12:42:48 [INFO] run_daemon:1272 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 12:42:48 [INFO] run_daemon:1274 -    First day (2026-01-22): entry at 12:42 GMT
+2026-01-22 12:42:48 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-23 at 15:00 GMT
+2026-01-22 12:42:48 [INFO] run_daemon:1287 - ⏰ Current time: 2026-01-22T12:42:48+00:00 GMT / 2026-01-22T07:42:48-05:00 ET, next run at: 2026-01-23T15:00:00+00:00 GMT (94632s from now)
+2026-01-22 12:44:32 [INFO] run_daemon:1271 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 12:44:32 [INFO] run_daemon:1272 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 12:44:32 [INFO] run_daemon:1274 -    First day (2026-01-22): entry at 12:44 GMT
+2026-01-22 12:44:32 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-23 at 15:00 GMT
+2026-01-22 12:44:32 [INFO] run_daemon:1287 - ⏰ Current time: 2026-01-22T12:44:32+00:00 GMT / 2026-01-22T07:44:32-05:00 ET, next run at: 2026-01-23T15:00:00+00:00 GMT (94527s from now)
+2026-01-22 12:44:53 [INFO] <module>:1476 - 📋 Loaded config: symbols=['ALMU', 'TROX'], mode=alpaca_live, first_day=2026-01-22
+2026-01-22 12:44:53 [INFO] run_daemon:1271 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 12:44:53 [INFO] run_daemon:1272 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 12:44:53 [INFO] run_daemon:1274 -    First day (2026-01-22): entry at 12:46 GMT
+2026-01-22 12:44:53 [INFO] run_daemon:1287 - ⏰ Current time: 2026-01-22T12:44:53+00:00 GMT / 2026-01-22T07:44:53-05:00 ET, next run at: 2026-01-22T12:46:00+00:00 GMT (67s from now)
+2026-01-22 12:46:12 [INFO] run_daemon:1319 - 💰 Pre-cycle price fetch: ALMU = $19.13
+2026-01-22 12:46:12 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-22 12:46:12 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-22
+2026-01-22 12:46:12 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-22 12:46:13 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-22 12:46:13 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $176,154.48
+2026-01-22 12:46:13 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-22 12:46:13 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-22 12:46:18 [INFO] <module>:1476 - 📋 Loaded config: symbols=['ALMU', 'TROX'], mode=alpaca_live, first_day=2026-01-22
+2026-01-22 12:46:18 [INFO] run_daemon:1271 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 12:46:18 [INFO] run_daemon:1272 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 12:46:18 [INFO] run_daemon:1274 -    First day (2026-01-22): entry at 12:46 GMT
+2026-01-22 12:46:18 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-23 at 15:00 GMT
+2026-01-22 12:46:18 [INFO] run_daemon:1287 - ⏰ Current time: 2026-01-22T12:46:18+00:00 GMT / 2026-01-22T07:46:18-05:00 ET, next run at: 2026-01-23T15:00:00+00:00 GMT (94422s from now)
+2026-01-22 15:32:46 [INFO] run_once:1380 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-22 15:32:46 [INFO] run_once:1384 - 🏁 Running multi-stock portfolio cycle for ALMU, TROX on 2026-01-22 (NY date)
+2026-01-22 15:39:48 [INFO] run_daemon:1279 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 15:39:48 [INFO] run_daemon:1280 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 15:39:48 [INFO] run_daemon:1282 -    First day (2026-01-22): entry at 15:39 GMT
+2026-01-22 15:39:48 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-23 at 15:00 GMT
+2026-01-22 15:39:48 [INFO] run_daemon:1295 - ⏰ Current time: 2026-01-22T15:39:48+00:00 GMT / 2026-01-22T10:39:48-05:00 ET, next run at: 2026-01-23T15:00:00+00:00 GMT (84011s from now)
+2026-01-22 15:40:18 [INFO] <module>:1484 - 📋 Loaded config: symbols=['ALMU', 'TROX'], mode=alpaca_live, first_day=2026-01-22
+2026-01-22 15:40:18 [INFO] run_daemon:1279 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-22 15:40:18 [INFO] run_daemon:1280 -    Schedule (GMT): 15:00, 19:00
+2026-01-22 15:40:18 [INFO] run_daemon:1282 -    First day (2026-01-22): entry at 15:39 GMT
+2026-01-22 15:40:18 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-23 at 15:00 GMT
+2026-01-22 15:40:18 [INFO] run_daemon:1295 - ⏰ Current time: 2026-01-22T15:40:18+00:00 GMT / 2026-01-22T10:40:18-05:00 ET, next run at: 2026-01-23T15:00:00+00:00 GMT (83981s from now)
+2026-01-22 17:18:28 [INFO] run_once:1384 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-22 17:18:28 [INFO] run_once:1405 - 🏁 Running trading cycle for ALMU on 2026-01-22 (NY date)
+2026-01-22 17:18:28 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-22 17:18:28 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-22
+2026-01-22 17:18:28 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-22 17:20:54 [INFO] run_once:1384 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-22 17:20:54 [INFO] run_once:1405 - 🏁 Running trading cycle for AAPL on 2026-01-22 (NY date)
+2026-01-22 17:20:54 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-22 17:20:54 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for AAPL on 2026-01-22
+2026-01-22 17:20:54 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-22 17:22:20 [INFO] run_once:1384 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-22 17:22:20 [INFO] run_once:1405 - 🏁 Running trading cycle for AAPL on 2026-01-22 (NY date)
+2026-01-22 17:22:20 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-22 17:22:20 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for AAPL on 2026-01-22
+2026-01-22 17:22:20 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 09:16:55 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 09:16:55 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 19:00
+2026-01-23 09:16:55 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 09:17 GMT
+2026-01-23 09:16:55 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T09:16:55+00:00 GMT / 2026-01-23T04:16:55-05:00 ET, next run at: 2026-01-23T09:17:00+00:00 GMT (4s from now)
+2026-01-23 09:17:01 [WARNING] run_daemon:1333 - ⚠️  Could not fetch current price: 
+[Empty] -> No results found. Try adjusting the query parameters.
+2026-01-23 09:17:01 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 09:17:01 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 09:17:01 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 09:17:01 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 09:17:01 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $175,650.48
+2026-01-23 09:17:01 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 09:17:01 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 09:17:02 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 09:17:12 [INFO] <module>:1488 - 📋 Loaded config: symbols=['ALMU', 'TROX'], mode=alpaca_live, first_day=2026-01-23
+2026-01-23 09:17:12 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 09:17:12 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 19:00
+2026-01-23 09:17:12 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 09:17 GMT
+2026-01-23 09:17:12 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 09:17:12 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T09:17:12+00:00 GMT / 2026-01-23T04:17:12-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (279768s from now)
+2026-01-23 11:54:48 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 11:54:48 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 19:00
+2026-01-23 11:54:48 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 11:55 GMT
+2026-01-23 11:54:48 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T11:54:48+00:00 GMT / 2026-01-23T06:54:48-05:00 ET, next run at: 2026-01-23T11:55:00+00:00 GMT (11s from now)
+2026-01-23 11:55:04 [INFO] <module>:1488 - 📋 Loaded config: symbols=['ALMU', 'TROX'], mode=alpaca_live, first_day=2026-01-23
+2026-01-23 11:55:04 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 11:55:04 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 19:00
+2026-01-23 11:55:04 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 11:55 GMT
+2026-01-23 11:55:04 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 11:55:04 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T11:55:04+00:00 GMT / 2026-01-23T06:55:04-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (270296s from now)
+2026-01-23 11:55:30 [WARNING] run_daemon:1333 - ⚠️  Could not fetch current price: 
+[Empty] -> No results found. Try adjusting the query parameters.
+2026-01-23 11:55:30 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 11:55:30 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 11:55:30 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 11:55:33 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 11:55:33 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $175,775.40
+2026-01-23 11:55:33 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 11:55:34 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 11:55:38 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 12:11:05 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 12:11:05 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 19:00
+2026-01-23 12:11:05 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 12:11 GMT
+2026-01-23 12:11:05 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 12:11:05 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T12:11:05+00:00 GMT / 2026-01-23T07:11:05-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (269335s from now)
+2026-01-23 12:15:21 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 12:15:21 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 12:15:21 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 12:16 GMT
+2026-01-23 12:15:21 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T12:15:21+00:00 GMT / 2026-01-23T07:15:21-05:00 ET, next run at: 2026-01-23T12:16:00+00:00 GMT (39s from now)
+2026-01-23 12:15:34 [INFO] <module>:1488 - 📋 Loaded config: symbols=['ALMU'], mode=alpaca_live, first_day=2026-01-23
+2026-01-23 12:15:34 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 12:15:34 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 12:15:34 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 12:16 GMT
+2026-01-23 12:15:34 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T12:15:34+00:00 GMT / 2026-01-23T07:15:34-05:00 ET, next run at: 2026-01-23T12:16:00+00:00 GMT (25s from now)
+2026-01-23 12:16:02 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $18.09
+2026-01-23 12:16:02 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 12:16:02 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 12:16:02 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 12:16:02 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $18.09
+2026-01-23 12:16:02 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 12:16:02 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 12:16:02 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 12:16:03 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 12:16:03 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $175,759.56
+2026-01-23 12:16:03 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 12:16:03 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 12:16:03 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $175,759.56
+2026-01-23 12:16:03 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 12:16:03 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 12:16:03 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 12:16:04 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 12:16:04 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 12:17:45 [DEBUG] save_portfolio_state:768 - 🦙 Alpaca mode - not saving to file
+2026-01-23 12:17:45 [INFO] append_portfolio_history:861 - 📈 Logged portfolio history for ALMU on 2026-01-23 | equity=100201.32, cash=60561.63
+2026-01-23 12:17:45 [INFO] _maybe_execute_with_alpaca:523 - 🦙 Alpaca hook | date=2026-01-23 symbol=ALMU decision=BUY amount_usd=15000.0 price=18.09
+2026-01-23 12:17:46 [INFO] _maybe_execute_with_alpaca:549 - ✅ Alpaca market BUY submitted: id=UUID('1de6947e-3d97-4773-9b5e-6b27702c8a3d') client_order_id='55e68611-b713-4c3a-b09e-99ef2082bcec' created_at=datetime.datetime(2026, 1, 23, 12, 17, 46, 27955, tzinfo=TzInfo(0)) updated_at=datetime.datetime(2026, 1, 23, 12, 17, 46, 29482, tzinfo=TzInfo(0)) submitted_at=datetime.datetime(2026, 1, 23, 12, 17, 46, 27955, tzinfo=TzInfo(0)) filled_at=None expired_at=None canceled_at=None failed_at=None replaced_at=None replaced_by=None replaces=None asset_id=UUID('2fdadc5a-ac5e-42aa-a6af-4db9b1747233') symbol='ALMU' asset_class=<AssetClass.US_EQUITY: 'us_equity'> notional=None qty='829' filled_qty='0' filled_avg_price=None order_class=<OrderClass.SIMPLE: 'simple'> order_type=<OrderType.MARKET: 'market'> type=<OrderType.MARKET: 'market'> side=<OrderSide.BUY: 'buy'> time_in_force=<TimeInForce.DAY: 'day'> limit_price=None stop_price=None status=<OrderStatus.PENDING_NEW: 'pending_new'> extended_hours=False legs=None trail_percent=None trail_price=None hwm=None
+2026-01-23 12:17:46 [INFO] run_single_trading_cycle:1237 - ================================================================================
+2026-01-23 12:17:46 [INFO] run_single_trading_cycle:1238 - ✅ Trading cycle complete for ALMU on 2026-01-23 | decision=BUY amount=15000.0
+2026-01-23 12:17:46 [INFO] run_single_trading_cycle:1243 - ================================================================================
+2026-01-23 12:17:46 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 12:17:46 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T12:17:46+00:00 GMT / 2026-01-23T07:17:46-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (268934s from now)
+2026-01-23 12:32:28 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 12:32:28 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 12:32:28 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 12:33 GMT
+2026-01-23 12:32:28 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T12:32:28+00:00 GMT / 2026-01-23T07:32:28-05:00 ET, next run at: 2026-01-23T12:33:00+00:00 GMT (31s from now)
+2026-01-23 12:33:03 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $18.09
+2026-01-23 12:33:03 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 12:33:03 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 12:33:03 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 12:33:03 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 12:33:03 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $161,002.35
+2026-01-23 12:33:03 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 12:33:03 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 12:33:04 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 13:01:15 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 13:01:15 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 13:01:15 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 13:02 GMT
+2026-01-23 13:01:15 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T13:01:15+00:00 GMT / 2026-01-23T08:01:15-05:00 ET, next run at: 2026-01-23T13:02:00+00:00 GMT (45s from now)
+2026-01-23 13:01:30 [INFO] <module>:1488 - 📋 Loaded config: symbols=['ALMU'], mode=alpaca_live, first_day=2026-01-23
+2026-01-23 13:01:30 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 13:01:30 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 13:01:30 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 13:02 GMT
+2026-01-23 13:01:30 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T13:01:30+00:00 GMT / 2026-01-23T08:01:30-05:00 ET, next run at: 2026-01-23T13:02:00+00:00 GMT (30s from now)
+2026-01-23 13:02:02 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $17.55
+2026-01-23 13:02:02 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 13:02:02 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 13:02:02 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 13:02:02 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $17.55
+2026-01-23 13:02:02 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 13:02:02 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 13:02:02 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 13:02:02 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 13:02:02 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $161,068.57
+2026-01-23 13:02:02 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 13:02:02 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 13:02:02 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $161,068.57
+2026-01-23 13:02:02 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 13:02:02 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 13:02:02 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 13:02:03 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 13:02:03 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 13:02:08 [DEBUG] save_portfolio_state:768 - 🦙 Alpaca mode - not saving to file
+2026-01-23 13:02:08 [INFO] append_portfolio_history:861 - 📈 Logged portfolio history for ALMU on 2026-01-23 | equity=100200.24, cash=75558.24
+2026-01-23 13:02:08 [INFO] run_single_trading_cycle:1237 - ================================================================================
+2026-01-23 13:02:08 [INFO] run_single_trading_cycle:1238 - ✅ Trading cycle complete for ALMU on 2026-01-23 | decision=HOLD amount=None
+2026-01-23 13:02:08 [INFO] run_single_trading_cycle:1243 - ================================================================================
+2026-01-23 13:02:08 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 13:02:08 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T13:02:08+00:00 GMT / 2026-01-23T08:02:08-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (266272s from now)
+2026-01-23 13:02:09 [DEBUG] save_portfolio_state:768 - 🦙 Alpaca mode - not saving to file
+2026-01-23 13:02:09 [INFO] append_portfolio_history:861 - 📈 Logged portfolio history for ALMU on 2026-01-23 | equity=100200.24, cash=75558.24
+2026-01-23 13:02:09 [INFO] run_single_trading_cycle:1237 - ================================================================================
+2026-01-23 13:02:09 [INFO] run_single_trading_cycle:1238 - ✅ Trading cycle complete for ALMU on 2026-01-23 | decision=HOLD amount=None
+2026-01-23 13:02:09 [INFO] run_single_trading_cycle:1243 - ================================================================================
+2026-01-23 13:02:09 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 13:02:09 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T13:02:09+00:00 GMT / 2026-01-23T08:02:09-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (266271s from now)
+2026-01-23 13:11:05 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 13:11:05 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 13:11:05 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 13:11 GMT
+2026-01-23 13:11:05 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 13:11:05 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T13:11:05+00:00 GMT / 2026-01-23T08:11:05-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (265734s from now)
+2026-01-23 13:12:23 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 13:12:23 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 13:12:23 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 13:13 GMT
+2026-01-23 13:12:23 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T13:12:23+00:00 GMT / 2026-01-23T08:12:23-05:00 ET, next run at: 2026-01-23T13:13:00+00:00 GMT (37s from now)
+2026-01-23 13:13:02 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $17.98
+2026-01-23 13:13:02 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 13:13:02 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 13:13:02 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 13:13:02 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 13:13:02 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $161,064.42
+2026-01-23 13:13:02 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 13:13:02 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 13:13:02 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 14:01:23 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 14:01:23 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00
+2026-01-23 14:01:23 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 14:02 GMT
+2026-01-23 14:01:23 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T14:01:23+00:00 GMT / 2026-01-23T09:01:23-05:00 ET, next run at: 2026-01-23T14:02:00+00:00 GMT (37s from now)
+2026-01-23 14:02:02 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $17.78
+2026-01-23 14:02:02 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 14:02:02 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 14:02:02 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 14:02:02 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 14:02:02 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $160,620.86
+2026-01-23 14:02:02 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 14:02:03 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 14:02:03 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 14:17:33 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 14:17:33 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 14:17:33 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 14:18 GMT
+2026-01-23 14:17:33 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T14:17:33+00:00 GMT / 2026-01-23T09:17:33-05:00 ET, next run at: 2026-01-23T14:18:00+00:00 GMT (27s from now)
+2026-01-23 14:18:02 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $18.32
+2026-01-23 14:18:02 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 14:18:02 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 14:18:02 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 14:18:02 [ERROR] _get_alpaca_client:476 - ❌ Alpaca authentication failed: {"message": "unauthorized."}
+
+2026-01-23 14:18:02 [ERROR] _get_alpaca_client:477 -    Please verify your API keys are correct for paper trading.
+2026-01-23 14:18:02 [ERROR] _get_alpaca_client:478 -    Paper trading keys are different from live trading keys.
+2026-01-23 14:18:02 [ERROR] _get_alpaca_client:479 -    Get your keys from: https://app.alpaca.markets/paper/dashboard/overview
+2026-01-23 14:18:02 [ERROR] load_portfolio_state:711 - ❌ Failed to fetch portfolio from Alpaca: Alpaca client not available. Check ALPACA_ENABLED and credentials.
+2026-01-23 14:18:02 [WARNING] sync_wrapper:248 - Attempt 1/3 failed for load_portfolio_state: Alpaca client not available. Check ALPACA_ENABLED and credentials.. Retrying in 1.0s...
+2026-01-23 14:18:03 [ERROR] _get_alpaca_client:476 - ❌ Alpaca authentication failed: {"message": "unauthorized."}
+
+2026-01-23 14:18:03 [ERROR] _get_alpaca_client:477 -    Please verify your API keys are correct for paper trading.
+2026-01-23 14:18:03 [ERROR] _get_alpaca_client:478 -    Paper trading keys are different from live trading keys.
+2026-01-23 14:18:03 [ERROR] _get_alpaca_client:479 -    Get your keys from: https://app.alpaca.markets/paper/dashboard/overview
+2026-01-23 14:18:03 [ERROR] load_portfolio_state:711 - ❌ Failed to fetch portfolio from Alpaca: Alpaca client not available. Check ALPACA_ENABLED and credentials.
+2026-01-23 14:18:03 [WARNING] sync_wrapper:248 - Attempt 2/3 failed for load_portfolio_state: Alpaca client not available. Check ALPACA_ENABLED and credentials.. Retrying in 2.0s...
+2026-01-23 14:18:06 [ERROR] _get_alpaca_client:476 - ❌ Alpaca authentication failed: {"message": "unauthorized."}
+
+2026-01-23 14:18:06 [ERROR] _get_alpaca_client:477 -    Please verify your API keys are correct for paper trading.
+2026-01-23 14:18:06 [ERROR] _get_alpaca_client:478 -    Paper trading keys are different from live trading keys.
+2026-01-23 14:18:06 [ERROR] _get_alpaca_client:479 -    Get your keys from: https://app.alpaca.markets/paper/dashboard/overview
+2026-01-23 14:18:06 [ERROR] load_portfolio_state:711 - ❌ Failed to fetch portfolio from Alpaca: Alpaca client not available. Check ALPACA_ENABLED and credentials.
+2026-01-23 14:18:06 [ERROR] sync_wrapper:255 - All 3 attempts failed for load_portfolio_state: Alpaca client not available. Check ALPACA_ENABLED and credentials.
+2026-01-23 14:22:17 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 14:22:17 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 14:22:17 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 14:23 GMT
+2026-01-23 14:22:17 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T14:22:17+00:00 GMT / 2026-01-23T09:22:17-05:00 ET, next run at: 2026-01-23T14:23:00+00:00 GMT (43s from now)
+2026-01-23 14:23:01 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $18.14
+2026-01-23 14:23:01 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 14:23:01 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 14:23:01 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 14:23:02 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 14:23:02 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $160,679.00
+2026-01-23 14:23:02 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 14:23:02 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$75,558.24, positions=1
+2026-01-23 14:23:02 [DEBUG] run_single_trading_cycle:1147 - Technical data not available: None
+2026-01-23 14:23:29 [INFO] <module>:1488 - 📋 Loaded config: symbols=['ALMU'], mode=alpaca_live, first_day=2026-01-23
+2026-01-23 14:23:29 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 14:23:29 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00, 18:00
+2026-01-23 14:23:29 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 14:23 GMT
+2026-01-23 14:23:29 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 14:23:29 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T14:23:29+00:00 GMT / 2026-01-23T09:23:29-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (261391s from now)
+2026-01-23 14:24:30 [DEBUG] save_portfolio_state:768 - 🦙 Alpaca mode - not saving to file
+2026-01-23 14:24:30 [INFO] append_portfolio_history:861 - 📈 Logged portfolio history for ALMU on 2026-01-23 | equity=100146.42, cash=75558.24
+2026-01-23 14:24:30 [INFO] run_single_trading_cycle:1237 - ================================================================================
+2026-01-23 14:24:30 [INFO] run_single_trading_cycle:1238 - ✅ Trading cycle complete for ALMU on 2026-01-23 | decision= amount=0.0
+2026-01-23 14:24:30 [INFO] run_single_trading_cycle:1243 - ================================================================================
+2026-01-23 14:24:30 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 14:24:30 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T14:24:30+00:00 GMT / 2026-01-23T09:24:30-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (261329s from now)
+2026-01-23 14:37:14 [INFO] run_daemon:1283 - 📡 Live trading daemon starting for symbol=ALMU (mode=alpaca_live)
+2026-01-23 14:37:14 [INFO] run_daemon:1284 -    Schedule (GMT): 15:00
+2026-01-23 14:37:14 [INFO] run_daemon:1286 -    First day (2026-01-23): entry at 14:38 GMT
+2026-01-23 14:37:14 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T14:37:14+00:00 GMT / 2026-01-23T09:37:14-05:00 ET, next run at: 2026-01-23T14:38:00+00:00 GMT (45s from now)
+2026-01-23 14:38:03 [INFO] run_daemon:1331 - 💰 Pre-cycle price fetch: ALMU = $17.11
+2026-01-23 14:38:03 [INFO] run_single_trading_cycle:1031 - ================================================================================
+2026-01-23 14:38:03 [INFO] run_single_trading_cycle:1032 - 🚀 Live trading cycle for ALMU on 2026-01-23
+2026-01-23 14:38:03 [INFO] run_single_trading_cycle:1033 - ================================================================================
+2026-01-23 14:38:04 [INFO] _get_alpaca_client:473 - 🦙 Alpaca client initialised (paper mode).
+2026-01-23 14:38:04 [INFO] _get_alpaca_client:474 -    Account: PA3TTUN9XOP2 | Buying Power: $159,569.77
+2026-01-23 14:38:04 [INFO] _fetch_alpaca_portfolio:639 - 🦙 Fetching portfolio from Alpaca...
+2026-01-23 14:38:04 [INFO] _fetch_alpaca_portfolio:684 - 🦙 Synced Alpaca portfolio: cash=$60,387.54, positions=2
+2026-01-23 14:38:05 [INFO] run_single_trading_cycle:1139 - 📈 Technical data: source=fmp, interval=30m, price=$17.05
+2026-01-23 14:38:57 [DEBUG] save_portfolio_state:768 - 🦙 Alpaca mode - not saving to file
+2026-01-23 14:38:57 [INFO] append_portfolio_history:861 - 📈 Logged portfolio history for ALMU on 2026-01-23 | equity=99132.49, cash=74521.99
+2026-01-23 14:38:57 [INFO] _maybe_execute_with_alpaca:523 - 🦙 Alpaca hook | date=2026-01-23 symbol=ALMU decision=SELL amount_usd=14134.45 price=17.05
+2026-01-23 14:38:57 [INFO] _maybe_execute_with_alpaca:563 - ✅ Alpaca close position submitted for ALMU: id=UUID('b1bf2ec1-b213-4452-a994-c23890f3b030') client_order_id='d5667d5b-05d5-4835-a48e-771c95f2ad2c' created_at=datetime.datetime(2026, 1, 23, 14, 38, 57, 82528, tzinfo=TzInfo(0)) updated_at=datetime.datetime(2026, 1, 23, 14, 38, 57, 83152, tzinfo=TzInfo(0)) submitted_at=datetime.datetime(2026, 1, 23, 14, 38, 57, 82528, tzinfo=TzInfo(0)) filled_at=None expired_at=None canceled_at=None failed_at=None replaced_at=None replaced_by=None replaces=None asset_id=UUID('2fdadc5a-ac5e-42aa-a6af-4db9b1747233') symbol='ALMU' asset_class=<AssetClass.US_EQUITY: 'us_equity'> notional=None qty='829' filled_qty='0' filled_avg_price=None order_class=<OrderClass.SIMPLE: 'simple'> order_type=<OrderType.MARKET: 'market'> type=<OrderType.MARKET: 'market'> side=<OrderSide.SELL: 'sell'> time_in_force=<TimeInForce.DAY: 'day'> limit_price=None stop_price=None status=<OrderStatus.PENDING_NEW: 'pending_new'> extended_hours=False legs=None trail_percent=None trail_price=None hwm=None
+2026-01-23 14:38:57 [INFO] run_single_trading_cycle:1237 - ================================================================================
+2026-01-23 14:38:57 [INFO] run_single_trading_cycle:1238 - ✅ Trading cycle complete for ALMU on 2026-01-23 | decision=SELL amount=14134.45
+2026-01-23 14:38:57 [INFO] run_single_trading_cycle:1243 - ================================================================================
+2026-01-23 14:38:57 [INFO] get_next_run_time:984 - First day entry time passed. Next run on 2026-01-26 at 15:00 GMT
+2026-01-23 14:38:57 [INFO] run_daemon:1299 - ⏰ Current time: 2026-01-23T14:38:57+00:00 GMT / 2026-01-23T09:38:57-05:00 ET, next run at: 2026-01-26T15:00:00+00:00 GMT (260463s from now)
+2026-01-24 10:57:15 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-24 10:57:15 [INFO] run_once:1398 - 🏁 Running trading cycle for ALMU on 2026-01-24 (NY date)
+2026-01-24 10:57:15 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-24 10:57:15 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for ALMU on 2026-01-24
+2026-01-24 10:57:15 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-24 10:57:19 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-24_ALMU.json
+2026-01-24 10:57:19 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-24 10:57:19 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for ALMU on 2026-01-24 | decision=HOLD amount=None
+2026-01-24 10:57:19 [INFO] run_single_trading_cycle:1241 - ================================================================================
+2026-01-24 10:58:25 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-24 10:58:25 [INFO] run_once:1398 - 🏁 Running trading cycle for ALMU on 2026-01-24 (NY date)
+2026-01-24 10:58:25 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-24 10:58:25 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for ALMU on 2026-01-24
+2026-01-24 10:58:25 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-24 10:59:11 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-24_ALMU.json
+2026-01-24 10:59:11 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-24 10:59:11 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for ALMU on 2026-01-24 | decision=SELL amount=3000.0
+2026-01-24 10:59:11 [INFO] run_single_trading_cycle:1241 - ================================================================================
+2026-01-24 11:32:44 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-24 11:32:44 [INFO] run_once:1398 - 🏁 Running trading cycle for ALMU on 2026-01-24 (NY date)
+2026-01-24 11:32:44 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-24 11:32:44 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for ALMU on 2026-01-24
+2026-01-24 11:32:44 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-24 11:35:30 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-24_ALMU.json
+2026-01-24 11:35:30 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-24 11:35:30 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for ALMU on 2026-01-24 | decision=SELL amount=2000.0
+2026-01-24 11:35:30 [INFO] run_single_trading_cycle:1241 - ================================================================================
+2026-01-24 16:56:35 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-24 16:56:35 [INFO] run_once:1398 - 🏁 Running trading cycle for RKLB on 2026-01-24 (NY date)
+2026-01-24 16:56:35 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-24 16:56:35 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for RKLB on 2026-01-24
+2026-01-24 16:56:35 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-24 16:56:40 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-24_RKLB.json
+2026-01-24 16:56:40 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-24 16:56:40 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for RKLB on 2026-01-24 | decision=HOLD amount=None
+2026-01-24 16:56:40 [INFO] run_single_trading_cycle:1241 - ================================================================================
+2026-01-24 18:26:28 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-24 18:26:28 [INFO] run_once:1398 - 🏁 Running trading cycle for ALMU on 2026-01-24 (NY date)
+2026-01-24 18:26:28 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-24 18:26:28 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for ALMU on 2026-01-24
+2026-01-24 18:26:28 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-24 18:28:10 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-24_ALMU.json
+2026-01-24 18:28:10 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-24 18:28:10 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for ALMU on 2026-01-24 | decision= amount=0.0
+2026-01-24 18:28:10 [INFO] run_single_trading_cycle:1241 - ================================================================================
+2026-01-24 18:50:33 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-24 18:50:33 [INFO] run_once:1398 - 🏁 Running trading cycle for RKLB on 2026-01-24 (NY date)
+2026-01-24 18:50:33 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-24 18:50:33 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for RKLB on 2026-01-24
+2026-01-24 18:50:33 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-24 18:51:53 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-24_RKLB.json
+2026-01-24 18:51:53 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-24 18:51:53 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for RKLB on 2026-01-24 | decision= amount=0.0
+2026-01-24 18:51:53 [INFO] run_single_trading_cycle:1241 - ================================================================================
+2026-01-25 13:28:33 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-25 13:28:33 [INFO] run_once:1398 - 🏁 Running trading cycle for ALMU on 2026-01-25 (NY date)
+2026-01-25 13:28:33 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-25 13:28:33 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for ALMU on 2026-01-25
+2026-01-25 13:28:33 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-25 13:33:31 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-25_ALMU.json
+2026-01-25 13:33:31 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-25 13:33:31 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for ALMU on 2026-01-25 | decision=SELL amount=3000.0
+2026-01-25 13:33:31 [INFO] run_single_trading_cycle:1241 - ================================================================================
+2026-01-25 13:39:36 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-25 13:39:36 [INFO] run_once:1398 - 🏁 Running trading cycle for RKLB on 2026-01-25 (NY date)
+2026-01-25 13:39:36 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-25 13:39:36 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for RKLB on 2026-01-25
+2026-01-25 13:39:36 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-25 13:44:13 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-25_RKLB.json
+2026-01-25 13:44:13 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-25 13:44:13 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for RKLB on 2026-01-25 | decision=SELL amount=15000.0
+2026-01-25 13:44:13 [INFO] run_single_trading_cycle:1241 - ================================================================================
+2026-01-25 13:59:14 [INFO] run_once:1378 - 🏁 One‑shot mode: mode=analysis, force_reset=False
+2026-01-25 13:59:14 [INFO] run_once:1398 - 🏁 Running trading cycle for NVDA on 2026-01-25 (NY date)
+2026-01-25 13:59:14 [INFO] run_single_trading_cycle:1030 - ================================================================================
+2026-01-25 13:59:14 [INFO] run_single_trading_cycle:1031 - 🚀 Live trading cycle for NVDA on 2026-01-25
+2026-01-25 13:59:14 [INFO] run_single_trading_cycle:1032 - ================================================================================
+2026-01-25 14:03:01 [INFO] _save_investment_only_result:914 - 💾 Saved investment‑only result to /Users/pc/stock_agent_eval/stock_agent_eval_clean/custom_TradingBot/live_trade/investment_only_results/2026-01-25_NVDA.json
+2026-01-25 14:03:01 [INFO] run_single_trading_cycle:1235 - ================================================================================
+2026-01-25 14:03:01 [INFO] run_single_trading_cycle:1236 - ✅ Trading cycle complete for NVDA on 2026-01-25 | decision= amount=0.0
+2026-01-25 14:03:01 [INFO] run_single_trading_cycle:1241 - ================================================================================

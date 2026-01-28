@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Runtime Artifacts & Generated Data
+# These should NOT be in git - they're environment-specific and constantly changing
+
+# API Response Cache
+custom_TradingBot/.cache/
+
+# Trading Decision Logs (diagnostic files)
+custom_TradingBot/live_trade/reasoning_decisions/
+custom_TradingBot/live_trade/portfolio_decisions/
+
+# Portfolio State Files (runtime-generated)
+custom_TradingBot/live_trade/theoretical_portfolio*.json
+custom_TradingBot/live_trade/portfolio_history.jsonl
+
+# Backtest Outputs
+backtesting/Backtest_info.txt
+backtesting/__pycache__/
+
+# Logs
+*.log
+
+# Temporary/Backup Files
+*.swp
+*.bak
+*_backup_*
+*.tmp
+
+# Data files (optional - only if you want to exclude all output data)
+# results/
+# output/
