@@ -1,4 +1,18 @@
-# Stock Agent Eval
+# Stock Wars
+
+
+
+
+
+
+<img width="1157" height="849" alt="Screenshot 2026-01-28 at 15 04 01" src="https://github.com/user-attachments/assets/02cfaefb-0471-4549-8912-5ebc37750680" />
+
+
+<img width="1175" height="960" alt="Screenshot 2026-01-28 at 15 23 11" src="https://github.com/user-attachments/assets/89bf11bf-f832-4b8b-a674-0ed1bb081d18" />
+
+
+
+
 
 An autonomous stock trading agent framework powered by Large Language Models (LLMs) and OpenBB/FMP. This system is designed for both robust backtesting and reliable live trading, utilizing a ReAct (Reasoning + Acting) loop to analyze market data and execute trades.
 
