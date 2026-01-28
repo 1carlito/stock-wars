@@ -55,12 +55,16 @@ custom_TradingBot/live_trade/portfolio_decisions/
 custom_TradingBot/live_trade/theoretical_portfolio*.json
 custom_TradingBot/live_trade/portfolio_history.jsonl
 
+# Session configs with credentials
+custom_TradingBot/live_trade/session_config.json
+
 # Backtest Outputs
 backtesting/Backtest_info.txt
 backtesting/__pycache__/
 
 # Logs
 *.log
+pm2-*.log
 
 # Temporary/Backup Files
 *.swp
