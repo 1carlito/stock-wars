@@ -19,7 +19,7 @@ An autonomous stock trading agent framework powered by Large Language Models (LL
 ## 🚀 Features
 
 -   **Autonomous Reasoning**: Uses LLMs (DeepSeek-V3, GPT-4o) to analyze technical and fundamental data.
--   **OpenBB Integration**: Leverages OpenBB SDK for high-quality financial data (Price, Income, Balance Sheet, News).
+-   **OpenBB/FMP Integration**: Leverages FMP API  and OpenBB SDK for high-quality financial data (Price, Income, Balance Sheet, News).
 -   **Backtesting Engine**: Simulate agent performance over historical data with `backtesting/start_agent_backtest.py`.
 -   **Live Trading Daemon**: Production-ready live trading loop managed by **PM2** for auto-restart and reliability.
 -   **MCP Support**: Uses the Model Context Protocol (MCP) to standardize tool execution.
