@@ -1288,6 +1288,11 @@ async def run_single_trading_cycle(
         pass
 
     # 6. Update portfolio state from decision_result
+    if decision_result is None:
+        _logger.error(f"❌ Decision result is None for {symbol} on {trade_date.isoformat()}. Cannot proceed.")
+        _logger.error("   This usually indicates an error in the ReasoningAgent._make_decision_async() call.")
+        return
+    
     updated_state_dict = decision_result.get("portfolio_state_updated") or portfolio_state_dict
     updated_state = PortfolioState.from_dict(updated_state_dict)
     updated_state.last_run_date = trade_date.isoformat()

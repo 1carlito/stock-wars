@@ -335,6 +335,12 @@ class ReasoningAgent:
             try:
                 mcp_session = await self._get_mcp_session() if self.use_mcp_client else None
 
+                # If MCP client is enabled but session failed to initialize, return error
+                if self.use_mcp_client and mcp_session is None:
+                    error_msg = "MCP session failed to initialize. Check OpenBBMCPServer.py and dependencies."
+                    print(f"❌ {error_msg}")
+                    return self._create_error_decision(symbol, current_date, error_msg)
+
                 # ------------------------------------------------------------------
                 # PRICE FETCHING (Always ensure we have a price)
                 # ------------------------------------------------------------------
