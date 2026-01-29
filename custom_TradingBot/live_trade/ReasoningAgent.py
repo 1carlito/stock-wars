@@ -90,9 +90,14 @@ except ImportError:
 
 
 class ReasoningAgent:
-    def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True, config_path=None):
+    def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True, config_path=None, verbose=None):
         self.data_dir = data_dir
         self.decision_save_dir = os.path.join(self.data_dir, "reasoning_decisions")
+        
+        # Verbosity control: 0=clean output (default), 1=debug logs
+        if verbose is None:
+            verbose = int(os.getenv("REACT_VERBOSE", "0"))
+        self.verbose = verbose
         
         # LLM Provider Configuration
         self.llm_provider = os.getenv("LLM_PROVIDER", "chutes").lower()
@@ -122,16 +127,19 @@ class ReasoningAgent:
         # Initialize LLM Client
         try:
              self.llm_client = get_llm_client(self.llm_provider, self.api_key, self.model)
-             print(f"✅ LLM Client initialized: {self.llm_provider} ({self.model})")
+             if self.verbose:
+                 print(f"✅ LLM Client initialized: {self.llm_provider} ({self.model})")
         except Exception as e:
              raise ValueError(f"Failed to initialize LLM client: {e}")
 
         if self.use_mcp_client:
             self._init_mcp_client()
         else:
-            print("⚠️  MCP client not available, using direct imports")
+            if self.verbose:
+                print("⚠️  MCP client not available, using direct imports")
 
-        print(f"✅ ReasoningAgent (live_trade) initialized with {self.model} (tier={self.user_tier}, fmp={self.has_fmp_access})")
+        if self.verbose:
+            print(f"✅ ReasoningAgent (live_trade) initialized with {self.model} (tier={self.user_tier}, fmp={self.has_fmp_access})")
 
     def _init_mcp_client(self):
         """Initialize MCP client connection to live_trade OpenBB MCP Server."""
@@ -141,7 +149,7 @@ class ReasoningAgent:
                 command="python",
                 args=[server_path],
             )
-            print("📡 MCP client (live_trade) configured (will connect on first use)")
+            # Suppress: MCP client configured message
         except Exception as e:  # noqa: BLE001
             print(f"⚠️  Failed to initialize MCP client: {e}")
             self.use_mcp_client = False
@@ -185,21 +193,15 @@ class ReasoningAgent:
 
         if self.mcp_session is None:
             try:
-                print("🔄 Starting MCP server subprocess (live_trade)...")
-                print(f"   Server command: {self.server_params.command} {' '.join(self.server_params.args)}")
+                # Suppress verbose MCP connection logs
                 stdio_context = stdio_client(self.server_params)
                 read, write = await stdio_context.__aenter__()
-                print("   ✅ Server subprocess started, streams connected")
 
-                print("🔄 Creating MCP client session...")
                 self.mcp_session = ClientSession(read, write)
 
-                print("🔄 Sending initialize request to MCP server...")
                 try:
                     await self.mcp_session.__aenter__()
-                    print("   ✅ Session context entered")
                     await self.mcp_session.initialize()
-                    print("   ✅ Initialize handshake complete")
                     await asyncio.sleep(0.1)
                 except Exception as init_error:  # noqa: BLE001
                     print(f"   ❌ Initialize failed: {init_error}")
@@ -207,9 +209,7 @@ class ReasoningAgent:
 
                 self._stdio_context = stdio_context
 
-                print("✅ MCP client session initialized and ready")
-
-                print("🔍 Discovering available MCP tools...")
+                # Suppress verbose tool discovery logs
                 max_retries = 3
                 for attempt in range(max_retries):
                     try:
@@ -219,10 +219,6 @@ class ReasoningAgent:
 
                         tools_response = await self.mcp_session.list_tools()
                         discovered_tools = [tool.name for tool in tools_response.tools]
-                        print(
-                            f"✅ Discovered {len(discovered_tools)} MCP tools: "
-                            f"{', '.join(discovered_tools[:5])}..."
-                        )
 
                         # Filter tools based on user tier and FMP access
                         if TOOL_REGISTRY_AVAILABLE:
@@ -234,14 +230,9 @@ class ReasoningAgent:
                             filtered_tools = set(discovered_tools) & enabled_tools
                             # Deduplicate: prefer FMP versions when both available
                             self.available_tools = list(deduplicate_tools(filtered_tools))
-                            print(f"   📋 Tier {self.user_tier} + FMP={self.has_fmp_access} → {len(self.available_tools)} tools available")
-                            if len(self.available_tools) < len(discovered_tools):
-                                removed = set(discovered_tools) - set(self.available_tools)
-                                print(f"   🔒 Filtered out {len(removed)} tools (not in tier)")
                         else:
                             # No tool registry: use all discovered tools
                             self.available_tools = discovered_tools
-                            print(f"   ⚠️  Tool registry not available, using all {len(self.available_tools)} discovered tools")
                         break
                     except Exception as tools_error:  # noqa: BLE001
                         if attempt < max_retries - 1:
@@ -402,19 +393,20 @@ class ReasoningAgent:
                     {"role": "user", "content": user_prompt},
                 ]
 
-                print("\n" + "=" * 80)
-                print("🔵 FIRST STAGE REACT LOOP - INPUT TO LLM (live_trade)")
-                print("=" * 80)
-                print(f"\n📋 SYSTEM PROMPT ({len(system_prompt)} chars):")
-                print("-" * 80)
-                print(system_prompt)
-                print(f"\n📋 USER PROMPT ({len(user_prompt)} chars):")
-                print("-" * 80)
-                print(user_prompt)
-                print(f"\n📋 FULL MESSAGES (JSON):")
-                print("-" * 80)
-                print(json.dumps(messages, indent=2))
-                print("=" * 80 + "\n")
+                if self.verbose:
+                    print("\n" + "=" * 80)
+                    print("🔵 FIRST STAGE REACT LOOP - INPUT TO LLM (live_trade)")
+                    print("=" * 80)
+                    print(f"\n📋 SYSTEM PROMPT ({len(system_prompt)} chars):")
+                    print("-" * 80)
+                    print(system_prompt)
+                    print(f"\n📋 USER PROMPT ({len(user_prompt)} chars):")
+                    print("-" * 80)
+                    print(user_prompt)
+                    print(f"\n📋 FULL MESSAGES (JSON):")
+                    print("-" * 80)
+                    print(json.dumps(messages, indent=2))
+                    print("=" * 80 + "\n")
 
                 tool_results: List[Dict[str, Any]] = []
                 iteration = 0
@@ -424,13 +416,17 @@ class ReasoningAgent:
                 # but here we are replacing the signature and the start.
                 
                 while iteration < max_tool_iterations:
-                    print(f"\n🔄 REACT ITERATION {iteration + 1}/{max_tool_iterations}")
-                    print(f"📤 Calling LLM with {len(messages)} messages (planning/analysis stage)...")
+                    if self.verbose:
+                        print(f"\n🔄 REACT ITERATION {iteration + 1}/{max_tool_iterations}")
+                        print(f"📤 Calling LLM with {len(messages)} messages (planning/analysis stage)...")
+                    
                     response_text = self.llm_client.chat_completion(messages)
-                    print(f"📥 LLM RESPONSE ({len(response_text)} chars):")
-                    print("-" * 80)
-                    print(response_text)
-                    print("-" * 80)
+                    
+                    if self.verbose:
+                        print(f"📥 LLM RESPONSE ({len(response_text)} chars):")
+                        print("-" * 80)
+                        print(response_text)
+                        print("-" * 80)
 
                     tool_calls = self._extract_tool_calls(response_text)
 
@@ -441,9 +437,11 @@ class ReasoningAgent:
                     has_decision = bool(decision_pattern.search(response_text))
 
                     if has_decision:
-                        print(f"🛑 Decision found (iteration {iteration+1}). Halting loop.")
+                        if self.verbose:
+                            print(f"🛑 Decision found (iteration {iteration+1}). Halting loop.")
                         if tool_calls:
-                            print(f"   ⚠️  Ignoring {len(tool_calls)} post-decision tool calls.")
+                            if self.verbose:
+                                print(f"   ⚠️  Ignoring {len(tool_calls)} post-decision tool calls.")
                             tool_calls = []  # Clear tool calls to prevent execution
                         break
 
@@ -487,16 +485,12 @@ class ReasoningAgent:
                                 result_size = len(tool_result_str)
                                 max_chars = 2000
                                 if result_size > max_chars:
-                                    print(
-                                        f"  📊 Tool '{tool_call['name']}' result: {result_size} chars "
-                                        f"(will truncate for prompt)"
-                                    )
+                                    # Suppress verbose tool result logs
                                     tool_result_str = (
                                         tool_result_str[:max_chars]
                                         + f"\n... truncated tool '{tool_call['name']}' output to {max_chars} chars ..."
                                     )
-                                else:
-                                    print(f"  📊 Tool '{tool_call['name']}' result: {result_size} chars")
+                                # Suppress: print(f"  📊 Tool '{tool_call['name']}' result: {result_size} chars")
 
                                 user_tool_messages.append(
                                     f"Tool '{tool_call['name']}' result:\n{tool_result_str}"
@@ -918,7 +912,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
         amount_usd = 0.0
         reasoning = text
 
-        decision_match = re.search(r"DECISION:\s*(\w+)", text, re.IGNORECASE)
+        # Match DECISION: at the start of a line (not in prose text)
+        decision_match = re.search(r"^\s*DECISION:\s*(\w+)", text, re.IGNORECASE | re.MULTILINE)
         if decision_match:
             decision = decision_match.group(1).upper()
             # Updated valid decisions to include NEUTRAL and MAINTAIN
@@ -969,26 +964,9 @@ Avoid lookahead bias: do not use data from after {current_date}.
         return [r for r in tool_results if r.get("tool_name") in news_tools]
 
     def _save_news_findings(self, symbol: str, date: str, tool_results: List[Dict[str, Any]]) -> None:
-        """Save raw news findings to dedicated folder."""
-        news_results = self._extract_news_results(tool_results)
-        if not news_results:
-            return  # No news to save
-
-        news_dir = os.path.join(self.data_dir, "news_decisions")
-        os.makedirs(news_dir, exist_ok=True)
-
-        filename = f"{symbol}_{date}_news.json"
-        filepath = os.path.join(news_dir, filename)
-
-        news_data = {
-            "symbol": symbol,
-            "date": date,
-            "news_findings": news_results,
-            "timestamp_utc": datetime.now().isoformat(),
-        }
-
-        with open(filepath, "w") as f:
-            json.dump(news_data, f, indent=2)
+        """Save raw news findings to dedicated folder (DEPRECATED - no longer saves)."""
+        # News decisions are no longer saved to disk
+        pass
 
     def _save_raw_prompt(self, symbol: str, date: str, messages: List[Dict[str, Any]]) -> None:
         os.makedirs(self.decision_save_dir, exist_ok=True)

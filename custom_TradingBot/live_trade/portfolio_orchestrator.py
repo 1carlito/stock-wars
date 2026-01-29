@@ -27,6 +27,16 @@ from token_tracker import TokenTracker
 from freshness_validator import FreshnessValidator, DataFreshnessContext
 from Tools.Sector_Tools import register_sector_tools
 
+# ANSI color codes for clean terminal output
+class Colors:
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    MAGENTA = '\033[95m'
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -135,7 +145,21 @@ class PortfolioOrchestrator:
         # Initialize freshness context for this cycle
         self.freshness_context = DataFreshnessContext(trade_date_str)
 
-        _logger.info(f"📊 Starting portfolio cycle for {len(self.symbols)} stocks on {trade_date_str}")
+        # Print clean portfolio summary with colors
+        print(f"\n{Colors.CYAN}{Colors.BOLD}{'='*80}{Colors.RESET}")
+        print(f"{Colors.CYAN}{Colors.BOLD}📊 Portfolio Analysis - {trade_date_str}{Colors.RESET}")
+        print(f"{Colors.CYAN}{Colors.BOLD}{'='*80}{Colors.RESET}")
+        if hasattr(self.portfolio_state, 'cash'):
+            cash = self.portfolio_state.cash
+            positions = len(self.portfolio_state.positions or {})
+            shorts = len(self.portfolio_state.short_positions or {})
+            print(f"{Colors.GREEN}💰 Cash: ${cash:,.2f}{Colors.RESET} | {Colors.BLUE}Positions: {positions}{Colors.RESET} | {Colors.MAGENTA}Shorts: {shorts}{Colors.RESET}")
+        else:
+            cash = self.portfolio_state.get('cash', 0)
+            positions = len(self.portfolio_state.get('positions', {}))
+            print(f"{Colors.GREEN}💰 Cash: ${cash:,.2f}{Colors.RESET} | {Colors.BLUE}Positions: {positions}{Colors.RESET}")
+        print(f"{Colors.CYAN}📈 Symbols: {', '.join(self.symbols)}{Colors.RESET}")
+        print(f"{Colors.CYAN}{Colors.BOLD}{'='*80}{Colors.RESET}\n")
 
         # --- PHASE 0: Check token budget ---
         budget_status = self.token_tracker.check_budget()
@@ -181,21 +205,30 @@ class PortfolioOrchestrator:
 
         # --- PHASE 3: Filter errors, validate freshness, and add sector ranks ---
         valid_decisions = self._filter_and_enrich(all_results, sector_ranks, trade_date_str)
-        _logger.info(f"✅ Valid decisions: {len(valid_decisions)}/{len(self.symbols)}")
-
-        # Log all stock results (including HOLD)
-        for result in all_results:
-            if isinstance(result, Exception):
-                _logger.warning(f"  ⚠️  {result}")
-            elif result.get("success"):
-                symbol = result.get("symbol")
-                decision = result.get("decision", "HOLD")
-                confidence = result.get("confidence", 0.0)
-                _logger.info(f"  📊 {symbol}: {decision} (confidence: {confidence:.0%})")
-            else:
-                symbol = result.get("symbol", "UNKNOWN")
-                error = result.get("error", "Unknown error")
-                _logger.warning(f"  ❌ {symbol}: {error}")
+        
+        # Print clean decision summary with colors
+        print(f"\n{Colors.GREEN}✅ Analysis Complete: {len(valid_decisions)}/{len(self.symbols)} tradeable decisions{Colors.RESET}")
+        if valid_decisions:
+            print(f"\n{Colors.CYAN}{Colors.BOLD}📋 Decisions:{Colors.RESET}")
+            for decision in valid_decisions:
+                symbol = decision.get('symbol', 'UNKNOWN')
+                dec = decision.get('decision', 'HOLD')
+                conf = decision.get('confidence', 0.0)
+                amt = decision.get('amount_usd', 0.0)
+                
+                # Color code by decision type
+                if dec == 'BUY':
+                    dec_color = Colors.GREEN
+                elif dec in ('SELL', 'SHORT'):
+                    dec_color = Colors.MAGENTA
+                else:
+                    dec_color = Colors.BLUE
+                
+                if dec in ('BUY', 'SELL', 'SHORT', 'CLOSE'):
+                    print(f"  • {Colors.BOLD}{symbol}{Colors.RESET}: {dec_color}{dec}{Colors.RESET} ${amt:,.0f} ({conf:.0%} confidence)")
+                else:
+                    print(f"  • {Colors.BOLD}{symbol}{Colors.RESET}: {dec_color}{dec}{Colors.RESET} ({conf:.0%} confidence)")
+        print()
 
         # --- PHASE 4 & 5: Allocation / execution (mode dependent) ---
         if self.mode == "analysis":
@@ -265,12 +298,14 @@ class PortfolioOrchestrator:
         """
         agent = None
         try:
-            _logger.info(f"  📈 Analyzing {symbol}...")
+            # Clean progress output with color
+            print(f"  {Colors.YELLOW}🔍 Analyzing {symbol}...{Colors.RESET}")
 
             agent = ReasoningAgent(
                 data_dir=str(self.data_dir),
                 use_mcp_client=True
             )
+
 
             # Make decision without executing trade yet
             result = await agent._make_decision_async(

@@ -290,7 +290,6 @@ def _prompt_trading_strategy() -> bool:
         choice = Prompt.ask(
             "Select strategy [1=Long Only, 2=Long & Short]",
             choices=["1", "2"],
-            default="1",
             show_choices=False,
         ).strip()
 
@@ -298,6 +297,9 @@ def _prompt_trading_strategy() -> bool:
             return False  # Short selling disabled
         if choice == "2":
             return True   # Short selling allowed
+        
+        # If we get here, invalid input (shouldn't happen with choices validation)
+        console.print("[red]Please enter 1 or 2.[/red]")
 
 
 def _banner() -> None:
@@ -316,7 +318,7 @@ def _prompt_symbols_analysis() -> List[str]:
     console.print(Panel(prompt_text, title="Step 5 • Symbols", border_style="cyan"))
 
     while True:
-        raw = Prompt.ask("Symbols (comma‑separated)", default="AAPL")
+        raw = Prompt.ask("Symbols (comma‑separated)")
         symbols = [s.strip().upper() for s in raw.split(",") if s.strip()]
         if symbols:
             return symbols
@@ -536,7 +538,6 @@ def _prompt_engine_mode() -> EngineMode:
         choice = Prompt.ask(
             "Select engine [1=Live, 2=Backtest]",
             choices=["1", "2"],
-            default="1",
             show_choices=False,
         ).strip()
 
@@ -544,6 +545,8 @@ def _prompt_engine_mode() -> EngineMode:
             return "live"  # type: ignore[return-value]
         if choice == "2":
             return "backtest"  # type: ignore[return-value]
+        
+        console.print("[red]Please enter 1 or 2.[/red]")
 
 
 def _prompt_analysis_mode() -> AnalysisMode:
@@ -566,7 +569,6 @@ def _prompt_analysis_mode() -> AnalysisMode:
         choice = Prompt.ask(
             "Select mode [1=Analysis, 2=Paper (simulated), 3=Alpaca]",
             choices=["1", "2", "3"],
-            default="2",
             show_choices=False,
         ).strip()
 
@@ -576,6 +578,8 @@ def _prompt_analysis_mode() -> AnalysisMode:
             return "paper"  # type: ignore[return-value]
         if choice == "3":
             return "alpaca_live"  # type: ignore[return-value]
+        
+        console.print("[red]Please enter 1, 2, or 3.[/red]")
 
 
 def _prompt_alpaca_credentials() -> tuple[str, str]:
@@ -591,8 +595,17 @@ def _prompt_alpaca_credentials() -> tuple[str, str]:
     )
     console.print(Panel(prompt_text, title="Alpaca Credentials", border_style="cyan"))
 
-    api_key = Prompt.ask("API Key", password=True)
-    api_secret = Prompt.ask("API Secret", password=True)
+    while True:
+        api_key = Prompt.ask("API Key", password=True).strip()
+        if api_key:
+            break
+        console.print("[red]API Key cannot be empty. Please enter your Alpaca API Key.[/red]")
+    
+    while True:
+        api_secret = Prompt.ask("API Secret", password=True).strip()
+        if api_secret:
+            break
+        console.print("[red]API Secret cannot be empty. Please enter your Alpaca API Secret.[/red]")
 
     return api_key, api_secret
 
@@ -755,13 +768,11 @@ def _prompt_analysis_portfolio_source() -> tuple[PortfolioMode, PortfolioSnapsho
 
     # Only two sources are now supported: new or manual.
     valid_choices = ["1", "2"]
-    default_choice = "1"
 
     while True:
         choice = Prompt.ask(
             "Select portfolio source",
             choices=valid_choices,
-            default=default_choice,
             show_choices=False,
         ).strip()
 
@@ -772,6 +783,8 @@ def _prompt_analysis_portfolio_source() -> tuple[PortfolioMode, PortfolioSnapsho
             # Manual portfolio entry
             portfolio = _collect_portfolio_details()
             return "current", portfolio, False
+        
+        console.print("[red]Please enter 1 or 2.[/red]")
 
 
 def _review_config(cfg: SessionConfig) -> bool:
@@ -814,7 +827,11 @@ def _review_config(cfg: SessionConfig) -> bool:
         border_style="bright_magenta",
     )
     console.print(panel)
-    return Confirm.ask("Launch session with these settings?", default=True)
+    
+    while True:
+        response = Confirm.ask("Launch session with these settings?")
+        # Confirm.ask returns bool, so we can return directly
+        return response
 
 
 @contextlib.contextmanager
@@ -1350,7 +1367,11 @@ def _prompt_tool_categories() -> List[str]:
     # Multi-select with checkboxes
     selected = []
     for i, cat in enumerate(categories_list, 1):
-        should_select = Confirm.ask(f"  Include {cat}?", default=(i == 1))
+        # First category defaults to True, others require explicit choice
+        if i == 1:
+            should_select = Confirm.ask(f"  Include {cat}?")
+        else:
+            should_select = Confirm.ask(f"  Include {cat}?")
         if should_select:
             selected.append(cat)
 
@@ -1675,18 +1696,18 @@ def run_interactive() -> None:
     first_day_entry_time_gmt = None
 
     if run_mode == "daemon":
-        # Automatically set first-day entry to NOW + 1 minute (buffer for PM2 startup)
+        # Automatically set first-day entry to NOW + 2 minute (buffer for PM2 startup)
         from datetime import datetime as dt, timedelta
         now_utc = dt.now(timezone.utc)
-        entry_time_utc = now_utc + timedelta(minutes=1)  # Add 1 minutebuffer
+        entry_time_utc = now_utc + timedelta(minutes=2)  # Add 2 minutebuffer
         first_run_date = entry_time_utc.date().isoformat()  # Today's date (YYYY-MM-DD)
-        first_day_entry_time_gmt = entry_time_utc.strftime("%H:%M")  # Entry time +1 minute (HH:MM GMT)
+        first_day_entry_time_gmt = entry_time_utc.strftime("%H:%M")  # Entry time +2 minute (HH:MM GMT)
 
         console.print()
         console.print(
             Panel(
                 "[bold cyan]First Day Entry[/bold cyan]\n\n"
-                f"Your initial trade will run in [bold]~1 minute [/bold] (buffer for PM2 startup).\n"
+                f"Your initial trade will run in [bold]~2 minutes [/bold] (buffer for PM2 startup).\n"
                 f"[bold]Date:[/bold] {first_run_date}\n"
                 f"[bold]Time (GMT):[/bold] {first_day_entry_time_gmt}\n\n"
                 f"After today, the daemon will follow your custom schedule daily.",
@@ -1698,10 +1719,13 @@ def run_interactive() -> None:
         # Ask for custom scheduled times for subsequent days
         scheduled_times_gmt = _prompt_scheduled_times_gmt()
 
-    # Trade mode is inferred from analysis_mode
-    trade_mode: TradeMode = "paper"  # type: ignore
-    if analysis_mode in ("paper", "alpaca_live"):
-        trade_mode = "live"
+    # Trade mode: determines the config field value
+    # - "analysis" → trade_mode: "analysis" (investment portfolio mode)
+    # - "paper" or "alpaca_live" → trade_mode: "live" (Alpaca-backed)
+    if analysis_mode == "analysis":
+        trade_mode: TradeMode = "analysis"  # type: ignore
+    else:
+        trade_mode: TradeMode = "live"  # type: ignore
 
     cfg = SessionConfig(
         symbols=symbols,

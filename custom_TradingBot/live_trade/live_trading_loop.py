@@ -53,6 +53,18 @@ except ImportError:
         sys.path.insert(0, _live_trade_dir)
     from ReasoningAgent import ReasoningAgent  # noqa: E402
 
+# ANSI color codes for clean terminal output
+class Colors:
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    BLUE = '\033[94m'
+    MAGENTA = '\033[95m'
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
+
+_logger = logging.getLogger(__name__)
+
 
 # Optional Alpaca integration (paper trading by default)
 try:  # pragma: no cover - optional dependency
@@ -94,16 +106,17 @@ def _setup_logging(log_dir: Optional[str] = None) -> logging.Logger:
 
     # Only add handlers if they don't already exist (prevent duplicates)
     if not logger_obj.handlers:
-        # Console handler (INFO level)
+        # Console handler (INFO level) with yellow color
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
+        # Yellow color formatter for console
         console_formatter = logging.Formatter(
-            "%(asctime)s [%(levelname)s] %(message)s",
+            f"{Colors.YELLOW}%(asctime)s [%(levelname)s] %(message)s{Colors.RESET}",
             datefmt="%Y-%m-%d %H:%M:%S"
         )
         console_handler.setFormatter(console_formatter)
 
-        # File handler (DEBUG level)
+        # File handler (DEBUG level) - no colors for file
         log_file = os.path.join(log_dir, "live_trading.log")
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(logging.DEBUG)
@@ -119,6 +132,11 @@ def _setup_logging(log_dir: Optional[str] = None) -> logging.Logger:
     # Suppress non-fatal MCP shutdown error logging
     asyncio_logger = logging.getLogger("asyncio")
     asyncio_logger.addFilter(_MCPShutdownFilter())
+    
+    # Suppress rich library console output (file paths and line numbers)
+    rich_logger = logging.getLogger("rich")
+    rich_logger.setLevel(logging.WARNING)
+    rich_logger.propagate = False
 
     return logger_obj
 
@@ -869,6 +887,16 @@ def _investment_only_results_dir() -> str:
     return os.path.join(_get_live_trade_dir(), "investment_only_results")
 
 
+def _display_decision_reasoning(decision_result):
+    decision = decision_result.get("decision", "UNKNOWN")
+    confidence = decision_result.get("confidence", 0.0)
+    reasoning = decision_result.get("reasoning", "No reasoning provided")
+    
+    print(f"{Colors.YELLOW}\\nDecision: {decision}{Colors.RESET}")
+    print(f"{Colors.YELLOW}Confidence: {confidence}{Colors.RESET}")
+    print(f"{Colors.YELLOW}Reasoning: {reasoning}{Colors.RESET}\\n")
+
+
 def _save_investment_only_result(
     symbol: str,
     trade_date: date,
@@ -911,7 +939,11 @@ def _save_investment_only_result(
     with open(path, "w") as f:
         json.dump(payload, f, indent=2)
 
-    _logger.info(f"💾 Saved investment‑only result to {path}")
+    # Log with pink color for file path
+    print(f"{Colors.MAGENTA}💾 Saved investment‑only result to {path}{Colors.RESET}")
+    
+    # Display decision reasoning
+    _display_decision_reasoning(decision_result)
 
 
 def get_next_run_time(
@@ -1026,9 +1058,13 @@ async def run_single_trading_cycle(
     5. Update State & Persist
     """
     _logger.info("=" * 80)
-    _logger.info(f"🚀 Starting Trading Cycle: {symbol} | Date: {trade_date}")
-    _logger.info(f"   Mode: {mode} | Notes: {notes or 'None'}")
+    _logger.info(f"🚀 Trading Cycle: {symbol} | {trade_date} | Mode: {mode}")
     _logger.info("=" * 80)
+    
+    # Print clean output to console with colors
+    print(f"\n{Colors.CYAN}{Colors.BOLD}{'='*80}{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BOLD}📊 {symbol} - {trade_date}{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BOLD}{'='*80}{Colors.RESET}")
 
     # 1. Load Portfolio State
     #
@@ -1062,6 +1098,15 @@ async def run_single_trading_cycle(
     # We'll skip complex merging logic for now to keep it robust.
     # But we will re-validate the state.
     validate_portfolio_state(state)
+    
+    # Print clean portfolio state with colors
+    print(f"{Colors.GREEN}💰 Cash: ${state.cash:,.2f}{Colors.RESET} | {Colors.BLUE}Positions: {len(state.positions or {})}{Colors.RESET}")
+    if state.positions:
+        for sym, pos in state.positions.items():
+            shares = pos.get('shares', 0)
+            avg_price = pos.get('avg_price', 0)
+            print(f"  • {Colors.BOLD}{sym}{Colors.RESET}: {shares} shares @ ${avg_price:.2f}")
+    print(f"\n{Colors.YELLOW}🔍 Analyzing {symbol}...{Colors.RESET}\n")
 
     # If mult-stock context is needed (e.g. portfolio rebalancing),
     # the ReasoningAgent might need awareness of other positions.
