@@ -23,8 +23,8 @@ import sys
 import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
-from token_tracker import TokenTracker
-from freshness_validator import FreshnessValidator, DataFreshnessContext
+from data_management.token_tracker import TokenTracker
+from data_management.freshness_validator import FreshnessValidator, DataFreshnessContext
 from Tools.Sector_Tools import register_sector_tools
 
 # ANSI color codes for clean terminal output

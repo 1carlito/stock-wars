@@ -195,16 +195,16 @@ def register_fmp_technical_tools(mcp):
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
 
-    @mcp.tool(name="get_real_time_quote")
-    def get_real_time_quote(symbol: str) -> Dict[str, Any]:
+    @mcp.tool(name="get_fmp_real_time_quote")
+    def get_fmp_real_time_quote(symbol: str) -> Dict[str, Any]:
         """
-        Get real-time stock quote with current price and key market data.
+        Get real-time stock quote with current price and key market data from FMP.
         Returns current price, bid/ask spread, volume, market cap, PE ratio, and other metrics.
         """
-        tool_name = "get_real_time_quote"
+        tool_name = "get_fmp_real_time_quote"
         try:
             if not symbol:
-                raise ValueError("get_real_time_quote requires a non-empty symbol")
+                raise ValueError("get_fmp_real_time_quote requires a non-empty symbol")
 
             params: Dict[str, Any] = {
                 "symbol": symbol.upper(),

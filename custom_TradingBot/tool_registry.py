@@ -34,11 +34,11 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "mcp_name": "get_current_price_yfinance",
         "description": "Current price via 5m intraday candle (FREE - yfinance)"
     },
-    "get_real_time_quote": {
+    "get_fmp_real_time_quote": {
         "category": "price",
         "tier": "free",
         "provider": "fmp",
-        "mcp_name": "get_real_time_quote",
+        "mcp_name": "get_fmp_real_time_quote",
         "description": "Real-time quote from FMP"
     },
     "get_4hour_chart": {
@@ -382,7 +382,7 @@ _FREE_TOOLS = [
     "get_price_history",
     "get_current_price",
     "get_current_price_yfinance",
-    "get_real_time_quote",
+    "get_fmp_real_time_quote",
     "get_4hour_chart",
     "get_premarket_context",
     # Technical (OpenBB versions - slower but always available)

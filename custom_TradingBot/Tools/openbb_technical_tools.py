@@ -16,7 +16,7 @@ from openbb import obb
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
 from utils import openbb_tool_wrapper, format_tool_result
-from cache_manager import CacheManager
+from data_management.cache_manager import CacheManager
 
 # Initialize cache
 _cache_manager = CacheManager(cache_dir=os.path.join(parent_dir, ".cache"), ttl_hours=24)

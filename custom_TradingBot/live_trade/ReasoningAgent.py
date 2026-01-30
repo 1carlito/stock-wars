@@ -48,22 +48,8 @@ DEFAULT_API_TOKEN = os.getenv("DEEPSEEK_API_KEY_1") or os.getenv("DEEPSEEK_API_K
 MODEL_NAME = "deepseek-ai/DeepSeek-V3.1-Terminus"
 CHUTES_API_URL = os.getenv("CHUTES_API_URL", "https://llm.chutes.ai/v1/chat/completions")
 
-# Tool behavior configuration
-TOOL_DEFAULT_CONFIG: Dict[str, Any] = {
-    "trim": True,
-    "max_items": 60,
-}
 
-TOOL_CONFIG: Dict[str, Dict[str, Any]] = {
-    "get_price_history": {"trim": False},
-    "get_current_price": {"trim": False},
-    "get_income_statement": {"trim": True, "max_items": 6},
-    "get_balance_sheet": {"trim": True, "max_items": 6},
-    "get_cash_flow": {"trim": True, "max_items": 6},
-    "equity_fundamental_cash": {"trim": True, "max_items": 6},
-    "get_company_news": {"trim": True, "max_items": 20},
-    "get_world_news": {"trim": True, "max_items": 20},
-}
+
 
 # MCP Client imports
 try:
@@ -478,10 +464,9 @@ class ReasoningAgent:
                                 if isinstance(tool_result, dict) and "tool_name" not in tool_result:
                                     tool_result["tool_name"] = tool_call["name"]
 
-                                trimmed_result = self._trim_tool_result(tool_result)
-                                tool_results.append(trimmed_result)
+                                tool_results.append(tool_result)
 
-                                tool_result_str = json.dumps(trimmed_result, indent=2)
+                                tool_result_str = json.dumps(tool_result, indent=2)
                                 result_size = len(tool_result_str)
                                 max_chars = 2000
                                 if result_size > max_chars:
@@ -990,29 +975,7 @@ Avoid lookahead bias: do not use data from after {current_date}.
             json.dump(record, f, indent=2)
             f.write("\n")
 
-    def _trim_tool_result(self, tool_result: Dict[str, Any]) -> Dict[str, Any]:
-        if not isinstance(tool_result, dict):
-            return tool_result
 
-        result = dict(tool_result)
-        tool_name = result.get("tool_name") or result.get("tool") or ""
-        data = result.get("data")
-
-        if not isinstance(data, list) or not data:
-            return result
-
-        config = TOOL_CONFIG.get(tool_name, TOOL_DEFAULT_CONFIG)
-        if not config.get("trim", True):
-            return result
-
-        max_items = int(config.get("max_items", TOOL_DEFAULT_CONFIG["max_items"]))
-
-        if len(data) > max_items:
-            result["data"] = data[-max_items:]
-            result["truncated"] = True
-            result["truncated_note"] = f"Trimmed data to last {max_items} items out of {len(data)}"
-
-        return result
 
     def _extract_tool_calls(self, text: str) -> List[Dict[str, Any]]:
         import ast
