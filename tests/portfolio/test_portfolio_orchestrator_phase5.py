@@ -5,7 +5,7 @@ Verifies:
   1. `PortfolioOrchestrator` initialization and basic attributes.
   2. Sector rankings retrieval via the sector tools (static ranking).
   3. Decision filtering and enrichment with sector metadata.
-  4. Waterfall allocation with a 25% cash cap per trade.
+  4. Waterfall allocation with a 30% cash cap per trade.
   5. Token tracking behavior across multiple symbols.
   6. Budget enforcement behavior.
   7. Portfolio summary helper structure.
@@ -111,8 +111,8 @@ def test_decision_filter_and_enrich():
     assert all("sector" in d for d in enriched)
 
 
-def test_waterfall_allocation_with_25_percent_cap():
-    """Waterfall allocation caps per-trade allocation at 25% of cash."""
+def test_waterfall_allocation_with_30_percent_cap():
+    """Waterfall allocation caps BUY per-trade allocation at 30% of cash."""
     orchestrator = PortfolioOrchestrator(
         symbols=["AAPL", "MSFT", "NVDA"],
         starting_capital=100000.0,
@@ -150,7 +150,7 @@ def test_waterfall_allocation_with_25_percent_cap():
 
     assert allocated
     first_alloc = allocated[0]["allocated_amount"]
-    assert first_alloc <= 25000  # 25% of 100k
+    assert first_alloc <= 30000  # 30% of 100k
 
     confidences = [d.get("confidence", 0) for d in allocated]
     assert confidences[0] >= confidences[-1]
