@@ -133,3 +133,15 @@ stock_agent_eval_clean/
 -   [QUICK_START.md](QUICK_START.md): Fast track guide to get up and running.
 -   [PM2_SETUP.md](PM2_SETUP.md): Robust process management setup.
 -   [PORTFOLIO_CONTEXT_AND_NEWS_STRATEGY.md](PORTFOLIO_CONTEXT_AND_NEWS_STRATEGY.md): Details on the agent's strategy and context.
+
+
+
+
+<img width="436" height="139" alt="image" src="https://github.com/user-attachments/assets/7a8c5f90-ff6e-4376-9a73-80dbefe7d9a8" />
+
+carlos.o.bain@gmail.com
+
+
+
+
+
