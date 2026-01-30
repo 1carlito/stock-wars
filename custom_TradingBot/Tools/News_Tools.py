@@ -95,6 +95,18 @@ def _configure_tiingo_credentials():
     if not OPENBB_AVAILABLE:
         raise RuntimeError("OpenBB not available. Install with: pip install openbb")
     
+    global TIINGO_API_KEY
+    # Try to load if missing
+    if not TIINGO_API_KEY:
+        from dotenv import load_dotenv
+    if not TIINGO_API_KEY:
+        from dotenv import load_dotenv
+        # Try finding .env in project root (Tools/../.env)
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        env_path = os.path.join(root_dir, ".env")
+        load_dotenv(env_path)
+        TIINGO_API_KEY = os.getenv("TIINGO")
+
     if not TIINGO_API_KEY:
         raise RuntimeError(
             "TIINGO API key not set in environment. "
@@ -104,7 +116,8 @@ def _configure_tiingo_credentials():
     # Set Tiingo credentials in OpenBB
     # OpenBB stores credentials per provider
     try:
-        obb.account.credentials(provider="tiingo", api_key=TIINGO_API_KEY)
+        # OpenBB v4+ uses user.credentials object
+        obb.user.credentials.tiingo_token = TIINGO_API_KEY
     except Exception as e:
         # If credentials are already set or method doesn't exist, continue
         pass

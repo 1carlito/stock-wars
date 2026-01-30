@@ -1137,66 +1137,10 @@ async def run_single_trading_cycle(
         _logger.debug(f"Could not load config: {e}")
 
     # 3.6 Fetch technical data based on user-selected tool categories
-    #
+
     technical_data_for_prompt = {}
 
-    if mode in ("paper", "alpaca_live"):
-        try:
-            # Import tools for data fetching
-            sys.path.insert(0, os.path.join(BASE_DIR, ".."))
-            from Tools.Technical_Tools import fetch_selected_tools_data
 
-            # Fetch data for selected categories
-            has_fmp = os.getenv("fmp_api_key") is not None
-            include_news = "sentiment" in selected_categories or False
-            tech_data = fetch_selected_tools_data(
-                symbol=symbol,
-                trade_date=trade_date.isoformat(),
-                selected_categories=selected_categories,
-                include_news=include_news,
-                tech_date_range=technical_indicators_date_range,
-                has_fmp_access=has_fmp,
-            )
-
-            # Extract technical indicators data if available
-            if tech_data and tech_data.get("technical_indicators") and not tech_data["technical_indicators"].get("error"):
-                technical_data_for_prompt = tech_data["technical_indicators"]
-                if technical_data_for_prompt.get("current_price"):
-                    current_price = technical_data_for_prompt.get("current_price") or current_price
-                    _logger.info(
-                        f"📈 Technical data: "
-                        f"source={technical_data_for_prompt.get('source')}, "
-                        f"interval={technical_data_for_prompt.get('interval')}, "
-                        f"price=${current_price:.2f}"
-                    )
-            else:
-                error_msg = tech_data.get("error") if tech_data else "Unknown error"
-                _logger.debug(f"Technical data not available: {error_msg}")
-
-                # Fallback: try to get fresh current price
-                if not current_price:
-                    try:
-                        from openbb import obb
-                        price_data = obb.equity.price.historical(
-                            symbol=symbol,
-                            start_date=trade_date.isoformat(),
-                            end_date=trade_date.isoformat(),
-                            interval="5m",
-                            provider="yfinance",
-                            extended_hours=True,
-                        )
-                        if price_data and price_data.results:
-                            latest = price_data.results[-1]
-                            latest_dict = latest.model_dump() if hasattr(latest, "model_dump") else latest.dict() if hasattr(latest, "dict") else latest
-                            current_price = latest_dict.get("close")
-                    except Exception:  # noqa: BLE001
-                        pass
-
-        except Exception as e:  # noqa: BLE001
-            _logger.warning(f"⚠️  Technical data pipeline error: {e}")
-
-    # 4. Run decision
-    #
     # For "analysis" mode (mode 1), disable trade execution entirely so that
     # this path becomes pure investment analysis with no theoretical trades.
     execute_trades = mode != "analysis"

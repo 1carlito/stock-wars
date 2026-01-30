@@ -217,16 +217,14 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "tier": "free",
         "provider": "tiingo",
         "mcp_name": "get_openbb_company_news",
-        "description": "Company-specific news via Tiingo (free alternative to FMP)",
-        "requires": ["has_fmp_access"]
+        "description": "Company-specific news via Tiingo (free alternative to FMP)"
     },
     "get_openbb_world_news": {
         "category": "news",
         "tier": "free",
         "provider": "tiingo",
         "mcp_name": "get_openbb_world_news",
-        "description": "Market and macro news via Tiingo (free alternative to FMP)",
-        "requires": ["has_fmp_access"]
+        "description": "Market and macro news via Tiingo (free alternative to FMP)"
     },
 
     # =========================================================================
@@ -396,8 +394,8 @@ _FREE_TOOLS = [
     "calculate_obv",
     "calculate_vwap",
     # News
-    "get_company_news",
-    "get_world_news",
+    "get_openbb_company_news",
+    "get_openbb_world_news",
     # Sector
     "get_sector_rankings",
     "get_sector_exposure",
@@ -434,6 +432,8 @@ DEDUPLICATION_PAIRS: List[tuple] = [
     ("get_income_statement", "get_fmp_income_statement"),
     ("get_balance_sheet", "get_fmp_balance_sheet"),
     ("get_key_metrics", "get_fmp_key_metrics"),
+    ("get_openbb_company_news", "get_company_news"),
+    ("get_openbb_world_news", "get_world_news"),
     # Note: BBands, MACD, OBV, VWAP have no FMP equivalents (not in FMP free tier docs)
 ]
 

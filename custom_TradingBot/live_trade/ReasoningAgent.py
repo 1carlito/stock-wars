@@ -804,7 +804,7 @@ class ReasoningAgent:
             try:
                 from tool_registry import generate_precomputed_tool_calls
                 precomputed_tools = generate_precomputed_tool_calls(selected_categories, technical_indicators_date_range)
-                date_range_note = f"\n[Technical indicators configured for {technical_indicators_date_range}-day lookback]\n"
+                date_range_note = f"\n[Technical indicators configured for {technical_indicators_date_range}-day lookback]\nOutput ONLY tool calls in this format:\nTOOL_CALL: tool_name(param1=value1, param2=value2)\n"
             except Exception:
                 date_range_note = ""
                 planning_stage = planning_stage_template
@@ -833,7 +833,7 @@ class ReasoningAgent:
 - For technical indicators: Use compact date ranges of ~60-90 days. These tools return pre-calculated indicator series (and may internally use longer price windows), so avoid redundant raw price-history calls unless you specifically need candles.
 - For fundamentals, request only as much history as you truly need.
 - For news, use short date windows and small limits.
-- Output ONLY tool calls in this format (no decision yet):
+- Output ONLY tool calls in this format:
   TOOL_CALL: tool_name(param1=value1, param2=value2)
 
 """
@@ -878,7 +878,7 @@ class ReasoningAgent:
 {portfolio_context}
 {notes_section}
 
-Please use the available tools to gather additional data and make a decision.
+Please use every single tool given to you to gather additional data and make a decision.
 Avoid lookahead bias: do not use data from after {current_date}.
 """
 
@@ -1243,6 +1243,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "calculate_volatility",
             "get_fmp_rsi",
             "get_fmp_ema",
+            "get_fmp_sma",
+            "get_fmp_wma",
         ]
 
         if tool_name in technical_indicators_needing_dates:
