@@ -459,7 +459,7 @@ def register_openbb_technical_tools(mcp):
     def get_technical_summary(
         symbol: str,
         end_date: str,
-        lookback_days: int = 120
+        lookback_days: int = 90
     ) -> Dict[str, Any]:
         """
         Calculate a comprehensive set of technical indicators for a given date using OpenBB.
@@ -509,66 +509,66 @@ def register_openbb_technical_tools(mcp):
             # 2. RSI (14)
             try:
                 rsi = obb.technical.rsi(data=price_data, length=14)
-                indicators["RSI_14"] = _get_series(rsi, "rsi")
+                indicators["RSI_14"] = _get_series(rsi, "rsi", num_days=lookback_days)
             except Exception:
                 indicators["RSI_14"] = []
 
             # 3. MACD (12, 26, 9)
             try:
                 macd = obb.technical.macd(data=price_data, fast=12, slow=26, signal=9)
-                indicators["MACD"] = _get_series(macd, "macd")
-                indicators["MACD_Signal"] = _get_series(macd, "signal")
-                indicators["MACD_Hist"] = _get_series(macd, "hist")
+                indicators["MACD"] = _get_series(macd, "macd", num_days=lookback_days)
+                indicators["MACD_Signal"] = _get_series(macd, "signal", num_days=lookback_days)
+                indicators["MACD_Hist"] = _get_series(macd, "hist", num_days=lookback_days)
             except Exception:
                 indicators["MACD"] = []
                 
             # 4. BBands (20, 2)
             try:
                 bb = obb.technical.bbands(data=price_data, length=20, std=2)
-                indicators["BB_Upper"] = _get_series(bb, "upper")
-                indicators["BB_Middle"] = _get_series(bb, "middle")
-                indicators["BB_Lower"] = _get_series(bb, "lower")
+                indicators["BB_Upper"] = _get_series(bb, "upper", num_days=lookback_days)
+                indicators["BB_Middle"] = _get_series(bb, "middle", num_days=lookback_days)
+                indicators["BB_Lower"] = _get_series(bb, "lower", num_days=lookback_days)
             except Exception:
                 indicators["BB_Upper"] = []
 
             # 5. ADX (14)
             try:
                 adx = obb.technical.adx(data=price_data, length=14)
-                indicators["ADX_14"] = _get_series(adx, "adx")
+                indicators["ADX_14"] = _get_series(adx, "adx", num_days=lookback_days)
             except Exception:
                 indicators["ADX_14"] = []
 
             # 6. ATR (14)
             try:
                 atr = obb.technical.atr(data=price_data, length=14)
-                indicators["ATR_14"] = _get_series(atr, "atr")
+                indicators["ATR_14"] = _get_series(atr, "atr", num_days=lookback_days)
             except Exception:
                 indicators["ATR_14"] = []
                 
             # 7. CCI (20)
             try:
                 cci = obb.technical.cci(data=price_data, length=20)
-                indicators["CCI_20"] = _get_series(cci, "cci")
+                indicators["CCI_20"] = _get_series(cci, "cci", num_days=lookback_days)
             except Exception:
                 indicators["CCI_20"] = []
                 
             # 8. OBV
             try:
                 obv = obb.technical.obv(data=price_data)
-                indicators["OBV"] = _get_series(obv, "obv")
+                indicators["OBV"] = _get_series(obv, "obv", num_days=lookback_days)
             except Exception:
                 indicators["OBV"] = []
                 
             # 9. EMA (20) & SMA (50)
             try:
                 ema = obb.technical.ema(data=price_data, length=20)
-                indicators["EMA_20"] = _get_series(ema, "ema")
+                indicators["EMA_20"] = _get_series(ema, "ema", num_days=lookback_days)
             except Exception:
                 indicators["EMA_20"] = []
 
             try:
                 sma = obb.technical.sma(data=price_data, length=50)
-                indicators["SMA_50"] = _get_series(sma, "sma")
+                indicators["SMA_50"] = _get_series(sma, "sma", num_days=lookback_days)
             except Exception:
                 indicators["SMA_50"] = []
 
@@ -577,7 +577,7 @@ def register_openbb_technical_tools(mcp):
             closes = []
             try:
                 if hasattr(price_data, "results") and price_data.results:
-                    subset = price_data.results[-60:] if len(price_data.results) > 60 else price_data.results
+                    subset = price_data.results[-lookback_days:] if len(price_data.results) > lookback_days else price_data.results
                     for item in subset:
                         d = None
                         c = None

@@ -165,7 +165,7 @@ class SessionConfig:
     has_fmp_access: bool = False
     # Scheduling (times in GMT)
     first_run_date: str | None = None  # ISO format date string (YYYY-MM-DD)
-    scheduled_times_gmt: List[str] | None = field(default=None)  # List of HH:MM format times in GMT (e.g., ["13:00", "19:00"])
+    scheduled_times_gmt: List[str] | None = field(default=None)  # List of HH:MM format times in GMT (e.g., ["15:00", "19:00"])
     first_day_entry_time_gmt: str | None = None  # HH:MM format time in GMT for first day only
     # Tool Selection
     user_tier: str = "starter"  # Default to starter to ensure fundamental tools are available
@@ -329,26 +329,29 @@ def _prompt_symbols_for_alpaca() -> List[str]:
     """
     Prompt for symbols when running against an Alpaca account (paper or live).
 
-    Users can:
-      - Press Enter with no input to trade all symbols currently held
-        in their Alpaca portfolio, or
-      - Provide a comma-separated subset of tickers to focus on.
+    Users must provide specific ticker symbols they want to analyze for potential
+    portfolio inclusion. The daemon will run analysis on all existing portfolio
+    positions plus any new tickers specified here.
     """
     prompt_text = (
-        "Select which symbols to manage from your Alpaca account.\n\n"
-        "- Leave blank to trade **all symbols currently held** in your Alpaca portfolio.\n"
-        "- Or enter a comma-separated list to focus on a subset "
-        "(e.g. APLD, MSFT, ASML)."
+        "Add the ticker/tickers you would like to analyse for potential portfolio inclusion.\n\n"
+        "Enter a comma-separated list of symbols (e.g., AAPL, MSFT, TSLA).\n\n"
+        "[dim]Note: The daemon will automatically analyze all existing Alpaca positions\n"
+        "plus any new tickers you specify here.[/dim]"
     )
     console.print(Panel(prompt_text, title="Step 5 • Symbols (Alpaca)", border_style="cyan"))
 
-    raw = Prompt.ask("Symbols (comma‑separated, blank = all Alpaca positions)", default="").strip()
-    if not raw:
-        # Empty list signals 'use all Alpaca portfolio positions'
-        return []
-
-    symbols = [s.strip().upper() for s in raw.split(",") if s.strip()]
-    return symbols
+    while True:
+        raw = Prompt.ask("Symbols (comma-separated)", default="").strip()
+        if not raw:
+            console.print("[red]⚠️  Please enter at least one symbol to analyze.[/red]")
+            continue
+        
+        symbols = [s.strip().upper() for s in raw.split(",") if s.strip()]
+        if symbols:
+            return symbols
+        else:
+            console.print("[red]⚠️  Please enter at least one valid symbol.[/red]")
 
 
 
@@ -452,8 +455,9 @@ def _prompt_scheduled_times_gmt() -> List[str] | None:
     console.print(
         Panel(
             "[bold]Customize Your Trading Schedule (Optional)[/bold]\n\n"
-            "Default: [bold]13:00 GMT (1 PM GMT)[/bold] and [bold]19:00 GMT (7 PM GMT)[/bold]\n"
-            "Times should be in HH:MM format (24-hour), e.g., 13:00, 19:00\n\n"
+            "Default: [bold]15:00 GMT (3 PM GMT)[/bold] and [bold]19:00 GMT (7 PM GMT)[/bold]\n"
+            "Times should be in HH:MM format (24-hour), e.g., 15:00, 19:00\n"
+            "You can specify one or more times (comma-separated).\n\n"
             "[dim]Recommended: 08:00-23:00 GMT (covers premarket to after-hours)[/dim]\n"
             "[dim]Note: GMT times will be converted to your local timezone for display[/dim]",
             title="Step 8a • Scheduled Times (Optional)",
@@ -467,8 +471,8 @@ def _prompt_scheduled_times_gmt() -> List[str] | None:
 
     while True:
         times_input = Prompt.ask(
-            "Enter scheduled times in GMT (comma-separated, e.g., '13:00,19:00')",
-            default="13:00,19:00"
+            "Enter scheduled times in GMT (comma-separated, e.g., '15:00,19:00' or just '15:00' for once daily)",
+            default="15:00,19:00"
         ).strip()
 
         try:
@@ -520,7 +524,7 @@ def _prompt_scheduled_times_gmt() -> List[str] | None:
             console.print(f"[green]✓ Schedule times set to: {', '.join(times)} GMT[/green]")
             return times
         except (ValueError, IndexError):
-            console.print("[red]Invalid format. Please use HH:MM format, e.g., 13:00,19:00[/red]")
+            console.print("[red]Invalid format. Please use HH:MM format, e.g., 15:00,19:00 or just 15:00[/red]")
 
 
 def _prompt_engine_mode() -> EngineMode:
@@ -1055,7 +1059,7 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                     "[red]❌ Invalid Configuration:[/red]\n\n"
                     f"Alpaca modes ({cfg.analysis_mode}) do NOT support 'once' mode.\n\n"
                     "Alpaca is designed for scheduled trading on a fixed schedule:\n"
-                    "• Default: 13:00 GMT (1 PM GMT) and 19:00 GMT (7 PM GMT)\n"
+                    "• Default: 15:00 GMT (3 PM GMT) and 19:00 GMT (7 PM GMT)\n"
                     "• You can customize these times during configuration\n\n"
                     "[yellow]For one-shot analysis, use 'analysis' mode instead.[/yellow]\n"
                     "[yellow]For multi-symbol portfolio analysis, use 'analysis' mode.[/yellow]",
@@ -1134,9 +1138,9 @@ def _simulate_launch(cfg: SessionConfig) -> None:
                 first_symbol = cfg.symbols[0]
                 # Format schedule times for display
                 schedule_display = (
-                    f"{', '.join(cfg.scheduled_times_gmt or ['13:00', '19:00'])} GMT"
+                    f"{', '.join(cfg.scheduled_times_gmt or ['15:00', '19:00'])} GMT"
                     if cfg.scheduled_times_gmt
-                    else "13:00, 19:00 GMT (default)"
+                    else "15:00, 19:00 GMT (default)"
                 )
                 first_day_display = (
                     f"\n  • First day ({cfg.first_run_date}): entry at {cfg.first_day_entry_time_gmt} GMT"
@@ -1387,8 +1391,9 @@ def _prompt_technical_date_range() -> int | None:
     prompt_text = (
         "[bold]Technical Indicators Date Range[/bold]\n\n"
         "Specify how many days of historical data to fetch for technical indicators.\n\n"
-        "• Leave blank to let the LLM decide based on analysis needs\n"
-        "• Enter a number (e.g., 60, 90, 180) to lock a specific range\n"
+        "• Leave blank to let the LLM decide based on analysis needs (default: 90 days)\n"
+        "• Enter a number (e.g., 60, 90, 120) to lock a specific range\n"
+        "• Maximum allowed: 150 days\n"
         "• Shorter ranges = faster but less historical context\n"
         "• Longer ranges = slower but more context"
     )
@@ -1398,15 +1403,19 @@ def _prompt_technical_date_range() -> int | None:
         user_input = Prompt.ask("Date range (days, or press Enter for auto)", default="").strip()
 
         if not user_input:
-            return None  # Agent decides
+            return None  # Agent decides (will use 90-day default)
 
         try:
             days = int(user_input)
             if days < 1:
-                raise ValueError
+                console.print("[red]Please enter a positive number.[/red]")
+                continue
+            if days > 150:
+                console.print("[red]Maximum allowed is 150 days. Please enter a smaller value.[/red]")
+                continue
             return days
         except ValueError:
-            console.print("[red]Please enter a positive number or press Enter.[/red]")
+            console.print("[red]Please enter a valid number between 1-150 or press Enter.[/red]")
 
 
 def _check_and_setup_fmp_api_key() -> bool:
@@ -1647,14 +1656,13 @@ def run_interactive() -> None:
         # Step 5: Symbols / Portfolio selection (Alpaca)
         symbols = _prompt_symbols_for_alpaca()
 
-        # Validate symbols for Alpaca mode
+        # Symbols are now validated in _prompt_symbols_for_alpaca, so this should never be empty
+        # But keep a safety check just in case
         if not symbols:
             console.print(
                 Panel(
-                    "[red]⚠️  Alpaca modes require at least one symbol.[/red]\n\n"
-                    "You pressed Enter to use all Alpaca positions, but this feature is not yet supported.\n"
-                    "Please enter specific symbol(s) you want to trade (e.g., AAPL, MSFT, TSLA).\n\n"
-                    "[dim]Note: You can also use 'analysis' mode for one-shot multi-symbol analysis without Alpaca integration.[/dim]",
+                    "[red]⚠️  No symbols provided.[/red]\n\n"
+                    "Please restart and enter at least one symbol to analyze.",
                     border_style="red",
                     title="Invalid Configuration",
                 )
@@ -1667,7 +1675,7 @@ def run_interactive() -> None:
             Panel(
                 "[bold cyan]Alpaca Trading Schedule:[/bold cyan]\n"
                 "Alpaca modes run on a fixed schedule:\n"
-                "• [bold]Daemon mode[/bold]: scheduled runs (default: 13:00 GMT and 19:00 GMT each trading day)\n"
+                "• [bold]Daemon mode[/bold]: scheduled runs (default: 15:00 GMT and 19:00 GMT each trading day)\n"
                 "• You'll have the option to customize these times on the next screen\n\n"
                 "[dim]Note: For one-shot analysis without broker integration, use 'analysis' mode[/dim]",
                 title="Step 6 • Schedule",

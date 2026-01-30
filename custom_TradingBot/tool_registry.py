@@ -193,22 +193,40 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
 
     # =========================================================================
     # NEWS TOOLS
-    # Note: Current get_company_news uses FMP API
-    # Could add OpenBB variants in future
+    # FMP news tools (require FMP API key)
+    # Tiingo news tools via OpenBB (free alternative, require Tiingo API key)
     # =========================================================================
     "get_company_news": {
         "category": "news",
         "tier": "free",
         "provider": "fmp",
         "mcp_name": "get_company_news",
-        "description": "Company-specific news (FMP)"
+        "description": "Company-specific news (FMP)",
+        "requires": ["has_fmp_access"]
     },
     "get_world_news": {
         "category": "news",
         "tier": "free",
         "provider": "fmp",
         "mcp_name": "get_world_news",
-        "description": "Market and macro news (FMP)"
+        "description": "Market and macro news (FMP)",
+        "requires": ["has_fmp_access"]
+    },
+    "get_openbb_company_news": {
+        "category": "news",
+        "tier": "free",
+        "provider": "tiingo",
+        "mcp_name": "get_openbb_company_news",
+        "description": "Company-specific news via Tiingo (free alternative to FMP)",
+        "requires": ["has_fmp_access"]
+    },
+    "get_openbb_world_news": {
+        "category": "news",
+        "tier": "free",
+        "provider": "tiingo",
+        "mcp_name": "get_openbb_world_news",
+        "description": "Market and macro news via Tiingo (free alternative to FMP)",
+        "requires": ["has_fmp_access"]
     },
 
     # =========================================================================
@@ -567,6 +585,8 @@ TOOL_CATEGORIES: Dict[str, Dict[str, List[str]]] = {
         "tools": [
             "get_company_news",
             "get_world_news",
+            "get_openbb_company_news",
+            "get_openbb_world_news",
         ]
     }
 }
@@ -612,6 +632,8 @@ CATEGORY_TOOL_CALLS: Dict[str, List[Dict[str, Any]]] = {
     "sentiment": [
         {"tool": "get_company_news", "params": {"limit": 5}},
         {"tool": "get_world_news", "params": {"limit": 5}},
+        {"tool": "get_openbb_company_news", "params": {"limit": 5}},
+        {"tool": "get_openbb_world_news", "params": {"limit": 5}},
     ]
 }
 

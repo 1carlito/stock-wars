@@ -52,7 +52,7 @@ class PortfolioOrchestrator:
     Responsibilities:
       1. Manage multiple stock analyses in parallel
       2. Track token usage across all decisions
-      3. Enforce portfolio-level constraints (25% per trade cap)
+      3. Enforce portfolio-level constraints (30% per trade cap)
       4. Apply waterfall allocation algorithm
       5. Execute trades and update portfolio state
       6. Persist results and logs
@@ -510,8 +510,19 @@ class PortfolioOrchestrator:
         valid = []
 
         for result in results:
+            # Handle exceptions from asyncio.gather (including CancelledError)
             if isinstance(result, Exception):
-                _logger.warning(f"Task failed with exception: {result}")
+                # Extract symbol if possible for better logging
+                symbol = "UNKNOWN"
+                if isinstance(result, asyncio.CancelledError):
+                    _logger.warning(f"Task cancelled for {symbol} (likely due to timeout or interruption)")
+                else:
+                    _logger.warning(f"Task failed with exception: {type(result).__name__}: {result}")
+                continue
+
+            # Skip if result is not a dict (shouldn't happen, but be defensive)
+            if not isinstance(result, dict):
+                _logger.warning(f"Unexpected result type: {type(result)}")
                 continue
 
             if not result.get("success", False):
@@ -558,7 +569,7 @@ class PortfolioOrchestrator:
         portfolio_state: Any
     ) -> List[Dict[str, Any]]:
         """
-        Apply waterfall allocation: sort by confidence, cap trades at 25% of cash.
+        Apply waterfall allocation: sort by confidence, cap BUY trades at 30% of cash.
 
         Args:
             decisions: List of stock decisions
@@ -579,7 +590,7 @@ class PortfolioOrchestrator:
         else:
             remaining_cash = portfolio_state.get("cash", 0)
 
-        max_per_trade = remaining_cash * 0.25  # 25% cap
+        max_per_trade = remaining_cash * 0.30  # 30% cap for BUY positions
         final_decisions = []
 
         for decision in sorted_decisions:

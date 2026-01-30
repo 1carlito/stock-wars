@@ -4,13 +4,13 @@ Live trading orchestrator
 =========================
 
 Runs the ReasoningAgent twice per trading day for intraday portfolio management:
-- 13:00 ET (1 PM) - Midday analysis + portfolio rebalance
-- 19:00 ET (7 PM) - Evening analysis + position management
+- 15:00 GMT (3 PM GMT) - Midday analysis + portfolio rebalance
+- 19:00 GMT (7 PM GMT) - Evening analysis + position management
 Uses the OpenBB MCP server as a data + execution provider and persists portfolio state to disk.
 
 Modes:
 - Daemon mode (default): long‑running scheduler that waits until the next
-  scheduled time (13:00 or 19:00 ET) on a trading day, then runs the decision + trade flow.
+  scheduled time (15:00 or 19:00 GMT) on a trading day, then runs the decision + trade flow.
 - One‑shot mode (--once): run the flow immediately for "today" and exit;
   useful for cron or manual testing.
 """
@@ -293,7 +293,7 @@ def _waterfall_allocation(
 ) -> List[Dict[str, Any]]:
     """
     Waterfall allocation: Process decisions sequentially, updating cash after each trade.
-    Enforces strict 25% of remaining cash cap per trade.
+    Enforces 30% cap for BUY positions and 25% cap for SHORT positions.
     Blocks new SHORT positions when cash < 25% of initial value.
 
     Args:
@@ -404,8 +404,8 @@ def _waterfall_allocation(
         if price <= 0:
             continue
 
-        # Calculate cap: 25% of remaining cash
-        buy_cap = remaining_cash * 0.25
+        # Calculate cap: 30% of remaining cash for BUY positions
+        buy_cap = remaining_cash * 0.30
 
         # Cap the requested amount
         capped_amount = min(requested_amount, buy_cap)
@@ -956,12 +956,13 @@ def get_next_run_time(
     Compute the next scheduled run time for trading.
 
     Default (backward compatible):
-    - 13:00 (1 PM) America/New_York (6 AM GMT) - Midday analysis + portfolio rebalance
-    - 19:00 (7 PM) America/New_York (12 AM GMT) - Evening analysis + position management
+    - 15:00 GMT (3 PM GMT) - Midday analysis + portfolio rebalance
+    - 19:00 GMT (7 PM GMT) - Evening analysis + position management
 
     With config (NEW):
-    - scheduled_times_gmt: List of times in HH:MM format (GMT), e.g., ["13:00", "19:00"]
-      Default: ["13:00", "19:00"] (1 PM GMT, 7 PM GMT)
+    - scheduled_times_gmt: List of times in HH:MM format (GMT), e.g., ["15:00", "19:00"]
+      Default: ["15:00", "19:00"] (3 PM GMT, 7 PM GMT)
+      Can specify a single time for once-daily runs, e.g., ["15:00"]
     - first_run_date: ISO date (YYYY-MM-DD) of first run - if today, use first_day_entry_time_gmt
     - first_day_entry_time_gmt: Time in HH:MM format (GMT) for first day only
 
@@ -976,7 +977,7 @@ def get_next_run_time(
 
     # Parse scheduled times
     if scheduled_times_gmt is None:
-        scheduled_times_gmt = ["13:00", "19:00"]  # Default: 1 PM GMT, 7 PM GMT
+        scheduled_times_gmt = ["15:00", "19:00"]  # Default: 3 PM GMT, 7 PM GMT
 
     # Parse time strings to (hour, minute) tuples
     scheduled_hours_minutes = []
@@ -990,7 +991,7 @@ def get_next_run_time(
 
     if not scheduled_hours_minutes:
         # Fallback to default if all parsing failed
-        scheduled_hours_minutes = [(13, 0), (19, 0)]
+        scheduled_hours_minutes = [(15, 0), (19, 0)]
 
     # Sort times for consistent ordering
     scheduled_hours_minutes.sort()
@@ -1395,7 +1396,8 @@ def run_daemon(
         starting_capital: Initial capital
         notes: Additional notes
         mode: "paper" or "alpaca_live" (NOT "analysis" - analysis is one-shot only)
-        scheduled_times_gmt: List of times in HH:MM format (GMT), e.g., ["13:00", "19:00"]
+        scheduled_times_gmt: List of times in HH:MM format (GMT), e.g., ["15:00", "19:00"]
+                            Can specify a single time for once-daily runs, e.g., ["15:00"]
         first_run_date: ISO date string (YYYY-MM-DD) of first run
         first_day_entry_time_gmt: Time in HH:MM format (GMT) for first day only
     """
@@ -1406,9 +1408,34 @@ def run_daemon(
     # Determine which symbols to trade
     symbols_to_trade = symbols if symbols else ([symbol] if symbol else ["AAPL"])
 
-    # Default to 1 PM GMT and 7 PM GMT if not specified
+    # If Alpaca mode, fetch current portfolio holdings and merge with user-specified symbols
+    # This ensures we analyze ALL current holdings, not just the symbols from config
+    if mode == "alpaca_live":
+        try:
+            _logger.info("🦙 Fetching Alpaca portfolio to include current holdings...")
+            alpaca_portfolio = _fetch_alpaca_portfolio()
+            alpaca_symbols = list(alpaca_portfolio.positions.keys())
+            
+            if alpaca_symbols:
+                _logger.info(f"🦙 Found {len(alpaca_symbols)} holdings in Alpaca portfolio: {', '.join(alpaca_symbols)}")
+                # Merge Alpaca holdings with user-specified symbols (remove duplicates)
+                original_symbols = set(symbols_to_trade)
+                all_symbols = list(set(symbols_to_trade + alpaca_symbols))
+                symbols_to_trade = all_symbols
+                
+                # Log what was added
+                added_symbols = set(all_symbols) - original_symbols
+                if added_symbols:
+                    _logger.info(f"🦙 Added {len(added_symbols)} holdings from Alpaca: {', '.join(sorted(added_symbols))}")
+            else:
+                _logger.info("🦙 No current holdings in Alpaca portfolio")
+        except Exception as e:
+            _logger.warning(f"⚠️  Could not fetch Alpaca portfolio holdings: {e}")
+            _logger.warning("   Continuing with user-specified symbols only")
+
+    # Default to 3 PM GMT and 7 PM GMT if not specified
     if scheduled_times_gmt is None:
-        scheduled_times_gmt = ["13:00", "19:00"]
+        scheduled_times_gmt = ["15:00", "19:00"]
 
     _logger.info(f"📡 Live trading daemon starting for symbols={symbols_to_trade} (mode={mode})")
     _logger.info(f"   Schedule (GMT): {', '.join(scheduled_times_gmt)}")
