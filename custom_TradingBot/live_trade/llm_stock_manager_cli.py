@@ -1622,8 +1622,22 @@ def run_interactive() -> None:
     allow_short_selling = _prompt_trading_strategy()
 
 
-    # Step 4: Starting Capital
-    capital = _prompt_starting_capital()
+    # Step 4: Starting Capital (only for analysis mode; Alpaca modes fetch from API)
+    if analysis_mode == "analysis":
+        capital = _prompt_starting_capital()
+    else:
+        # Alpaca modes: cash is fetched from the Alpaca account
+        console.print(
+            Panel(
+                "[bold cyan]Cash Balance:[/bold cyan]\n\n"
+                "Your cash balance will be automatically fetched from your Alpaca account.\n"
+                "No need to specify starting capital manually.\n\n"
+                "[dim]The system will sync with your actual account balance when the daemon starts.[/dim]",
+                title="Step 3 • Capital (Alpaca)",
+                border_style="cyan",
+            )
+        )
+        capital = 0.0  # Placeholder; actual cash fetched from Alpaca API
 
     # Step 5: Alpaca Credentials (for Alpaca modes: 2 = paper, 3 = live)
     alpaca_api_key = ""
