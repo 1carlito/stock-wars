@@ -1,7 +1,7 @@
 
 
 
-<img width="809" height="103" alt="Screenshot 2026-01-30 at 09 34 19" src="https://github.com/user-attachments/assets/8fcdabe5-a5bb-4ada-9117-3572bfe9761f" />
+Stock Wars
 
 
 
