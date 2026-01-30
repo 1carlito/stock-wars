@@ -1,6 +1,7 @@
-# Stock Wars
 
 
+
+<img width="809" height="103" alt="Screenshot 2026-01-30 at 09 34 19" src="https://github.com/user-attachments/assets/8fcdabe5-a5bb-4ada-9117-3572bfe9761f" />
 
 
 
@@ -136,8 +137,8 @@ stock_agent_eval_clean/
 
 
 
+<img width="576" height="107" alt="Screenshot 2026-01-30 at 09 35 00" src="https://github.com/user-attachments/assets/774c88b4-3f52-4942-a94c-84a54494393d" />
 
-<img width="436" height="139" alt="image" src="https://github.com/user-attachments/assets/7a8c5f90-ff6e-4376-9a73-80dbefe7d9a8" />
 
 carlos.o.bain@gmail.com
 
