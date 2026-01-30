@@ -536,13 +536,6 @@ class ReasoningAgent:
                                 }
                             )
 
-                            messages.append(
-                                {
-                                    "role": "user",
-                                    "content": f"Tool execution failed: {str(e)}",
-                                }
-                            )
-
                     elif not has_decision and not tool_calls:
                         # Fallback: If no decision and no tools, append the response so the LLM knows what it said.
                         # This prevents the "stuck loop" where it retries with the exact same prompt.
@@ -939,19 +932,10 @@ Avoid lookahead bias: do not use data from after {current_date}.
         with open(os.path.join(self.decision_save_dir, filename), "w") as f:
             json.dump(decision, f, indent=2)
 
-        # Extract and save news findings separately
-        if "tool_results" in decision:
-            self._save_news_findings(decision["symbol"], decision["date"], decision["tool_results"])
-
     def _extract_news_results(self, tool_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Extract only news tool results."""
         news_tools = ["get_company_news", "get_world_news"]
         return [r for r in tool_results if r.get("tool_name") in news_tools]
-
-    def _save_news_findings(self, symbol: str, date: str, tool_results: List[Dict[str, Any]]) -> None:
-        """Save raw news findings to dedicated folder (DEPRECATED - no longer saves)."""
-        # News decisions are no longer saved to disk
-        pass
 
     def _save_raw_prompt(self, symbol: str, date: str, messages: List[Dict[str, Any]]) -> None:
         os.makedirs(self.decision_save_dir, exist_ok=True)
@@ -1413,9 +1397,4 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "confidence": 0.0,
             "reasoning": f"Error: {error}",
         }
-
-    def __del__(self):
-        # Cleanup is handled explicitly via _close_mcp_session in async context.
-        pass
-
 

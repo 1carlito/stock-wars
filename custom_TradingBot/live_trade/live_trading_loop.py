@@ -892,9 +892,9 @@ def _display_decision_reasoning(decision_result):
     confidence = decision_result.get("confidence", 0.0)
     reasoning = decision_result.get("reasoning", "No reasoning provided")
     
-    print(f"{Colors.YELLOW}\\nDecision: {decision}{Colors.RESET}")
+    print(f"{Colors.YELLOW}\nDecision: {decision}{Colors.RESET}")
     print(f"{Colors.YELLOW}Confidence: {confidence}{Colors.RESET}")
-    print(f"{Colors.YELLOW}Reasoning: {reasoning}{Colors.RESET}\\n")
+    print(f"{Colors.YELLOW}Reasoning: {reasoning}{Colors.RESET}\n")
 
 
 def _save_investment_only_result(
@@ -1109,92 +1109,6 @@ async def run_single_trading_cycle(
             print(f"  • {Colors.BOLD}{sym}{Colors.RESET}: {shares} shares @ ${avg_price:.2f}")
     print(f"\n{Colors.YELLOW}🔍 Analyzing {symbol}...{Colors.RESET}\n")
 
-    # If mult-stock context is needed (e.g. portfolio rebalancing),
-    # the ReasoningAgent might need awareness of other positions.
-    # Here we just pass the full state to the agent.
-
-    # 1.5 Handle multiple positions for context
-    # Use load_portfolio_state to get all positions, not just the current symbol.
-    # The agent._make_decision_async now accepts the full portfolio_state dict.
-    # We just need to make sure we don't accidentally overwrite strict existing positions
-    # if the file was edited manually while the script was running (race condition).
-    # Since this is a single-threaded loop per symbol (or sequential), strictly speaking
-    # we should re-load state right before decision if we want to be super detailed,
-    # but we just did load_portfolio_state() above.
-
-    # Re-fetch state for safety if we are in a long loop?
-    # No, we just loaded it.
-
-    # BUT, if we are running multiple symbols in sequence (run_once with list),
-    # the state file might have changed by the previous symbol's run.
-    # So actually, we SHOULD reload the state if we suspect it changed.
-    # Ideally load_portfolio_state handles the file locking or atomic writes.
-    # Here we assume we are the only writer for this file.
-
-    # However, for 'alpaca_live', the state comes from the API, so it's always fresh.
-
-    # For 'analysis' mode, we might want to clear previous positions for this symbol
-    # if we want a "fresh look" every time? No, that's what force_reset is for.
-
-    # If there are manual/external updates to the JSON file, they are loaded now.
-    # Let's verify we have the symbol's position if it exists.
-    # (Just logging)
-    pos = state.positions.get(symbol)
-    if pos:
-        _logger.info(f"   Existing position: {pos.get('shares', 0)} shares @ ${pos.get('avg_price', 0):.2f}")
-    else:
-        _logger.info("   No existing position for this symbol.")
-
-    # In Multi-stock mode, the Orchestrator might have passed in a known state.
-    # If so, we should use it?
-    # Currently run_single_trading_cycle loads its own state.
-    # This might be a conflict if Orchestrator is running parallel tasks.
-    #
-    # FIX: If we are running in parallel (PortfolioOrchestrator), we shouldn't
-    # all try to read/write the same JSON file at the same time.
-    # The PortfolioOrchestrator handles this by gathering decisions first,
-    # then executing.
-    #
-    # This function run_single_trading_cycle is the "old" standalone way or
-    # the "executor" for a single thread.
-    #
-    # If used by Orchestrator, Orchestrator usually calls agent directly.
-    # Let's check PortfolioOrchestrator.
-    #
-    # Actually, looking at run_once:
-    #     orchestrator = PortfolioOrchestrator(...)
-    #     asyncio.run(orchestrator.process_portfolio(trade_date))
-    #
-    # So Orchestrator does NOT use run_single_trading_cycle.
-    # This function is used by run_daemon (single stock) and run_once (single stock).
-    # So we are safe from race conditions here.
-
-    # 1.6 Merge any "investment_only" or "manual" positions if needed?
-    # (Skipping for simplicity)
-
-    # 1.7 Add any manual Analysis inputs?
-    # We have 'notes'.
-
-    # If we are in 'analysis' mode, we might want to check if there is an existing
-    # "theoretical_portfolio.json" ... load_portfolio_state handles that.
-
-    # If we are in 'paper' mode, check if there is a 'manual_portfolio.json' to merge?
-    # (Feature for later)
-    manual_path = os.path.join(_get_live_trade_dir(), "manual_portfolio.json")
-    if os.path.exists(manual_path) and mode == "paper":
-        try:
-            with open(manual_path, "r") as f:
-                manual_data = json.load(f)
-                manual_positions = manual_data.get("positions", {})
-                # Merge into state
-                positions_dict = state.positions or {}
-                for s, p in manual_positions.items():
-                    positions_dict[s] = p
-                    _logger.info(f"   Merged manual position for {s}")
-                state.positions = positions_dict
-        except Exception as e:
-            _logger.warning(f"⚠️  Failed to merge manual analysis portfolio into state: {e}")
-
     # 2. Initialize ReasoningAgent (MCP client connects lazily on first use)
     agent = ReasoningAgent(
         data_dir=os.path.dirname(BASE_DIR),  # project root for reasoning_decisions
@@ -1204,7 +1118,25 @@ async def run_single_trading_cycle(
     # 3. Build portfolio_state dict expected by ReasoningAgent
     portfolio_state_dict: Dict[str, Any] = state.to_dict()
 
-    # 3.5 Fetch technical data based on user-selected tool categories
+    # 3.5 Load session config once (used for technical data and decision parameters)
+    selected_categories = ["technical_indicators"]  # Default
+    technical_indicators_date_range = None  # Optional optimization parameter
+    allow_short_selling = False
+    
+    try:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config_data = json.load(f)
+                if config_data.get("selected_tool_categories"):
+                    selected_categories = config_data["selected_tool_categories"]
+                if config_data.get("technical_indicators_date_range"):
+                    technical_indicators_date_range = config_data["technical_indicators_date_range"]
+                allow_short_selling = config_data.get("allow_short_selling", False)
+    except Exception as e:
+        _logger.debug(f"Could not load config: {e}")
+
+    # 3.6 Fetch technical data based on user-selected tool categories
     #
     technical_data_for_prompt = {}
 
@@ -1214,23 +1146,6 @@ async def run_single_trading_cycle(
             sys.path.insert(0, os.path.join(BASE_DIR, ".."))
             from Tools.Technical_Tools import fetch_selected_tools_data
 
-            # Load selected tool categories from config (or use defaults)
-            selected_categories = ["technical_indicators"]  # Default
-            tech_date_range = None  # Agent decides by default
-
-            # Try to load from session config if available
-            try:
-                config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
-                if os.path.exists(config_path):
-                    with open(config_path, 'r') as f:
-                        config_data = json.load(f)
-                        if config_data.get("selected_tool_categories"):
-                            selected_categories = config_data["selected_tool_categories"]
-                        if config_data.get("technical_indicators_date_range"):
-                            tech_date_range = config_data["technical_indicators_date_range"]
-            except Exception as e:
-                _logger.debug(f"Could not load tool categories from config: {e}")
-
             # Fetch data for selected categories
             has_fmp = os.getenv("fmp_api_key") is not None
             include_news = "sentiment" in selected_categories or False
@@ -1239,7 +1154,7 @@ async def run_single_trading_cycle(
                 trade_date=trade_date.isoformat(),
                 selected_categories=selected_categories,
                 include_news=include_news,
-                tech_date_range=tech_date_range,
+                tech_date_range=technical_indicators_date_range,
                 has_fmp_access=has_fmp,
             )
 
@@ -1285,32 +1200,6 @@ async def run_single_trading_cycle(
     # For "analysis" mode (mode 1), disable trade execution entirely so that
     # this path becomes pure investment analysis with no theoretical trades.
     execute_trades = mode != "analysis"
-
-    # Load selected_categories and technical_indicators_date_range from config
-    selected_categories = ["technical_indicators"]  # Default
-    technical_indicators_date_range = None  # Optional optimization parameter
-    try:
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
-        if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                config_data = json.load(f)
-                if config_data.get("selected_tool_categories"):
-                    selected_categories = config_data["selected_tool_categories"]
-                if config_data.get("technical_indicators_date_range"):
-                    technical_indicators_date_range = config_data["technical_indicators_date_range"]
-    except Exception as e:
-        _logger.debug(f"Could not load config: {e}")
-
-    # Load allow_short_selling from config
-    allow_short_selling = False
-    try:
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
-        if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                config_data = json.load(f)
-                allow_short_selling = config_data.get("allow_short_selling", False)
-    except Exception as e:
-        _logger.debug(f"Could not load allow_short_selling from config: {e}")
 
     decision_result = await agent._make_decision_async(
         symbol=symbol,

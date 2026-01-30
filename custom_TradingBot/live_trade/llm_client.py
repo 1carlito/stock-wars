@@ -97,7 +97,7 @@ class OpenAIClient(LLMClient):
 def get_llm_client(provider: str, api_key: str, model: str = None) -> LLMClient:
     provider = provider.lower()
     if provider == "openai":
-         return OpenAIClient(api_key, model or "gpt-4o")
+         return OpenAIClient(api_key, model or "gpt-5")
     elif provider == "chutes":
          return ChutesClient(api_key, model or "deepseek-ai/DeepSeek-V3.1-Terminus")
     else:
