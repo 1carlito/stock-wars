@@ -19,8 +19,8 @@ An autonomous stock trading agent framework powered by Large Language Models (LL
 
 ## 🚀 Features
 
--   **Autonomous Reasoning**: Uses LLMs (DeepSeek-V3, GPT-4o) to analyze technical and fundamental data.
--   **OpenBB/FMP Integration**: Leverages FMP API  and OpenBB SDK for high-quality financial data (Price, Income, Balance Sheet, News).
+-   **Autonomous Reasoning**: Uses LLMs (Chutes.ai (multiple models e.g D-seek), GPT-5)) to analyse technical and fundamental data.
+-   **OpenBB/FMP Integration**: Leverages FMP API and OpenBB for high-quality financial data (Price, Income, Balance Sheet, News).
 -   **Backtesting Engine**: Simulate agent performance over historical data with `backtesting/start_agent_backtest.py`.
 -   **Live Trading Daemon**: Production-ready live trading loop managed by **PM2** for auto-restart and reliability.
 -   **MCP Support**: Uses the Model Context Protocol (MCP) to standardize tool execution.
@@ -30,10 +30,9 @@ An autonomous stock trading agent framework powered by Large Language Models (LL
 ## 📋 Prerequisites
 
 -   **Python 3.10+**
--   **Node.js & npm** (Required for PM2 process manager)
 -   **API Keys**:
     -   OpenAI `OPENAI_API_KEY` (if using GPT models)
-    -   DeepSeek `DEEPSEEK_API_KEY` (if using DeepSeek models)
+    -   DeepSeek `DEEPSEEK_API_KEY` (if using DeepSeek models on chutes )
     -   Financial Data Provider Keys (as required by OpenBB)
 
 ## 🛠️ Installation
@@ -65,8 +64,7 @@ An autonomous stock trading agent framework powered by Large Language Models (LL
 ## 🏃 Usage
 
 ### 1. Backtesting
-Test the agent's performance on historical data before going live.
-
+Test the agent's performance on historical data, with strict look ahead constraints you don't have to worry about future data. In addition for those worrying about lookahead bias from the LLM, Chutes supports older models so their pre-training + knowledge updates will comply with your dates. Supports parallel processing and portfolio allocation - see explanantion in Live Trading section.
 ```bash
 # General usage
 python3 backtesting/start_agent_backtest.py --symbol AAPL --start-date 2023-01-01 --end-date 2023-01-31
@@ -75,10 +73,16 @@ python3 backtesting/start_agent_backtest.py --symbol AAPL --start-date 2023-01-0
 python3 backtesting/start_agent_backtest.py --symbol NVDA --date 2024-03-15
 ```
 
-### 2. Live Trading (Production)
-The live trading system is designed to run continuously. **PM2** is recommended to keep the process alive across crashes and restarts.
+### 2. Live Trading (Production/Paper)
+The live trading system is designed to run continuously or offer one time analysis.
 
-**Start the Daemon:**
+Multi-Stock Analysis - Using parallel processing you can manage up to 5 stocks in one analysis session. Multiple LLM and MCP tool calls happen in parallel to finalise the result.
+
+Portfolio Allocation - To solve the shared state problem, when it comes to cash allocation, the system has waterfall allocation. Each individual finalised result has a trade "Decision" and "Confidence" value these are ranked and portfolio cash is allocated via ranking. In the event of a tie we go to sector ranking, Tech, Healthcare etc and then sub sectors.    
+
+
+**PM2**  
+Recommended to use PM2 to keep the process alive otherwise if you kill the daemon in terminal or the compiuter is turned off, the scheduler will stop.
 ```bash
 # Generate the config and start
 pm2 start ecosystem.config.js
@@ -135,7 +139,12 @@ stock_agent_eval_clean/
 -   [PM2_SETUP.md](PM2_SETUP.md): Robust process management setup.
 -   [PORTFOLIO_CONTEXT_AND_NEWS_STRATEGY.md](PORTFOLIO_CONTEXT_AND_NEWS_STRATEGY.md): Details on the agent's strategy and context.
 
-
+## 📝 To Do List:
+- Introduce new tools - From FMP or Openbb, e.g sec filings
+- More Market API's - integrating other financial market API's adding more versatility
+- LLM Acess - The LLM has full control over the tools selected and date ranges, this makes it non-deterministic which I find hard to     evaluate but it could be useful.
+- Multi/individual tool selection - currently tool selection is fixed in groups categorised by data types, this allows a greater         variety of experimentation.
+- Configurable max allocation % - Currently it's capped to a max of 30% of available cash, making this configureable would be useful,    one workaround is manually chnaging the code or increasing your capital amount in the one shot / backtest runs would be a              workaround to this.
 
 <img width="576" height="107" alt="Screenshot 2026-01-30 at 09 35 00" src="https://github.com/user-attachments/assets/774c88b4-3f52-4942-a94c-84a54494393d" />
 
