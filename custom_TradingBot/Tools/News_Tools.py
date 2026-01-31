@@ -1,12 +1,12 @@
 """
-News_Tools.py: News and headline tools using FMP (Financial Modeling Prep) and Tiingo.
+News_Tools.py: News and headline tools using FMP (Financial Modeling Prep) and Polygon.
 
 Implements small, purpose-built tools for fetching company-specific
 and macro news, exposed via MCP. We call the FMP REST API directly:
 see FMP docs for news endpoints:
 https://site.financialmodelingprep.com/developer/docs#general-news
 
-Also includes Tiingo-based news tools via OpenBB as a free alternative.
+Also includes Polygon-based news tools via OpenBB as a free alternative.
 """
 
 from typing import Dict, Any, Optional, List
@@ -76,23 +76,23 @@ def _cached_world_news(
 
 
 # ============================================================================
-# Tiingo News Tools (Free Alternative - requires Tiingo API key)
+# Polygon News Tools (Free Alternative - requires Polygon API key)
 # ============================================================================
 
-TIINGO_API_KEY = os.getenv("TIINGO")
+POLYGON_API_KEY = os.getenv("POLYGON")
 
 
-def _get_tiingo_key() -> str:
-    """Get Tiingo API key from environment, loading from .env if needed."""
-    global TIINGO_API_KEY
-    if TIINGO_API_KEY and TIINGO_API_KEY.strip():
-        return TIINGO_API_KEY.strip()
+def _get_polygon_key() -> str:
+    """Get Polygon API key from environment, loading from .env if needed."""
+    global POLYGON_API_KEY
+    if POLYGON_API_KEY and POLYGON_API_KEY.strip():
+        return POLYGON_API_KEY.strip()
     
     # Try getting from env first
-    env_key = os.getenv("TIINGO")
+    env_key = os.getenv("POLYGON")
     if env_key and env_key.strip():
-        TIINGO_API_KEY = env_key.strip()
-        return TIINGO_API_KEY
+        POLYGON_API_KEY = env_key.strip()
+        return POLYGON_API_KEY
 
     # Try finding .env in project root (Tools/../.env) or custom_TradingBot/.env
     try:
@@ -111,44 +111,44 @@ def _get_tiingo_key() -> str:
     except Exception:
         pass
         
-    TIINGO_API_KEY = os.getenv("TIINGO")
-    if not TIINGO_API_KEY or not TIINGO_API_KEY.strip():
+    POLYGON_API_KEY = os.getenv("POLYGON")
+    if not POLYGON_API_KEY or not POLYGON_API_KEY.strip():
         raise RuntimeError(
-            "TIINGO API key not set in environment or is empty. "
-            "Please add TIINGO=your_api_key to your .env file in custom_TradingBot/"
+            "POLYGON API key not set in environment or is empty. "
+            "Please add POLYGON=your_api_key to your .env file in custom_TradingBot/"
         )
     
-    TIINGO_API_KEY = TIINGO_API_KEY.strip()
-    return TIINGO_API_KEY
+    POLYGON_API_KEY = POLYGON_API_KEY.strip()
+    return POLYGON_API_KEY
 
 
-def _tiingo_get(params: Dict[str, Any]) -> Any:
-    """Helper to call Tiingo News API."""
-    api_key = _get_tiingo_key()
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Token {api_key}'
-    }
+def _polygon_get(params: Dict[str, Any]) -> Any:
+    """Helper to call Polygon News API."""
+    api_key = _get_polygon_key()
+    
+    # Use apiKey param as requested (safest method)
+    params["apiKey"] = api_key
     
     # Filter out None values
     clean_params = {k: v for k, v in params.items() if v is not None}
     
-    # Tiingo News Endpoint
-    url = "https://api.tiingo.com/tiingo/news"
+    # Polygon News Endpoint (Standard Reference API)
+    url = "https://api.polygon.io/v2/reference/news"
     
-    resp = requests.get(url, params=clean_params, headers=headers, timeout=30)
+    # No Auth header needed when using apiKey param
+    resp = requests.get(url, params=clean_params, timeout=30)
     resp.raise_for_status()
     return resp.json()
 
 
 @lru_cache(maxsize=512)
-def _cached_company_news_tiingo(
+def _cached_company_news_polygon(
     symbol: str,
     start_date: str,
     end_date: str,
     limit: int,
 ) -> Any:
-    """Cached wrapper around Tiingo company news API."""
+    """Cached wrapper around Polygon company news API."""
     params = {
         'tickers': symbol,
         'startDate': start_date,
@@ -156,16 +156,16 @@ def _cached_company_news_tiingo(
         'limit': limit,
         'sortBy': 'publishedDate',
     }
-    return _tiingo_get(params)
+    return _polygon_get(params)
 
 
 @lru_cache(maxsize=512)
-def _cached_world_news_tiingo(
+def _cached_world_news_polygon(
     start_date: str,
     end_date: str,
     limit: int,
 ) -> Any:
-    """Cached wrapper around Tiingo world news API (general market news)."""
+    """Cached wrapper around Polygon world news API (general market news)."""
     # For general news, we don't specify tickers
     # We can omit tags to get broadly "top news" or use 'general' if supported
     params = {
@@ -174,7 +174,7 @@ def _cached_world_news_tiingo(
         'limit': limit,
         'sortBy': 'publishedDate',
     }
-    return _tiingo_get(params)
+    return _polygon_get(params)
 
 
 
@@ -316,7 +316,7 @@ def register_news_tools(mcp):
             return format_tool_result(tool_name, error=e)
 
     # ========================================================================
-    # Tiingo News Tools (OpenBB-based, free alternative to FMP)
+    # Polygon News Tools (OpenBB-based, free alternative to FMP)
     # ========================================================================
 
     @mcp.tool(name="get_openbb_company_news")
@@ -327,7 +327,7 @@ def register_news_tools(mcp):
         limit: int = 20,
     ) -> Dict[str, Any]:
         """
-        Get company-specific news headlines for a symbol over a date range using OpenBB/Tiingo.
+        Get company-specific news headlines for a symbol over a date range using OpenBB/Polygon.
 
         Args:
             symbol: Stock ticker symbol (required).
@@ -336,7 +336,7 @@ def register_news_tools(mcp):
             limit: Maximum number of articles to return (default: 20).
 
         Notes:
-            - Uses Tiingo as the free data provider (requires Tiingo API key).
+            - Uses Polygon as the free data provider (requires Polygon API key).
             - The ReasoningAgent will typically auto-fill and clamp the dates
               and limit to avoid lookahead and huge payloads.
         """
@@ -358,7 +358,7 @@ def register_news_tools(mcp):
                 limit = 250
 
             # Call cached OpenBB function
-            data = _cached_company_news_tiingo(
+            data = _cached_company_news_polygon(
                 symbol=symbol.upper(),
                 start_date=start_dt.strftime("%Y-%m-%d"),
                 end_date=end_dt.strftime("%Y-%m-%d"),
@@ -377,7 +377,7 @@ def register_news_tools(mcp):
         topics: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        Get macro / world news headlines over a date range using OpenBB/Tiingo.
+        Get macro / world news headlines over a date range using OpenBB/Polygon.
 
         Args:
             start_date: Start date (YYYY-MM-DD), inclusive.
@@ -388,7 +388,7 @@ def register_news_tools(mcp):
                 substring match on the title and text fields).
 
         Notes:
-            - Uses Tiingo as the free data provider (requires Tiingo API key).
+            - Uses Polygon as the free data provider (requires Polygon API key).
             - This tool is intentionally symbol-agnostic and should be used
                 primarily for macro context (e.g., rate decisions, CPI prints).
         """
@@ -406,7 +406,7 @@ def register_news_tools(mcp):
                 limit = 250
 
             # Call cached OpenBB function
-            raw = _cached_world_news_tiingo(
+            raw = _cached_world_news_polygon(
                 start_date=start_dt.strftime("%Y-%m-%d"),
                 end_date=end_dt.strftime("%Y-%m-%d"),
                 limit=limit,
