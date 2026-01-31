@@ -358,7 +358,7 @@ def _prompt_symbols_for_alpaca() -> List[str]:
 
 def _prompt_starting_capital() -> float:
     prompt_text = (
-        "Specify the **notional capital** you want the agent to reason about.\n"
+        "Specify the the theoretical capital  or existing portfolio value  you want the agent to reason about.\n"
         "This does not connect to a broker yet; it's used for sizing logic."
     )
     console.print(
@@ -695,7 +695,8 @@ def _collect_portfolio_details() -> PortfolioSnapshot:
     )
 
     # Get overall portfolio info
-    portfolio_value = float(Prompt.ask("Total portfolio value (USD)", default="100000"))
+    # portfolio_value = float(Prompt.ask("Total portfolio value (USD)", default="100000"))
+    portfolio_value = 0.0  # User requested removal
     num_stocks_str = Prompt.ask("Number of stocks you own", default="1")
 
     try:
@@ -712,12 +713,13 @@ def _collect_portfolio_details() -> PortfolioSnapshot:
         ticker = Prompt.ask("  Ticker symbol").upper()
         avg_price = float(Prompt.ask("  Average purchase price", default="0.0"))
         shares = float(Prompt.ask("  Number of shares (or total value)", default="0.0"))
-        holding_days_str = Prompt.ask("  Days held (e.g., 30, 180, 365)", default="0")
+        # holding_days_str = Prompt.ask("  Days held (e.g., 30, 180, 365)", default="0")
+        holding_days = 0
 
-        try:
-            holding_days = int(holding_days_str)
-        except ValueError:
-            holding_days = 0
+        # try:
+        #     holding_days = int(holding_days_str)
+        # except ValueError:
+        #     holding_days = 0
 
         # Note: Current price will be fetched automatically from OpenBB/FMP
         # Don't ask user for it
@@ -731,7 +733,7 @@ def _collect_portfolio_details() -> PortfolioSnapshot:
         )
         positions.append(position)
 
-    console.print("\n[dim]ℹ️  Current prices will be fetched automatically from market data.[/dim]")
+    # console.print("\n[dim]ℹ️  Current prices will be fetched automatically from market data.[/dim]")
 
     # Create portfolio snapshot
     portfolio = PortfolioSnapshot(
@@ -1340,7 +1342,7 @@ def _prompt_tool_selection(has_fmp_access: bool = False) -> List[str]:
             console.print()
 
 
-def _prompt_tool_categories() -> List[str]:
+def _prompt_tool_categories(excluded_categories: List[str] | None = None) -> List[str]:
     """
     Prompt user to select tool categories (technical, fundamental, sentiment/news).
 
@@ -1360,6 +1362,9 @@ def _prompt_tool_categories() -> List[str]:
     )
 
     categories_list = list(TOOL_CATEGORIES.keys())
+    if excluded_categories:
+        categories_list = [c for c in categories_list if c not in excluded_categories]
+
     for i, cat in enumerate(categories_list, 1):
         desc = TOOL_CATEGORIES[cat]["description"]
         tool_count = len(TOOL_CATEGORIES[cat]["tools"])
@@ -1548,13 +1553,17 @@ def run_interactive() -> None:
             )
         )
 
-        symbols = _prompt_symbols_analysis()
-        symbol = symbols[0]
-        if len(symbols) > 1:
-            console.print(
-                f"[dim]Multiple symbols entered; backtest will run for [bold]{symbol}[/bold] only.[/dim]"
-            )
-
+        # Custom prompt for Backtest (Single Symbol Only)
+        console.print(Panel("Enter the SINGLE ticker symbol to backtest (e.g. NVDA).", title="Step 5 • Symbol", border_style="cyan"))
+        while True:
+            raw_sym = Prompt.ask("Symbol").strip().upper()
+            if "," in raw_sym or " " in raw_sym:
+                 console.print("[red]Backtesting supports only one symbol at a time to ensure strategy validity.[/red]")
+                 continue
+            if raw_sym:
+                symbol = raw_sym
+                break
+        
         starting_cash = _prompt_starting_capital()
 
         # Date selection: single date or range
@@ -1596,7 +1605,8 @@ def run_interactive() -> None:
 
         # Ask for strategy and tools for backtest as well
         allow_short_selling = _prompt_trading_strategy()
-        selected_tool_categories = _prompt_tool_categories()
+        # EXCLUDE sentiment for backtesting to keep it clean/valid
+        selected_tool_categories = _prompt_tool_categories(excluded_categories=["sentiment"])
         technical_indicators_date_range = _prompt_technical_date_range()
         include_news = "sentiment" in selected_tool_categories or "news" in selected_tool_categories
 
@@ -1669,7 +1679,29 @@ def run_interactive() -> None:
         portfolio_mode, portfolio, force_reset = _prompt_analysis_portfolio_source()
 
         # Step 5: Symbols for analysis
-        symbols = _prompt_symbols_analysis()
+        # Step 5: Symbols for analysis
+        if portfolio and portfolio.positions:
+            # If we have a manual portfolio, default to analyzing those symbols
+            portfolio_symbols = [p.ticker for p in portfolio.positions]
+            console.print(f"\n[bold cyan]Context from Portfolio:[/bold cyan] {', '.join(portfolio_symbols)}")
+
+            if Confirm.ask("Analyze these portfolio symbols?", default=True):
+                symbols = portfolio_symbols
+            else:
+                symbols = []
+
+            if Confirm.ask("Add more symbols to analyze?", default=False):
+                more_symbols = _prompt_symbols_analysis()
+                # Merge and deduplicate
+                symbols = list(set(symbols + more_symbols))
+
+            # Ensure we have at least one symbol if we didn't add more and user rejected portfolio symbols
+            if not symbols:
+                 console.print("[yellow]You must select at least one symbol. prompting...[/yellow]")
+                 symbols = _prompt_symbols_analysis()
+
+        else:
+            symbols = _prompt_symbols_analysis()
 
         # Step 7: Run Mode (analysis is always one-shot)
         run_mode: RunMode = "once"  # type: ignore

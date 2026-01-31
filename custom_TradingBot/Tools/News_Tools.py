@@ -79,48 +79,66 @@ def _cached_world_news(
 # Tiingo News Tools (Free Alternative - requires Tiingo API key)
 # ============================================================================
 
-try:
-    from openbb import obb
-    OPENBB_AVAILABLE = True
-except ImportError:
-    OPENBB_AVAILABLE = False
-    obb = None
-
-# Get Tiingo API key from environment
 TIINGO_API_KEY = os.getenv("TIINGO")
 
 
-def _configure_tiingo_credentials():
-    """Configure Tiingo API credentials in OpenBB if not already set."""
-    if not OPENBB_AVAILABLE:
-        raise RuntimeError("OpenBB not available. Install with: pip install openbb")
-    
+def _get_tiingo_key() -> str:
+    """Get Tiingo API key from environment, loading from .env if needed."""
     global TIINGO_API_KEY
-    # Try to load if missing
-    if not TIINGO_API_KEY:
-        from dotenv import load_dotenv
-    if not TIINGO_API_KEY:
-        from dotenv import load_dotenv
-        # Try finding .env in project root (Tools/../.env)
-        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        env_path = os.path.join(root_dir, ".env")
-        load_dotenv(env_path)
-        TIINGO_API_KEY = os.getenv("TIINGO")
+    if TIINGO_API_KEY and TIINGO_API_KEY.strip():
+        return TIINGO_API_KEY.strip()
+    
+    # Try getting from env first
+    env_key = os.getenv("TIINGO")
+    if env_key and env_key.strip():
+        TIINGO_API_KEY = env_key.strip()
+        return TIINGO_API_KEY
 
-    if not TIINGO_API_KEY:
+    # Try finding .env in project root (Tools/../.env) or custom_TradingBot/.env
+    try:
+        from dotenv import load_dotenv
+        # Check custom_TradingBot/.env
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        possible_paths = [
+            os.path.join(root_dir, ".env"),
+            os.path.join(os.path.dirname(root_dir), ".env"), # Parent of custom_TradingBot
+        ]
+        
+        for env_path in possible_paths:
+            if os.path.exists(env_path):
+                load_dotenv(env_path)
+                break
+    except Exception:
+        pass
+        
+    TIINGO_API_KEY = os.getenv("TIINGO")
+    if not TIINGO_API_KEY or not TIINGO_API_KEY.strip():
         raise RuntimeError(
-            "TIINGO API key not set in environment. "
-            "Add TIINGO=your_api_key to your .env file"
+            "TIINGO API key not set in environment or is empty. "
+            "Please add TIINGO=your_api_key to your .env file in custom_TradingBot/"
         )
     
-    # Set Tiingo credentials in OpenBB
-    # OpenBB stores credentials per provider
-    try:
-        # OpenBB v4+ uses user.credentials object
-        obb.user.credentials.tiingo_token = TIINGO_API_KEY
-    except Exception as e:
-        # If credentials are already set or method doesn't exist, continue
-        pass
+    TIINGO_API_KEY = TIINGO_API_KEY.strip()
+    return TIINGO_API_KEY
+
+
+def _tiingo_get(params: Dict[str, Any]) -> Any:
+    """Helper to call Tiingo News API."""
+    api_key = _get_tiingo_key()
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Token {api_key}'
+    }
+    
+    # Filter out None values
+    clean_params = {k: v for k, v in params.items() if v is not None}
+    
+    # Tiingo News Endpoint
+    url = "https://api.tiingo.com/tiingo/news"
+    
+    resp = requests.get(url, params=clean_params, headers=headers, timeout=30)
+    resp.raise_for_status()
+    return resp.json()
 
 
 @lru_cache(maxsize=512)
@@ -130,15 +148,15 @@ def _cached_company_news_tiingo(
     end_date: str,
     limit: int,
 ) -> Any:
-    """Cached wrapper around OpenBB Tiingo company news endpoint."""
-    _configure_tiingo_credentials()
-    return obb.news.company(
-        symbol=symbol,
-        start_date=start_date,
-        end_date=end_date,
-        limit=limit,
-        provider='tiingo'
-    )
+    """Cached wrapper around Tiingo company news API."""
+    params = {
+        'tickers': symbol,
+        'startDate': start_date,
+        'endDate': end_date,
+        'limit': limit,
+        'sortBy': 'publishedDate',
+    }
+    return _tiingo_get(params)
 
 
 @lru_cache(maxsize=512)
@@ -147,14 +165,16 @@ def _cached_world_news_tiingo(
     end_date: str,
     limit: int,
 ) -> Any:
-    """Cached wrapper around OpenBB Tiingo world news endpoint."""
-    _configure_tiingo_credentials()
-    return obb.news.world(
-        start_date=start_date,
-        end_date=end_date,
-        limit=limit,
-        provider='tiingo'
-    )
+    """Cached wrapper around Tiingo world news API (general market news)."""
+    # For general news, we don't specify tickers
+    # We can omit tags to get broadly "top news" or use 'general' if supported
+    params = {
+        'startDate': start_date,
+        'endDate': end_date,
+        'limit': limit,
+        'sortBy': 'publishedDate',
+    }
+    return _tiingo_get(params)
 
 
 
@@ -338,15 +358,13 @@ def register_news_tools(mcp):
                 limit = 250
 
             # Call cached OpenBB function
-            raw = _cached_company_news_tiingo(
+            data = _cached_company_news_tiingo(
                 symbol=symbol.upper(),
                 start_date=start_dt.strftime("%Y-%m-%d"),
                 end_date=end_dt.strftime("%Y-%m-%d"),
                 limit=limit,
             )
             
-            # Extract results from OpenBB response
-            data = raw.results if hasattr(raw, 'results') else raw
             return format_tool_result(tool_name, data=data)
         except Exception as e:  # noqa: BLE001
             return format_tool_result(tool_name, error=e)
@@ -372,7 +390,7 @@ def register_news_tools(mcp):
         Notes:
             - Uses Tiingo as the free data provider (requires Tiingo API key).
             - This tool is intentionally symbol-agnostic and should be used
-              primarily for macro context (e.g., rate decisions, CPI prints).
+                primarily for macro context (e.g., rate decisions, CPI prints).
         """
         tool_name = "get_openbb_world_news"
         try:
@@ -395,9 +413,7 @@ def register_news_tools(mcp):
             )
 
             # Optional topic filtering on title/text
-            # Extract results from OpenBB response
-            results = raw.results if hasattr(raw, 'results') else raw
-            data = results
+            data = raw
             
             if topics:
                 if isinstance(topics, str):
@@ -407,7 +423,7 @@ def register_news_tools(mcp):
                 lowered = [t.lower() for t in topics_list]
                 filtered: List[Dict[str, Any]] = []
                 
-                for item in results or []:
+                for item in raw or []:
                     if not isinstance(item, dict):
                         continue
                     text = (

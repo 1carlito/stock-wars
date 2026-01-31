@@ -103,6 +103,44 @@ async def run_backtest(
         print("⚠️  Warning: prompt_passer not found. Tool calls may lack 'symbol' argument.")
         patch_tool_registry_for_backtest = None
 
+    # ------------------------------------------------------------------
+    # FILTER: Remove FMP and News tools for backtesting (User Request)
+    # This monkey-patches the tool_registry module in memory.
+    # ------------------------------------------------------------------
+    try:
+        import tool_registry
+        
+        # 1. Remove FMP tools and News tools from main REGISTRY
+        keys_to_remove = []
+        for tool_name, metadata in tool_registry.TOOL_REGISTRY.items():
+            is_fmp = metadata.get("provider") == "fmp" or tool_name.startswith("get_fmp_")
+            is_news = metadata.get("category") in ["news", "sentiment"]
+            
+            if is_fmp or is_news:
+                keys_to_remove.append(tool_name)
+        
+        for k in keys_to_remove:
+            del tool_registry.TOOL_REGISTRY[k]
+            
+        print(f"🧹 Removed {len(keys_to_remove)} FMP/News tools from registry for backtesting.")
+
+        # 2. Clean up CATEGORY_TOOL_CALLS to avoid referencing removed tools
+        # and explicitly remove 'news'/'sentiment' categories
+        categories_to_remove = ["news", "sentiment"]
+        for cat in categories_to_remove:
+            if cat in tool_registry.CATEGORY_TOOL_CALLS:
+                del tool_registry.CATEGORY_TOOL_CALLS[cat]
+        
+        for cat, tools in tool_registry.CATEGORY_TOOL_CALLS.items():
+            # Filter the list of dicts in place
+            tool_registry.CATEGORY_TOOL_CALLS[cat] = [
+                t for t in tools 
+                if t["tool"] not in keys_to_remove
+            ]
+            
+    except ImportError:
+        print("⚠️  Could not import tool_registry for patching.")
+
     # Initialize agent (will connect to MCP server)
     results_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backtest_results")
     agent = ReasoningAgent(
