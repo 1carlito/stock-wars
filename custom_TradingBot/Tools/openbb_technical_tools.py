@@ -61,6 +61,8 @@ def _fetch_price_data(symbol: str, start_date: str, end_date: str):
             if not df.index.is_unique:
                 df = df[~df.index.duplicated(keep="last")]
             df = df.sort_index()
+            if end_date:
+                df = df[df.index <= end_date]
             return df
         
         # Fallback list de-duplication
@@ -73,6 +75,10 @@ def _fetch_price_data(symbol: str, start_date: str, end_date: str):
                 elif isinstance(row, dict): date_val = row.get("date")
                 
                 if date_val in seen_dates: continue
+                # Enforce strict date filtering to prevent lookahead
+                if end_date and date_val and str(date_val) > end_date:
+                    continue
+
                 if date_val is not None: seen_dates.add(date_val)
                 cleaned.append(row)
             return cleaned
@@ -91,10 +97,15 @@ def register_openbb_technical_tools(mcp):
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         length: int = 14,
+        period: Optional[int] = None,
         target: str = "close"
     ) -> Dict[str, Any]:
         """Calculate RSI (returns full time series)."""
         tool_name = "calculate_rsi"
+        
+        # Handle parameter alias
+        if period is not None:
+            length = period
         
         if not end_date:
             end_date = datetime.now().strftime("%Y-%m-%d")
@@ -139,10 +150,15 @@ def register_openbb_technical_tools(mcp):
         symbol: str,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        length: int = 14
+        length: int = 14,
+        period: Optional[int] = None
     ) -> Dict[str, Any]:
         """Calculate ADX (returns full time series)."""
         tool_name = "calculate_adx"
+        
+        # Handle parameter alias
+        if period is not None:
+            length = period
         
         if not end_date:
             end_date = datetime.now().strftime("%Y-%m-%d")
@@ -605,3 +621,67 @@ def register_openbb_technical_tools(mcp):
 
         except Exception as e:
             return format_tool_result(tool_name, error=f"Summary calc failed: {e}")
+
+    @mcp.tool(name="get_current_price")
+    def get_current_price(symbol: str, current_date: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get the closing price for a specific date.
+        If the market was closed on that date (weekend/holiday), returns the most recent closing price
+        from the preceding 5 days.
+        """
+        tool_name = "get_current_price"
+        try:
+            if not current_date:
+                current_date = datetime.now().strftime("%Y-%m-%d")
+            
+            # Fetch a small window to ensure we catch the last close if today is a weekend
+            dt = datetime.strptime(current_date, "%Y-%m-%d")
+            start_dt = dt - timedelta(days=5)
+            start_date_str = start_dt.strftime("%Y-%m-%d")
+
+            # Note: _fetch_price_data logic handles caching
+            try:
+                # Fetch window
+                data = _fetch_price_data(symbol, start_date_str, current_date)
+            except ValueError:
+                return format_tool_result(tool_name, error=f"No price data found for {symbol} between {start_date_str} and {current_date}")
+
+            price = None
+            date_found = None
+            
+            # DataFrame handling
+            if hasattr(data, "iloc") and not data.empty:
+                 # iloc[-1] is the last available row (closest to current_date)
+                last_row = data.iloc[-1]
+                price = float(last_row["close"])
+                # Try to get the date of that price
+                if hasattr(last_row, "name"): 
+                    date_found = str(last_row.name)  # index is often date
+                elif "date" in last_row:
+                    date_found = str(last_row["date"])
+            
+            # List handling
+            elif isinstance(data, list) and data:
+                item = data[-1]
+                if isinstance(item, dict):
+                    price = float(item.get("close") or item.get("price") or 0.0)
+                    date_found = item.get("date")
+                elif hasattr(item, "close"):
+                    price = float(item.close)
+                    date_found = getattr(item, "date", None)
+            
+            if price is None:
+                return format_tool_result(tool_name, error=f"No price data found for {symbol} on or before {current_date}")
+                
+            return format_tool_result(
+                tool_name, 
+                data={
+                    "price": price, 
+                    "date": str(date_found) if date_found else current_date, 
+                    "symbol": symbol,
+                    "note": "Price may be from previous trading day if market closed."
+                }
+            )
+
+        except Exception as e:
+            return format_tool_result(tool_name, error=f"Failed to fetch price: {e}")

@@ -21,7 +21,7 @@ import argparse
 import asyncio
 from typing import Optional
 
-from custom_TradingBot.start_agent_backtest import run_backtest as _run_backtest
+from backtesting.start_agent_backtest import run_backtest as _run_backtest
 
 
 async def run_backtest(
@@ -29,11 +29,14 @@ async def run_backtest(
     start_date: str,
     end_date: Optional[str] = None,
     starting_cash: float = 100_000.0,
+    selected_categories: Optional[list[str]] = None,
+    include_news: bool = False,
+    allow_short_selling: bool = False,
 ) -> None:
     """
     Run a backtest using the shared ReasoningAgent + OpenBB MCP stack.
 
-    This simply forwards to `custom_TradingBot.start_agent_backtest.run_backtest`
+    This simply forwards to `backtesting.start_agent_backtest.run_backtest`
     so that all of the established no‑lookahead protections and trade execution
     behavior are preserved.
     """
@@ -43,6 +46,9 @@ async def run_backtest(
         start_date=start_date,
         end_date=end_date,
         starting_cash=starting_cash,
+        selected_categories=selected_categories,
+        include_news=include_news,
+        allow_short_selling=allow_short_selling,
     )
 
 
@@ -71,11 +77,25 @@ def _parse_args() -> argparse.Namespace:
         default=100_000.0,
         help="Starting cash for the portfolio",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--news",
+        action="store_true",
+        help="Include news tools",
+    )
+    parser.add_argument(
+        "--short",
+        action="store_true",
+        help="Allow short selling",
+    )
+    parser.add_argument(
+        "--tools",
+        type=str,
+        help="Comma-separated list of tool categories (e.g. 'technical_indicators,fundamental')",
+    )
 
-
-if __name__ == "__main__":
-    args = _parse_args()
+    args = parser.parse_args()
+    
+    selected_categories = args.tools.split(",") if args.tools else None
 
     # If a single --date is provided, use that; otherwise use start/end
     if args.date:
@@ -92,6 +112,9 @@ if __name__ == "__main__":
                 start_date=start,
                 end_date=end,
                 starting_cash=args.cash,
+                selected_categories=selected_categories,
+                include_news=args.news,
+                allow_short_selling=args.short,
             )
         )
     except KeyboardInterrupt:
@@ -101,6 +124,10 @@ if __name__ == "__main__":
         import traceback
 
         traceback.print_exc()
+
+
+if __name__ == "__main__":
+    _parse_args()
 
 
 

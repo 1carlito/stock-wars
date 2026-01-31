@@ -311,7 +311,9 @@ def execute_trade(
 
         if shares_requested > 0 and updated_state["cash"] >= cost_or_value:
             # Update cash
+            old_cash = updated_state["cash"]
             updated_state["cash"] -= cost_or_value
+            print(f"DEBUG: Executing BUY. Cost: ${cost_or_value:,.2f}. Cash: ${old_cash:,.2f} -> ${updated_state['cash']:,.2f}")
 
             # Update/Create Long Position
             current_long = updated_state["positions"].get(symbol, {"shares": 0, "avg_price": 0})
@@ -343,6 +345,7 @@ def execute_trade(
                 if updated_state["cash"] < cost_or_value
                 else "Invalid amount"
             )
+            print(f"DEBUG: BUY rejected. Required: ${cost_or_value}, Available: ${updated_state['cash']}")
 
     # --- 4. NEUTRAL / MAINTAIN ---
     elif decision_upper in ("NEUTRAL", "MAINTAIN"):

@@ -6,6 +6,6 @@
     "long_short_constraints": "1. BUY\n   - Stock is undervalued OR has strong positive signals (momentum, breakout, fundamental)\n   - Apply to: ANY stock (new position or add to existing)\n   - Position sizing: Based on confidence, available cash, and risk level\n\n2. SELL\n   - Stock is overvalued OR has strong negative signals (breakdown, deterioration, valuation)\n   - Behavior depends on portfolio position:\n     * IF stock is OWNED (long position): Close/reduce the long position\n     * IF stock is NOT OWNED: Convert to SHORT action (short-sell opportunity)\n   - Example: SELL on AAPL when you own it = close position\n   - Example: SELL on AAPL when you don't own it = open short position",
     "long_only_sell_description": "If not owned, NO ACTION (Short selling disabled).",
     "long_only_sell_implication": "You can only SELL what you currently own.",
-    "long_short_sell_description": "If not owned, this becomes a SHORT opportunity.",
-    "long_short_sell_implication": "You can profit from downside moves by shorting."
+    "long_short_sell_description": "If not owned, this becomes a SHORT opportunity. If you want to profit from a price drop on a stock we do not own, you MUST output DECISION: SHORT.",
+    "long_short_sell_implication": "You can profit from downside moves by shorting. Do NOT output SELL unless we currently hold the stock."
 }

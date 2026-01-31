@@ -14,6 +14,7 @@ This script demonstrates the complete workflow:
 import asyncio
 import sys
 import os
+import json
 from datetime import datetime, timedelta
 from typing import Any
 from dotenv import load_dotenv
@@ -62,10 +63,13 @@ def calculate_unrealized_pnl(portfolio_state: dict) -> float:
 
 
 async def run_backtest(
-    symbol: str,
+    symbol: str | list[str],
     start_date: str,
     end_date: str | None = None,
     starting_cash: float = 100000.0,
+    selected_categories: list[str] | None = None,
+    include_news: bool = False,
+    allow_short_selling: bool = False,
 ) -> None:
     """
     Run a simple backtest loop over one or more dates.
@@ -77,11 +81,36 @@ async def run_backtest(
     print("🧪 Backtest: ReasoningAgent → MCP → OpenBB → Trade")
     print("=" * 70)
 
+    # Parse symbols
+    if isinstance(symbol, str):
+        symbols = [s.strip() for s in symbol.split(",") if s.strip()]
+    else:
+        symbols = symbol
+
+    # ------------------------------------------------------------------
+    # PATCH: Fix prompt generation for backtesting
+    # Injects the symbol into the pre-computed tool templates.
+    # Note: Currently prompt_passer only supports one symbol injection.
+    # For multi-symbol, we might need to iterate or patch dynamically.
+    # BUT, the reasoning agent will build its OWN prompt.
+    # The patch only affects the "CATEGORY_TOOL_CALLS" used by `generate_precomputed_tool_calls`.
+    # If we patch it with the *current* symbol before each decision, it handles it.
+    # So we'll move the patch inside the loop.
+    # ------------------------------------------------------------------
+    try:
+        from prompt_passer import patch_tool_registry_for_backtest
+    except ImportError:
+        print("⚠️  Warning: prompt_passer not found. Tool calls may lack 'symbol' argument.")
+        patch_tool_registry_for_backtest = None
+
     # Initialize agent (will connect to MCP server)
+    results_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backtest_results")
     agent = ReasoningAgent(
         data_dir=".",
         use_mcp_client=True,  # Enable MCP client connection
     )
+    # Override decision_save_dir to point to backtest_results
+    agent.decision_save_dir = results_dir
 
     # Build date list
     start_dt = datetime.strptime(start_date, "%Y-%m-%d")
@@ -111,39 +140,65 @@ async def run_backtest(
 
     for current_date in dates:
         print("\n" + "-" * 70)
-        print(f"📊 Analyzing: {symbol} on {current_date}")
+        print(f"📅 Date: {current_date}")
         print(f"💰 Portfolio cash: ${portfolio_state.get('cash', 0):,.2f}")
-        print("🔄 Starting ReAct loop for this date...")
-
-        result = await agent._make_decision_async(
-            symbol=symbol,
-            current_date=current_date,
-            portfolio_state=portfolio_state,
-            execute_trade_after=True,  # Execute trade after decision
-            current_price=None,  # Will be fetched if needed
-            max_tool_iterations=5,
-            selected_categories=["technical_indicators", "fundamental"],  # Default tool categories for backtest
-            technical_indicators_date_range=90,  # Fixed 90-day lookback for consistent backtest behavior
-        )
-
-        all_results.append(result)
-
-        # Update portfolio state from trade execution (if trade was executed)
-        if result.get("portfolio_state_updated"):
-            portfolio_state = result["portfolio_state_updated"]
         
-        # Calculate and update unrealized P&L
-        portfolio_state['unrealized_pnl'] = calculate_unrealized_pnl(portfolio_state)
+        for symbol in symbols:
+            print(f"   📊 Analyzing: {symbol}")
+            
+            # Patch registry for this symbol
+            if patch_tool_registry_for_backtest:
+                patch_tool_registry_for_backtest(symbol)
 
-        print(f"\n✅ Decision for {current_date}: {result.get('decision', 'N/A')}")
-        print(f"   Amount: ${result.get('amount_usd', 0):,.2f}")
-        print(f"   Confidence: {result.get('confidence', 0):.2%}")
-        print(f"   Tool Calls Made: {result.get('tool_calls_made', 0)}")
+            # Prepare categories
+            categories = selected_categories or ["technical_indicators", "fundamental"]
+            # News category removed from backtesting per user request
+            if "news" in categories:
+                categories.remove("news")
+
+            result = await agent._make_decision_async(
+                symbol=symbol,
+                current_date=current_date,
+                portfolio_state=portfolio_state,
+                execute_trade_after=True,  # Execute trade after decision
+                current_price=None,  # Will be fetched if needed
+                max_tool_iterations=10, # Increased to ensure all pre-computed tools run
+                selected_categories=categories,  # Default tool categories for backtest
+                technical_indicators_date_range=90,  # Fixed 90-day lookback for consistent backtest behavior
+                allow_short_selling=allow_short_selling,
+            )
+
+            all_results.append(result)
+
+            # Update portfolio state from trade execution (if trade was executed)
+            if result.get("portfolio_state_updated"):
+                portfolio_state = result["portfolio_state_updated"]
+            
+            # Calculate and update unrealized P&L
+            portfolio_state['unrealized_pnl'] = calculate_unrealized_pnl(portfolio_state)
+
+            # Save detailed logs
+            results_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backtest_results")
+            os.makedirs(results_dir, exist_ok=True)
+            log_file = os.path.join(results_dir, f"backtest_{symbol}_{current_date}.json")
+            try:
+                with open(log_file, "w") as f:
+                    json.dump(result, f, indent=2, default=str)
+                print(f"   📝 Log saved to: {os.path.basename(log_file)}")
+            except Exception as e:
+                print(f"   ⚠️  Failed to save log: {e}")
+
+            print(f"   ✅ Decision for {symbol}: {result.get('decision', 'N/A')}")
+            print(f"      Amount: ${result.get('amount_usd', 0):,.2f}")
+            print(f"      Confidence: {result.get('confidence', 0):.2%}")
+            print(f"      Tool Calls Made: {result.get('tool_calls_made', 0)}")
 
     print("\n" + "=" * 70)
     print("🏁 Backtest Complete")
     print("=" * 70)
-    print(f"Symbol: {symbol}")
+    print("🏁 Backtest Complete")
+    print("=" * 70)
+    print(f"Symbols: {symbols}")
     print(f"Date range: {dates[0]} → {dates[-1]}")
     print(f"Final cash: ${portfolio_state.get('cash', 0):,.2f}")
     print(f"Final positions: {portfolio_state.get('positions', {})}")
@@ -201,6 +256,22 @@ if __name__ == "__main__":
         help="Starting cash for the portfolio",
     )
 
+    parser.add_argument(
+        "--news",
+        action="store_true",
+        help="Include news tools",
+    )
+    parser.add_argument(
+        "--short",
+        action="store_true",
+        help="Allow short selling",
+    )
+    parser.add_argument(
+        "--tools",
+        type=str,
+        help="Comma-separated list of tool categories",
+    )
+
     args = parser.parse_args()
 
     # If a single --date is provided, use that; otherwise use start/end
@@ -210,14 +281,19 @@ if __name__ == "__main__":
     else:
         start = args.start_date
         end = args.end_date
+    
+    selected_categories = args.tools.split(",") if args.tools else None
 
     try:
         asyncio.run(
             run_backtest(
-                symbol=args.symbol,
+                symbols_input=args.symbol,
                 start_date=start,
                 end_date=end,
                 starting_cash=args.cash,
+                selected_categories=selected_categories,
+                include_news=args.news,
+                allow_short_selling=args.short,
             )
         )
     except KeyboardInterrupt:

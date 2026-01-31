@@ -457,8 +457,7 @@ def _prompt_scheduled_times_gmt() -> List[str] | None:
             "[bold]Customize Your Trading Schedule (Optional)[/bold]\n\n"
             "Default: [bold]15:00 GMT (3 PM GMT)[/bold] and [bold]19:00 GMT (7 PM GMT)[/bold]\n"
             "Times should be in HH:MM format (24-hour), e.g., 15:00, 19:00\n"
-            "You can specify one or more times (comma-separated).\n\n"
-            "[dim]Recommended: 08:00-23:00 GMT (covers premarket to after-hours)[/dim]\n"
+            "You can specify one trade analysis time per day or 2 times (comma-separated).\n\n"
             "[dim]Note: GMT times will be converted to your local timezone for display[/dim]",
             title="Step 8a • Scheduled Times (Optional)",
             border_style="cyan",
@@ -1595,6 +1594,12 @@ def run_interactive() -> None:
             )
         )
 
+        # Ask for strategy and tools for backtest as well
+        allow_short_selling = _prompt_trading_strategy()
+        selected_tool_categories = _prompt_tool_categories()
+        technical_indicators_date_range = _prompt_technical_date_range()
+        include_news = "sentiment" in selected_tool_categories or "news" in selected_tool_categories
+
         try:
             asyncio.run(
                 RUN_BACKTEST(
@@ -1602,6 +1607,9 @@ def run_interactive() -> None:
                     start_date=start_date,
                     end_date=end_date,
                     starting_cash=starting_cash,
+                    selected_categories=selected_tool_categories,
+                    include_news=include_news,
+                    allow_short_selling=allow_short_selling,
                 )
             )
         except Exception as exc:  # noqa: BLE001

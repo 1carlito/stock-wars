@@ -119,7 +119,41 @@ class PortfolioOrchestrator:
         self.stock_decisions: Dict[str, Dict[str, Any]] = {}
         self.stock_errors: Dict[str, str] = {}
 
+        # Load session config for consistent behavior with single-stock mode
+        self.selected_categories = ["technical_indicators"]
+        self.technical_indicators_date_range = None
+        self.allow_short_selling = False
+        self._load_session_config()
+
         _logger.info(f"🚀 PortfolioOrchestrator initialized for {len(symbols)} stocks")
+
+    def _load_session_config(self):
+        """Load session configuration from session_config.json."""
+        try:
+            # Look for session_config.json in current or parent dir
+            candidates = [
+                os.path.join(self.data_dir, "session_config.json"),
+                os.path.join(str(self.data_dir), "..", "session_config.json"),
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "session_config.json")
+            ]
+            
+            config_path = None
+            for candidate in candidates:
+                if os.path.exists(candidate):
+                    config_path = candidate
+                    break
+            
+            if config_path:
+                with open(config_path, 'r') as f:
+                    config_data = json.load(f)
+                    if config_data.get("selected_tool_categories"):
+                        self.selected_categories = config_data["selected_tool_categories"]
+                    if config_data.get("technical_indicators_date_range"):
+                        self.technical_indicators_date_range = config_data["technical_indicators_date_range"]
+                    self.allow_short_selling = config_data.get("allow_short_selling", False)
+                _logger.info(f"📋 Loaded session config: tools={len(self.selected_categories)}, short={self.allow_short_selling}")
+        except Exception as e:
+            _logger.warning(f"⚠️  Failed to load session config in Orchestrator: {e}")
 
     async def process_portfolio(self, trade_date: date) -> Dict[str, Any]:
         """
@@ -316,6 +350,9 @@ class PortfolioOrchestrator:
                 current_price=None,
                 max_tool_iterations=5,
                 notes=self.notes,
+                selected_categories=self.selected_categories,
+                technical_indicators_date_range=self.technical_indicators_date_range,
+                allow_short_selling=self.allow_short_selling,
             )
 
             # Merge any updated price information from the agent back into the
