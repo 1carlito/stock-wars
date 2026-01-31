@@ -63,6 +63,9 @@ An autonomous stock trading agent framework powered by Large Language Models (LL
 
 ## 🏃 Usage
 
+## Tutorial video 📸
+https://www.youtube.com/watch?v=wpjBiiggFGY
+
 ### 1. Backtesting
 Test the agent's performance on historical data, with strict look ahead constraints you don't have to worry about future data. In addition for those worrying about lookahead bias from the LLM, Chutes supports older models so their pre-training + knowledge updates will comply with your dates. Keep in my mind a long date range can be costly. Backtesting supports  single stock processing, updated portfolio state and portfolio allocation - see explanantion in Live Trading section.
 ```bash
@@ -153,6 +156,8 @@ stock_agent_eval_clean/
 
 carlos.o.bain@gmail.com
 
+
+https://x.com/Carlos_O_B1
 
 
 
