@@ -64,7 +64,7 @@ An autonomous stock trading agent framework powered by Large Language Models (LL
 ## 🏃 Usage
 
 ### 1. Backtesting
-Test the agent's performance on historical data, with strict look ahead constraints you don't have to worry about future data. In addition for those worrying about lookahead bias from the LLM, Chutes supports older models so their pre-training + knowledge updates will comply with your dates. Supports parallel processing and portfolio allocation - see explanantion in Live Trading section.
+Test the agent's performance on historical data, with strict look ahead constraints you don't have to worry about future data. In addition for those worrying about lookahead bias from the LLM, Chutes supports older models so their pre-training + knowledge updates will comply with your dates. Keep in my mind a long date range can be costly. Backtesting supports  single stock processing, updated portfolio state and portfolio allocation - see explanantion in Live Trading section.
 ```bash
 # General usage
 python3 backtesting/start_agent_backtest.py --symbol AAPL --start-date 2023-01-01 --end-date 2023-01-31
@@ -146,6 +146,7 @@ stock_agent_eval_clean/
 - Multi/individual tool selection - currently tool selection is fixed in groups categorised by data types, this allows a greater         variety of experimentation.
 - Configurable max allocation % - Currently it's capped to a max of 30% of available cash, making this configureable would be useful,    one workaround is manually chnaging the code or increasing your capital amount in the one shot / backtest runs.
 - Depending on the FMP tier you have, excluding US exchnages, some data may not be available. 
+- Multi stock processing for the backtests. 
 
 <img width="576" height="107" alt="Screenshot 2026-01-30 at 09 35 00" src="https://github.com/user-attachments/assets/774c88b4-3f52-4942-a94c-84a54494393d" />
 
