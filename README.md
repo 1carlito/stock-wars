@@ -144,7 +144,8 @@ stock_agent_eval_clean/
 - More Market API's - integrating other financial market API's adding more versatility
 - LLM Acess - The LLM has full control over the tools selected and date ranges, this makes it non-deterministic which I find hard to     evaluate but it could be useful.
 - Multi/individual tool selection - currently tool selection is fixed in groups categorised by data types, this allows a greater         variety of experimentation.
-- Configurable max allocation % - Currently it's capped to a max of 30% of available cash, making this configureable would be useful,    one workaround is manually chnaging the code or increasing your capital amount in the one shot / backtest runs would be a              workaround to this.
+- Configurable max allocation % - Currently it's capped to a max of 30% of available cash, making this configureable would be useful,    one workaround is manually chnaging the code or increasing your capital amount in the one shot / backtest runs.
+- Depending on the FMP tier you have, excluding US exchnages, some data may not be available. 
 
 <img width="576" height="107" alt="Screenshot 2026-01-30 at 09 35 00" src="https://github.com/user-attachments/assets/774c88b4-3f52-4942-a94c-84a54494393d" />
 
