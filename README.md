@@ -15,7 +15,9 @@
 
 
 
-## An autonomous stock trading agent framework powered by Large Language Models (LLMs) and OpenBB/FMP. This system is designed for both robust backtesting and reliable live trading, utilizing a ReAct (Reasoning + Acting) loop to analyze market data and execute trades.
+## An Autonomous AI Trading Agent:
+
+This is a framework powered by Large Language Models (LLMs) and OpenBB/FMP. This system is designed for both robust backtesting and reliable live trading, utilizing a ReAct (Reasoning + Acting) loop to analyze market data and execute trades.
 
 ## Decision example
 <img width="2706" height="1092" alt="image" src="https://github.com/user-attachments/assets/bb418ab9-2e81-4a6d-b85e-da1b90e52252" />
