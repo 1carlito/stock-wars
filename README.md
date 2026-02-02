@@ -74,7 +74,7 @@ This is a framework powered by Large Language Models (LLMs) and OpenBB/FMP. This
 https://www.youtube.com/watch?v=wpjBiiggFGY
 
 ### 1. Backtesting
-Test the agent's performance on historical data, with strict look ahead constraints you don't have to worry about future data. In addition for those worrying about lookahead bias from the LLM, Chutes supports older models so their pre-training + knowledge updates will comply with your dates. Keep in my mind a long date range can be costly. Backtesting supports  single stock processing, updated portfolio state and portfolio allocation - see explanantion in Live Trading section.
+Test the agent's performance on historical data, with strict look ahead constraints you don't have to worry about future data. In addition for those worrying about lookahead bias from the LLM, Chutes supports older models so their pre-training + knowledge updates can comply with your dates. Keep in my mind a long date range can be costly. Backtesting supports  single stock processing, updated portfolio state and portfolio allocation - see explanantion in Live Trading section.
 ```bash
 # General usage
 python3 backtesting/start_agent_backtest.py --symbol AAPL --start-date 2023-01-01 --end-date 2023-01-31
