@@ -742,27 +742,10 @@ class PortfolioOrchestrator:
                 continue
 
             try:
-                result = execute_trade(
-                    symbol=symbol,
-                    decision=decision_type,
-                    amount_usd=amount_usd,
-                    current_price=current_price,
-                    current_date=trade_date,
-                    portfolio_state=state_dict,
-                )
-
-                # Update portfolio state if trade executed
-                if result.get("trade_executed"):
-                    updated_dict = result.get("updated_portfolio_state", self.portfolio_state.to_dict() if hasattr(self.portfolio_state, 'to_dict') else self.portfolio_state)
-                    # Convert back to PortfolioState object if needed
-                    if isinstance(updated_dict, dict):
-                        self.portfolio_state = PortfolioState.from_dict(updated_dict)
-                    else:
-                        self.portfolio_state = updated_dict
-
-                    # Mirror trade to Alpaca if enabled. We pass the actual
-                    # execution price so the broker-side order can size the
-                    # quantity correctly.
+                trade_executed = False
+                
+                # For Alpaca mode, execute directly with Alpaca (skip local cash check)
+                if self.mode in ("paper", "alpaca_live"):
                     try:
                         _maybe_execute_with_alpaca(
                             symbol=symbol,
@@ -773,21 +756,40 @@ class PortfolioOrchestrator:
                                 "current_price": current_price,
                             }
                         )
+                        trade_executed = True
                     except Exception as alpaca_error:
                         _logger.warning(f"  ⚠️  Alpaca execution failed for {symbol}: {alpaca_error}")
+                else:
+                    # Non-Alpaca mode: use local portfolio execution
+                    result = execute_trade(
+                        symbol=symbol,
+                        decision=decision_type,
+                        amount_usd=amount_usd,
+                        current_price=current_price,
+                        current_date=trade_date,
+                        portfolio_state=state_dict,
+                    )
+                    trade_executed = result.get("trade_executed", False)
+
+                    # Update portfolio state if trade executed
+                    if trade_executed:
+                        updated_dict = result.get("updated_portfolio_state", state_dict)
+                        if isinstance(updated_dict, dict):
+                            self.portfolio_state = PortfolioState.from_dict(updated_dict)
+                        else:
+                            self.portfolio_state = updated_dict
 
                 executed_trades.append({
                     "symbol": symbol,
                     "decision": decision_type,
                     "amount": amount_usd,
-                    "executed": result.get("trade_executed", False),
-                    "details": result.get("trade_details", {}),
+                    "executed": trade_executed,
                 })
 
                 _logger.info(
                     f"  💾 {symbol}: {decision_type} "
                     f"${amount_usd:,.2f} - "
-                    f"{'✅ Executed' if result.get('trade_executed') else '⏭️  Skipped'}"
+                    f"{'✅ Executed' if trade_executed else '⏭️  Skipped'}"
                 )
 
             except Exception as e:

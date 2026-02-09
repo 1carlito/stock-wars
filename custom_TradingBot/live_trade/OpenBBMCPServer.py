@@ -346,7 +346,7 @@ def execute_trade(
                 if updated_state["cash"] < cost_or_value
                 else "Invalid amount"
             )
-            print(f"DEBUG: BUY rejected. Required: ${cost_or_value}, Available: ${updated_state['cash']}")
+            
 
     # --- 4. NEUTRAL / MAINTAIN ---
     elif decision_upper in ("NEUTRAL", "MAINTAIN"):
