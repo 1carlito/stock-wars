@@ -634,9 +634,15 @@ class PortfolioOrchestrator:
             if decision.get("decision") in ("HOLD", "ERROR"):
                 continue
 
-            # Calculate allocation
+            decision_type = decision.get("decision")
             requested_amount = decision.get("amount_usd", 0)
-            allocated_amount = min(requested_amount, max_per_trade)
+
+            # SELL/CLOSE orders use position value, not cash - pass through directly
+            if decision_type in ("SELL", "CLOSE"):
+                allocated_amount = requested_amount
+            else:
+                # BUY/SHORT orders are capped by available cash (30% max per trade)
+                allocated_amount = min(requested_amount, max_per_trade)
 
             if allocated_amount > 0:
                 final_decisions.append({
@@ -645,10 +651,12 @@ class PortfolioOrchestrator:
                     "requested_amount": requested_amount,
                 })
 
-                # Deduct from remaining cash (simplified)
-                remaining_cash -= allocated_amount
+                # Only BUY orders reduce available cash for subsequent trades
+                if decision_type == "BUY":
+                    remaining_cash -= allocated_amount
 
-            if remaining_cash <= 0:
+            # Only stop when cash exhausted for BUY scenarios
+            if remaining_cash <= 0 and decision_type == "BUY":
                 break
 
         return final_decisions
