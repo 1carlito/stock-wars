@@ -24,10 +24,11 @@ env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 load_dotenv(dotenv_path=env_path)
 
 # Check if API keys are loaded (OpenBB SDK reads from environment automatically)
+import sys as _sys  # Import early for stderr output
 if os.getenv("fmp_api_key"):
-    print("✅ FMP API key loaded from project‑root .env")
+    print("✅ FMP API key loaded from project‑root .env", file=_sys.stderr)
 else:
-    print("⚠️  FMP API key not found in project‑root .env (check for fmp_api_key)")
+    print("⚠️  FMP API key not found in project‑root .env (check for fmp_api_key)", file=_sys.stderr)
 
 
 try:
@@ -35,14 +36,14 @@ try:
     MCP_AVAILABLE = True
 except ImportError:
     MCP_AVAILABLE = False
-    print("⚠️  MCP SDK not available. Install with: pip install mcp")
+    print("⚠️  MCP SDK not available. Install with: pip install mcp", file=_sys.stderr)
 
 try:
     from openbb import obb
     OPENBB_AVAILABLE = True
 except ImportError:
     OPENBB_AVAILABLE = False
-    print("⚠️  OpenBB not available. Install with: pip install openbb")
+    print("⚠️  OpenBB not available. Install with: pip install openbb", file=_sys.stderr)
 
 
 # Create MCP server instance
@@ -119,7 +120,7 @@ try:
     register_news_tools = News_Tools.register_news_tools
 
 except Exception as e:  # noqa: BLE001
-    print(f"⚠️  Tool modules not available: {e}")
+    print(f"⚠️  Tool modules not available: {e}", file=_sys.stderr)
     register_fmp_fundamental_tools = None
     register_openbb_fundamental_tools = None
     register_fmp_technical_tools = None
@@ -396,9 +397,9 @@ if mcp:
             return
         try:
             register_func(mcp)
-            print(f"✅ Registered {module_name}")
+            print(f"✅ Registered {module_name}", file=_sys.stderr)
         except Exception as e:  # noqa: BLE001
-            print(f"⚠️  Failed to register {module_name}: {e}")
+            print(f"⚠️  Failed to register {module_name}: {e}", file=_sys.stderr)
 
     # Register fundamental, technical, and news tools
     _register_tool_module(register_fmp_fundamental_tools, "FMP fundamental tools")
@@ -411,19 +412,21 @@ if mcp:
 
 
 if __name__ == "__main__":
+    import sys
     if mcp:
-        print("🚀 Starting OpenBB MCP Server (live_trade)...")
-        print("📊 Available tools:")
-        print("   - Fundamental tools (income, balance, cash flow, profile)")
-        print("   - Valuation tools (price history, current price)")
-        print("   - Technical indicators (RSI, MACD, SMA, volatility)")
-        print("   - News tools (company and world headlines)")
-        print("=" * 60)
-        print("✅ Direct OpenBB SDK calls")
-        print("=" * 60)
+        # Use stderr for startup messages - stdout is reserved for JSON-RPC
+        print("🚀 Starting OpenBB MCP Server (live_trade)...", file=sys.stderr)
+        print("📊 Available tools:", file=sys.stderr)
+        print("   - Fundamental tools (income, balance, cash flow, profile)", file=sys.stderr)
+        print("   - Valuation tools (price history, current price)", file=sys.stderr)
+        print("   - Technical indicators (RSI, MACD, SMA, volatility)", file=sys.stderr)
+        print("   - News tools (company and world headlines)", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        print("✅ Direct OpenBB SDK calls", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
         mcp.run()
     else:
-        print("❌ MCP SDK not available. Install with: pip install mcp")
+        print("❌ MCP SDK not available. Install with: pip install mcp", file=sys.stderr)
 
 
 

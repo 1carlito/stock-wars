@@ -218,24 +218,30 @@ class PortfolioOrchestrator:
         # --- PHASE 1: Fetch sector rankings (shared) ---
         sector_ranks = await self._get_sector_rankings(trade_date_str)
 
-        # --- PHASE 2: Parallel stock analysis ---
+        # --- PHASE 2: Parallel stock analysis with retry ---
         _logger.info(f"🔄 Analyzing {len(self.symbols)} stocks in parallel...")
-        stock_analysis_tasks = [
-            self._analyze_stock(symbol, trade_date_str, sector_ranks)
-            for symbol in self.symbols
-        ]
-
-        # Run with semaphore to limit parallelism
         semaphore = asyncio.Semaphore(self.max_parallel)
 
-        async def bounded_task(task):
+        async def bounded_analyze(symbol: str) -> Dict[str, Any]:
             async with semaphore:
-                return await task
+                return await self._analyze_stock(symbol, trade_date_str, sector_ranks)
 
+        # First pass: parallel analysis
         all_results = await asyncio.gather(
-            *[bounded_task(task) for task in stock_analysis_tasks],
+            *[bounded_analyze(sym) for sym in self.symbols],
             return_exceptions=True
         )
+
+        # Retry failed analyses sequentially
+        for i, result in enumerate(all_results):
+            if isinstance(result, Exception) or (isinstance(result, dict) and not result.get("success")):
+                symbol = self.symbols[i]
+                _logger.info(f"🔄 Retrying {symbol}...")
+                await asyncio.sleep(2)
+                try:
+                    all_results[i] = await self._analyze_stock(symbol, trade_date_str, sector_ranks)
+                except Exception:
+                    pass  # Keep original failed result
 
         # --- PHASE 3: Filter errors, validate freshness, and add sector ranks ---
         valid_decisions = self._filter_and_enrich(all_results, sector_ranks, trade_date_str)
@@ -621,13 +627,30 @@ class PortfolioOrchestrator:
             key=lambda d: (-d.get("confidence", 0), d.get("sector_rank", 99))
         )
 
-        # Handle both PortfolioState objects and dicts
-        if hasattr(portfolio_state, 'cash'):
-            remaining_cash = portfolio_state.cash
-        else:
-            remaining_cash = portfolio_state.get("cash", 0)
+        # Get available funds - use Alpaca buying power if in Alpaca mode
+        remaining_funds = 0
+        if self.mode in ("paper", "alpaca_live"):
+            try:
+                from alpaca.trading.client import TradingClient
+                import os
+                api_key = os.getenv("ALPACA_API_KEY")
+                api_secret = os.getenv("ALPACA_API_SECRET")
+                paper = os.getenv("ALPACA_PAPER", "true").lower() == "true"
+                if api_key and api_secret:
+                    client = TradingClient(api_key, api_secret, paper=paper)
+                    account = client.get_account()
+                    remaining_funds = float(account.buying_power)
+            except Exception as e:
+                _logger.warning(f"⚠️  Could not fetch Alpaca buying power: {e}")
+        
+        # Fallback to portfolio cash if Alpaca not available
+        if remaining_funds <= 0:
+            if hasattr(portfolio_state, 'cash'):
+                remaining_funds = portfolio_state.cash
+            else:
+                remaining_funds = portfolio_state.get("cash", 0)
 
-        max_per_trade = remaining_cash * 0.30  # 30% cap for BUY positions
+        max_per_trade = remaining_funds * 0.30  # 30% cap for BUY positions
         final_decisions = []
 
         for decision in sorted_decisions:
@@ -653,10 +676,10 @@ class PortfolioOrchestrator:
 
                 # Only BUY orders reduce available cash for subsequent trades
                 if decision_type == "BUY":
-                    remaining_cash -= allocated_amount
+                    remaining_funds -= allocated_amount
 
             # Only stop when cash exhausted for BUY scenarios
-            if remaining_cash <= 0 and decision_type == "BUY":
+            if remaining_funds <= 0 and decision_type == "BUY":
                 break
 
         return final_decisions
