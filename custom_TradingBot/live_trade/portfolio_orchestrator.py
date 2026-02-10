@@ -364,9 +364,7 @@ class PortfolioOrchestrator:
             await self._shared_mcp_session.initialize()
             await asyncio.sleep(0.1)
 
-            _logger.info(f"✅ Shared MCP session started (id={id(self._shared_mcp_session)})")
-            print(f"\n🔗 DEBUG: Shared MCP session object id = {id(self._shared_mcp_session)}")
-            print(f"🔗 DEBUG: All agents should report this same id\n")
+            _logger.info("✅ Shared MCP session started")
         except Exception as e:
             _logger.error(f"❌ Failed to start shared MCP session: {e}")
             self._shared_mcp_session = None
@@ -420,7 +418,7 @@ class PortfolioOrchestrator:
                 use_mcp_client=True,
                 mcp_session=self._shared_mcp_session,
             )
-            print(f"  🔗 DEBUG [{symbol}]: agent.mcp_session id = {id(agent.mcp_session)}, external = {agent._external_session}")
+
 
 
             # Make decision without executing trade yet
