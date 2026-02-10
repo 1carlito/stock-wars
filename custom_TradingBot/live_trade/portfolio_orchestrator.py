@@ -27,6 +27,19 @@ from data_management.token_tracker import TokenTracker
 from data_management.freshness_validator import FreshnessValidator, DataFreshnessContext
 from Tools.Sector_Tools import register_sector_tools
 
+# MCP Client imports for shared session
+try:
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+    MCP_CLIENT_AVAILABLE = True
+except ImportError:
+    try:
+        from mcp.client.stdio import stdio_client
+        from mcp.types import StdioServerParameters
+        MCP_CLIENT_AVAILABLE = True
+    except ImportError:
+        MCP_CLIENT_AVAILABLE = False
+
 # ANSI color codes for clean terminal output
 class Colors:
     CYAN = '\033[96m'
@@ -125,6 +138,10 @@ class PortfolioOrchestrator:
         self.allow_short_selling = False
         self._load_session_config()
 
+        # Shared MCP session (created once per process_portfolio cycle)
+        self._shared_mcp_session = None
+        self._shared_stdio_context = None
+
         _logger.info(f"🚀 PortfolioOrchestrator initialized for {len(symbols)} stocks")
 
     def _load_session_config(self):
@@ -218,106 +235,162 @@ class PortfolioOrchestrator:
         # --- PHASE 1: Fetch sector rankings (shared) ---
         sector_ranks = await self._get_sector_rankings(trade_date_str)
 
-        # --- PHASE 2: Parallel stock analysis with retry ---
-        _logger.info(f"🔄 Analyzing {len(self.symbols)} stocks in parallel...")
-        semaphore = asyncio.Semaphore(self.max_parallel)
+        # --- Start shared MCP session for all agents ---
+        await self._start_shared_mcp_session()
 
-        async def bounded_analyze(symbol: str) -> Dict[str, Any]:
-            async with semaphore:
-                return await self._analyze_stock(symbol, trade_date_str, sector_ranks)
+        try:
+            # --- PHASE 2: Parallel stock analysis with retry ---
+            _logger.info(f"🔄 Analyzing {len(self.symbols)} stocks in parallel...")
+            semaphore = asyncio.Semaphore(self.max_parallel)
 
-        # First pass: parallel analysis
-        all_results = await asyncio.gather(
-            *[bounded_analyze(sym) for sym in self.symbols],
-            return_exceptions=True
-        )
+            async def bounded_analyze(symbol: str) -> Dict[str, Any]:
+                async with semaphore:
+                    return await self._analyze_stock(symbol, trade_date_str, sector_ranks)
 
-        # Retry failed analyses sequentially
-        for i, result in enumerate(all_results):
-            if isinstance(result, Exception) or (isinstance(result, dict) and not result.get("success")):
-                symbol = self.symbols[i]
-                _logger.info(f"🔄 Retrying {symbol}...")
-                await asyncio.sleep(2)
-                try:
-                    all_results[i] = await self._analyze_stock(symbol, trade_date_str, sector_ranks)
-                except Exception:
-                    pass  # Keep original failed result
-
-        # --- PHASE 3: Filter errors, validate freshness, and add sector ranks ---
-        valid_decisions = self._filter_and_enrich(all_results, sector_ranks, trade_date_str)
-        
-        # Print clean decision summary with colors
-        print(f"\n{Colors.GREEN}✅ Analysis Complete: {len(valid_decisions)}/{len(self.symbols)} tradeable decisions{Colors.RESET}")
-        if valid_decisions:
-            print(f"\n{Colors.CYAN}{Colors.BOLD}📋 Decisions:{Colors.RESET}")
-            for decision in valid_decisions:
-                symbol = decision.get('symbol', 'UNKNOWN')
-                dec = decision.get('decision', 'HOLD')
-                conf = decision.get('confidence', 0.0)
-                amt = decision.get('amount_usd', 0.0)
-                
-                # Color code by decision type
-                if dec == 'BUY':
-                    dec_color = Colors.GREEN
-                elif dec in ('SELL', 'SHORT'):
-                    dec_color = Colors.MAGENTA
-                else:
-                    dec_color = Colors.BLUE
-                
-                if dec in ('BUY', 'SELL', 'SHORT', 'CLOSE'):
-                    print(f"  • {Colors.BOLD}{symbol}{Colors.RESET}: {dec_color}{dec}{Colors.RESET} ${amt:,.0f} ({conf:.0%} confidence)")
-                else:
-                    print(f"  • {Colors.BOLD}{symbol}{Colors.RESET}: {dec_color}{dec}{Colors.RESET} ({conf:.0%} confidence)")
-        print()
-
-        # --- PHASE 4 & 5: Allocation / execution (mode dependent) ---
-        if self.mode == "analysis":
-            # Mode 1: Investment analysis only.
-            # - Do NOT perform capital / waterfall allocation.
-            # - Do NOT execute theoretical trades.
-            # We still return the raw per‑stock decisions for reporting.
-            final_decisions = valid_decisions
-            trades_executed: List[Dict[str, Any]] = []
-            _logger.info(
-                "📋 Analysis mode: returning decisions only (no allocation, no trades executed)."
+            # First pass: parallel analysis
+            all_results = await asyncio.gather(
+                *[bounded_analyze(sym) for sym in self.symbols],
+                return_exceptions=True
             )
-        else:
-            # Normal portfolio trading modes ("paper", "alpaca_live"):
-            # apply waterfall allocation and execute trades against the
-            # shared portfolio_state.
-            final_decisions = self._apply_waterfall_allocation(
-                valid_decisions,
-                self.portfolio_state
+
+            # Retry failed analyses sequentially
+            for i, result in enumerate(all_results):
+                if isinstance(result, Exception) or (isinstance(result, dict) and not result.get("success")):
+                    symbol = self.symbols[i]
+                    _logger.info(f"🔄 Retrying {symbol}...")
+                    await asyncio.sleep(2)
+                    try:
+                        all_results[i] = await self._analyze_stock(symbol, trade_date_str, sector_ranks)
+                    except Exception:
+                        pass  # Keep original failed result
+
+            # --- PHASE 3: Filter errors, validate freshness, and add sector ranks ---
+            valid_decisions = self._filter_and_enrich(all_results, sector_ranks, trade_date_str)
+            
+            # Print clean decision summary with colors
+            print(f"\n{Colors.GREEN}✅ Analysis Complete: {len(valid_decisions)}/{len(self.symbols)} tradeable decisions{Colors.RESET}")
+            if valid_decisions:
+                print(f"\n{Colors.CYAN}{Colors.BOLD}📋 Decisions:{Colors.RESET}")
+                for decision in valid_decisions:
+                    symbol = decision.get('symbol', 'UNKNOWN')
+                    dec = decision.get('decision', 'HOLD')
+                    conf = decision.get('confidence', 0.0)
+                    amt = decision.get('amount_usd', 0.0)
+                    
+                    # Color code by decision type
+                    if dec == 'BUY':
+                        dec_color = Colors.GREEN
+                    elif dec in ('SELL', 'SHORT'):
+                        dec_color = Colors.MAGENTA
+                    else:
+                        dec_color = Colors.BLUE
+                    
+                    if dec in ('BUY', 'SELL', 'SHORT', 'CLOSE'):
+                        print(f"  • {Colors.BOLD}{symbol}{Colors.RESET}: {dec_color}{dec}{Colors.RESET} ${amt:,.0f} ({conf:.0%} confidence)")
+                    else:
+                        print(f"  • {Colors.BOLD}{symbol}{Colors.RESET}: {dec_color}{dec}{Colors.RESET} ({conf:.0%} confidence)")
+            print()
+
+            # --- PHASE 4 & 5: Allocation / execution (mode dependent) ---
+            if self.mode == "analysis":
+                # Mode 1: Investment analysis only.
+                # - Do NOT perform capital / waterfall allocation.
+                # - Do NOT execute theoretical trades.
+                # We still return the raw per‑stock decisions for reporting.
+                final_decisions = valid_decisions
+                trades_executed: List[Dict[str, Any]] = []
+                _logger.info(
+                    "📋 Analysis mode: returning decisions only (no allocation, no trades executed)."
+                )
+            else:
+                # Normal portfolio trading modes ("paper", "alpaca_live"):
+                # apply waterfall allocation and execute trades against the
+                # shared portfolio_state.
+                final_decisions = self._apply_waterfall_allocation(
+                    valid_decisions,
+                    self.portfolio_state
+                )
+                _logger.info(f"📋 Final trade decisions: {len(final_decisions)}")
+
+                trades_executed = await self._execute_trades(final_decisions, trade_date_str)
+                _logger.info(f"💰 Trades executed: {len(trades_executed)}")
+
+            # --- PHASE 6: Save state and logs ---
+            # In analysis mode we no longer persist portfolio JSON to disk; we only
+            # save decision JSON for inspection. Other modes still persist state.
+            self._save_results(final_decisions, trades_executed, trade_date_str)
+
+            # Log freshness summary
+            if self.freshness_context:
+                self.freshness_context.log_summary()
+                freshness_summary = self.freshness_context.get_summary()
+            else:
+                freshness_summary = None
+
+            return {
+                "date": trade_date_str,
+                "symbols_analyzed": len(self.symbols),
+                "symbols_tradeable": len(self.freshness_context.tradeable_stocks) if self.freshness_context else 0,
+                "symbols_skipped": len(self.freshness_context.skipped_stocks) if self.freshness_context else 0,
+                "decisions": final_decisions,
+                "trades": trades_executed,
+                "token_summary": self.token_tracker.get_summary(),
+                "freshness_summary": freshness_summary,
+                "portfolio_state": self.portfolio_state,
+                "errors": self.stock_errors if self.stock_errors else None,
+            }
+        finally:
+            # Close shared MCP session at the end of the portfolio cycle
+            await self._close_shared_mcp_session()
+
+    async def _start_shared_mcp_session(self):
+        """Start shared MCP server session (runs once per portfolio cycle)."""
+        if not MCP_CLIENT_AVAILABLE:
+            _logger.warning("⚠️  MCP client not available, agents will run without shared session")
+            return
+
+        try:
+            server_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "OpenBBMCPServer.py")
+            server_params = StdioServerParameters(
+                command="python",
+                args=[server_path],
             )
-            _logger.info(f"📋 Final trade decisions: {len(final_decisions)}")
 
-            trades_executed = await self._execute_trades(final_decisions, trade_date_str)
-            _logger.info(f"💰 Trades executed: {len(trades_executed)}")
+            self._shared_stdio_context = stdio_client(server_params)
+            read, write = await self._shared_stdio_context.__aenter__()
 
-        # --- PHASE 6: Save state and logs ---
-        # In analysis mode we no longer persist portfolio JSON to disk; we only
-        # save decision JSON for inspection. Other modes still persist state.
-        self._save_results(final_decisions, trades_executed, trade_date_str)
+            self._shared_mcp_session = ClientSession(read, write)
+            await self._shared_mcp_session.__aenter__()
+            await self._shared_mcp_session.initialize()
+            await asyncio.sleep(0.1)
 
-        # Log freshness summary
-        if self.freshness_context:
-            self.freshness_context.log_summary()
-            freshness_summary = self.freshness_context.get_summary()
-        else:
-            freshness_summary = None
+            _logger.info(f"✅ Shared MCP session started (id={id(self._shared_mcp_session)})")
+            print(f"\n🔗 DEBUG: Shared MCP session object id = {id(self._shared_mcp_session)}")
+            print(f"🔗 DEBUG: All agents should report this same id\n")
+        except Exception as e:
+            _logger.error(f"❌ Failed to start shared MCP session: {e}")
+            self._shared_mcp_session = None
+            self._shared_stdio_context = None
 
-        return {
-            "date": trade_date_str,
-            "symbols_analyzed": len(self.symbols),
-            "symbols_tradeable": len(self.freshness_context.tradeable_stocks) if self.freshness_context else 0,
-            "symbols_skipped": len(self.freshness_context.skipped_stocks) if self.freshness_context else 0,
-            "decisions": final_decisions,
-            "trades": trades_executed,
-            "token_summary": self.token_tracker.get_summary(),
-            "freshness_summary": freshness_summary,
-            "portfolio_state": self.portfolio_state,
-            "errors": self.stock_errors if self.stock_errors else None,
-        }
+    async def _close_shared_mcp_session(self):
+        """Close shared MCP server session."""
+        if self._shared_mcp_session:
+            try:
+                await self._shared_mcp_session.__aexit__(None, None, None)
+            except Exception:
+                pass
+            finally:
+                self._shared_mcp_session = None
+
+        if self._shared_stdio_context:
+            try:
+                await self._shared_stdio_context.__aexit__(None, None, None)
+            except Exception:
+                pass
+            finally:
+                self._shared_stdio_context = None
+
+        _logger.info("🔒 Shared MCP session closed")
 
     async def _analyze_stock(
         self,
@@ -341,10 +414,13 @@ class PortfolioOrchestrator:
             # Clean progress output with color
             print(f"  {Colors.YELLOW}🔍 Analyzing {symbol}...{Colors.RESET}")
 
+            # Pass shared MCP session to agent (if available)
             agent = ReasoningAgent(
                 data_dir=str(self.data_dir),
-                use_mcp_client=True
+                use_mcp_client=True,
+                mcp_session=self._shared_mcp_session,
             )
+            print(f"  🔗 DEBUG [{symbol}]: agent.mcp_session id = {id(agent.mcp_session)}, external = {agent._external_session}")
 
 
             # Make decision without executing trade yet

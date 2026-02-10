@@ -76,7 +76,7 @@ except ImportError:
 
 
 class ReasoningAgent:
-    def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True, config_path=None, verbose=None):
+    def __init__(self, data_dir=".", api_key_override=None, use_mcp_client=True, config_path=None, verbose=None, mcp_session=None):
         self.data_dir = data_dir
         self.decision_save_dir = os.path.join(self.data_dir, "reasoning_decisions")
         
@@ -96,7 +96,8 @@ class ReasoningAgent:
             self.api_key = api_key_override or DEFAULT_API_TOKEN
 
         self.use_mcp_client = use_mcp_client and MCP_CLIENT_AVAILABLE
-        self.mcp_session = None
+        self.mcp_session = mcp_session  # Accept shared session from orchestrator
+        self._external_session = mcp_session is not None  # Track if we own the session
         self.available_tools: List[str] = []
 
         # Load tool tier and FMP access from session config
@@ -177,6 +178,27 @@ class ReasoningAgent:
         if not self.use_mcp_client:
             return None
 
+        # If external session was provided, use it directly
+        # but still discover tools on first use
+        if self._external_session and self.mcp_session is not None:
+            if not self.available_tools:
+                try:
+                    tools_response = await self.mcp_session.list_tools()
+                    discovered_tools = [tool.name for tool in tools_response.tools]
+
+                    if TOOL_REGISTRY_AVAILABLE:
+                        enabled_tools = resolve_enabled_tools(
+                            user_tier=self.user_tier,
+                            has_fmp_access=self.has_fmp_access
+                        )
+                        filtered_tools = set(discovered_tools) & enabled_tools
+                        self.available_tools = list(deduplicate_tools(filtered_tools))
+                    else:
+                        self.available_tools = discovered_tools
+                except Exception as e:
+                    print(f"⚠️  Tool discovery failed on shared session: {e}")
+            return self.mcp_session
+
         if self.mcp_session is None:
             try:
                 # Suppress verbose MCP connection logs
@@ -242,7 +264,11 @@ class ReasoningAgent:
         return self.mcp_session
 
     async def _close_mcp_session(self):
-        """Close MCP client session."""
+        """Close MCP client session (skip if using external shared session)."""
+        if self._external_session:
+            # Don't close shared session - orchestrator owns it
+            return
+
         if self.mcp_session:
             try:
                 await self.mcp_session.__aexit__(None, None, None)
@@ -890,8 +916,8 @@ Avoid lookahead bias: do not use data from after {current_date}.
         amount_usd = 0.0
         reasoning = text
 
-        # Match DECISION: at the start of a line (not in prose text)
-        decision_match = re.search(r"^\s*DECISION:\s*(\w+)", text, re.IGNORECASE | re.MULTILINE)
+        # Match DECISION: at the start of a line, with optional markdown bold (**) and optional "to"
+        decision_match = re.search(r"^\s*(?:\*\*)?DECISION:?(?:\*\*)?\s*(?:to\s+)?(\w+)", text, re.IGNORECASE | re.MULTILINE)
         if decision_match:
             decision = decision_match.group(1).upper()
             # Updated valid decisions to include NEUTRAL and MAINTAIN
