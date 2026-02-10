@@ -538,11 +538,6 @@ def _maybe_execute_with_alpaca(
     trade_details = trade_exec.get("trade_details") or {}
     current_price = trade_details.get("price") or decision_result.get("current_price")
 
-    _logger.info(
-        f"🦙 Alpaca hook | date={trade_date.isoformat()} symbol={symbol} "
-        f"decision={decision} amount_usd={amount_usd} price={current_price}"
-    )
-
     # BUY / SHORT: simple market order, sized by amount_usd
     if decision in {"BUY", "SHORT"}:
         if amount_usd <= 0 or not current_price or current_price <= 0:
@@ -564,7 +559,7 @@ def _maybe_execute_with_alpaca(
                 time_in_force=TimeInForce.DAY,
             )
             order = client.submit_order(order_data=order_req)
-            _logger.info(f"✅ Alpaca market {decision} submitted: {order}")
+            _logger.info(f"✅ Alpaca market {decision} submitted for {symbol}: id={order.id}")
         except Exception as exc:  # noqa: BLE001
             error_msg = str(exc)
             _logger.error(f"❌ Alpaca {decision} order failed: {error_msg}")
@@ -578,7 +573,7 @@ def _maybe_execute_with_alpaca(
     if decision in {"SELL", "CLOSE"}:
         try:
             order = client.close_position(symbol)
-            _logger.info(f"✅ Alpaca close position submitted for {symbol}: {order}")
+            _logger.info(f"✅ Alpaca close position submitted for {symbol}: id={order.id}")
         except Exception as exc:  # noqa: BLE001
             _logger.error(f"❌ Alpaca close_position failed for {symbol}: {exc}")
         return
@@ -783,7 +778,6 @@ def save_portfolio_state(state: PortfolioState, mode: str = "paper") -> None:
     """
     # Alpaca mode doesn't save to file
     if mode == "alpaca_live":
-        _logger.debug("🦙 Alpaca mode - not saving to file")
         return
 
     path = _portfolio_state_path(mode)
