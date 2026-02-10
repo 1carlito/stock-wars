@@ -536,7 +536,7 @@ def _maybe_execute_with_alpaca(
     # Pull the price the ReasoningAgent used, if available
     trade_exec = decision_result.get("trade_execution") or {}
     trade_details = trade_exec.get("trade_details") or {}
-    current_price = trade_details.get("price")
+    current_price = trade_details.get("price") or decision_result.get("current_price")
 
     _logger.info(
         f"🦙 Alpaca hook | date={trade_date.isoformat()} symbol={symbol} "
