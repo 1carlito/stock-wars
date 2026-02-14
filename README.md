@@ -26,7 +26,7 @@ This is a framework powered by Large Language Models (LLMs) and OpenBB/FMP. This
 
 ## 🚀 Features
 
--   **Autonomous Reasoning**: Uses LLMs (Chutes.ai (multiple models e.g D-seek), GPT-5)) to analyse technical and fundamental data.
+-   **Autonomous Reasoning**: Uses LLMs (Chutes.ai (multiple models e.g D-seek), GPT-5 & Claude)) to analyse technical and fundamental data.
 -   **OpenBB/FMP Integration**: Leverages FMP API and OpenBB for high-quality financial data (Price, Income, Balance Sheet, News).
 -   **Backtesting Engine**: Simulate agent performance over historical data with `backtesting/start_agent_backtest.py`.
 -   **Live Trading Daemon**: Production-ready live trading loop managed by **PM2** for auto-restart and reliability.
