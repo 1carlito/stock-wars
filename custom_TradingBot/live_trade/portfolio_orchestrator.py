@@ -289,6 +289,9 @@ class PortfolioOrchestrator:
                         print(f"  • {Colors.BOLD}{symbol}{Colors.RESET}: {dec_color}{dec}{Colors.RESET} ${amt:,.0f} ({conf:.0%} confidence)")
                     else:
                         print(f"  • {Colors.BOLD}{symbol}{Colors.RESET}: {dec_color}{dec}{Colors.RESET} ({conf:.0%} confidence)")
+                    
+                    if decision.get("reasoning"):
+                        print(f"    {Colors.YELLOW}Reasoning: {decision.get('reasoning')}{Colors.RESET}")
             print()
 
             # --- PHASE 4 & 5: Allocation / execution (mode dependent) ---
