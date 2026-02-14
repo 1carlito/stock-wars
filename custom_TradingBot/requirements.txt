@@ -16,3 +16,6 @@ openbb-technical
 
 # MCP for tool server
 mcp
+
+# LLM Providers
+anthropic
