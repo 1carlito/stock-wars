@@ -152,7 +152,7 @@ stock_agent_eval_clean/
 ## 📝 To Do List:
 - Introduce new tools - From FMP or Openbb, e.g sec filings
 - More Market API's - integrating other financial market API's adding more versatility
-- LLM Acess - The LLM has full control over the tools selected and date ranges, this makes it non-deterministic which I find hard to     evaluate but it could be useful.
+- LLM Access - This allows the LLM to have full control over the tools selected and date ranges, this makes it much more non-deterministic, hard to evaluate but it could be useful.
 - Multi/individual tool selection - currently tool selection is fixed in groups categorised by data types, this allows a greater         variety of experimentation.
 - Configurable max allocation % - Currently it's capped to a max of 30% of available cash, making this configureable would be useful,    one workaround is manually chnaging the code or increasing your capital amount in the one shot / backtest runs.
 - Depending on the FMP tier you have, excluding US exchnages, some data may not be available. 
