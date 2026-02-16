@@ -50,9 +50,9 @@ This is a framework powered by Large Language Models (LLMs) and OpenBB/FMP. This
     cd stock_agent_eval_clean
     ```
 
-2.  **Install Python Dependencies:**
+2.  **Install the Package:**
     ```bash
-    pip install -r custom_TradingBot/requirements.txt
+    pip install .
     ```
 
 3.  **Install PM2 (Process Manager):**
@@ -117,6 +117,8 @@ You can interact with the live system or run it manually without PM2 for debuggi
 **CLI Manager:**
 ```bash
 python3 custom_TradingBot/live_trade/llm_stock_manager_cli.py
+# OR
+stock-wars
 ```
 
 **Manual Run (Debug Mode):**
