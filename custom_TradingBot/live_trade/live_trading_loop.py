@@ -1105,7 +1105,7 @@ async def run_single_trading_cycle(
 
     # 2. Initialize ReasoningAgent (MCP client connects lazily on first use)
     agent = ReasoningAgent(
-        data_dir=os.path.dirname(BASE_DIR),  # project root for reasoning_decisions
+        data_dir=_get_live_trade_dir(),
         use_mcp_client=True,
     )
 
@@ -1307,6 +1307,7 @@ def run_daemon(
                 symbols=symbols_to_trade,
                 starting_capital=starting_capital or 50000,
                 notes=notes,
+                data_dir=_get_live_trade_dir(), # Explicitly set data_dir to live_trade
                 mode=mode,
                 force_reset=False,
                 max_parallel=min(5, len(symbols_to_trade))
@@ -1397,6 +1398,7 @@ def run_once(
             symbols=symbols_to_trade,
             starting_capital=starting_capital or 50000,
             notes=notes,
+            data_dir=_get_live_trade_dir(), # Explicitly set data_dir to live_trade
             mode=mode,
             force_reset=force_reset,
             max_parallel=min(1, len(symbols_to_trade))

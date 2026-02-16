@@ -139,7 +139,7 @@ def get_llm_client(provider: str, api_key: str, model: str = None) -> LLMClient:
          return OpenAIClient(api_key, model or "gpt-5")
     elif provider == "chutes":
          return ChutesClient(api_key, model or "deepseek-ai/DeepSeek-V3.1-Terminus")
-    elif provider == "anthropic":
+    elif provider == "claude":
          return AnthropicClient(api_key, model or "claude-opus-4-6")
     else:
         raise ValueError(f"Unknown LLM provider: {provider}")
