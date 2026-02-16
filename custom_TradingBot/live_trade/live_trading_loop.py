@@ -138,6 +138,11 @@ def _setup_logging(log_dir: Optional[str] = None) -> logging.Logger:
     rich_logger.setLevel(logging.WARNING)
     rich_logger.propagate = False
 
+    # Suppress HTTPX and connection logs
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+
     return logger_obj
 
 
@@ -738,7 +743,7 @@ def load_portfolio_state(
             _logger.info(f"📁 Backed up {mode_label} portfolio to {backup_path}")
 
         # Initialise fresh state with requested starting capital (or sensible default)
-        initial_cash = starting_capital or 10000.0
+        initial_cash = starting_capital if starting_capital is not None else 10000.0
         state = PortfolioState(cash=initial_cash)
         save_portfolio_state(state, mode=mode)
         mode_label = "theoretical" if mode == "analysis" else "paper"

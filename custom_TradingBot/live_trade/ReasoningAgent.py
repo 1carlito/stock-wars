@@ -89,11 +89,11 @@ class ReasoningAgent:
         self.llm_provider = os.getenv("LLM_PROVIDER", "chutes").lower()
         
         if self.llm_provider == "openai":
-            self.model = os.getenv("OPENAI_MODEL_NAME", "gpt-4o")
+            self.model = os.getenv("OPENAI_MODEL_NAME")
             self.api_key = os.getenv("OPENAI_API_KEY")
-        else:
-            self.model = MODEL_NAME
-            self.api_key = api_key_override or DEFAULT_API_TOKEN
+        elif self.llm_provider == "claude":
+            self.model = os.getenv("ANTHROPIC_MODEL_NAME")
+            self.api_key = os.getenv("ANTHROPIC_API_KEY")
 
         self.use_mcp_client = use_mcp_client and MCP_CLIENT_AVAILABLE
         self.mcp_session = mcp_session  # Accept shared session from orchestrator
@@ -108,6 +108,8 @@ class ReasoningAgent:
         if not self.api_key:
              if self.llm_provider == "openai":
                 raise ValueError("No OpenAI API Key provided. Set OPENAI_API_KEY in environment.")
+             elif self.llm_provider in ["claude", "anthropic"]:
+                raise ValueError("No Anthropic API Key provided. Set ANTHROPIC_API_KEY in environment.")
              else:
                 raise ValueError("No API token provided. Set DEEPSEEK_API_KEY in environment.")
 
@@ -873,7 +875,11 @@ class ReasoningAgent:
             current_price_section = f"\n🔴 CURRENT PRICE: {symbol} = ${current_price:.2f}"
 
         # Build summary-only portfolio context (minimal tokens)
-        portfolio_context = f"Portfolio State:\n- Cash: ${portfolio_state.get('cash', 0):,.2f}\n"
+        cash_val = portfolio_state.get('cash')
+        if cash_val is not None:
+            portfolio_context = f"Portfolio State:\n- Cash: ${cash_val:,.2f}\n"
+        else:
+            portfolio_context = "Portfolio State:\n"
 
         # Long positions summary (symbol: shares @ avg_price)
         positions = portfolio_state.get('positions', {})
