@@ -24,7 +24,15 @@ env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 load_dotenv(dotenv_path=env_path)
 
 # Check if API keys are loaded (OpenBB SDK reads from environment automatically)
+import logging
 import sys as _sys  # Import early for stderr output
+
+# Configure logging to suppress INFO logs from MCP and other libraries
+logging.basicConfig(level=logging.WARNING, stream=_sys.stderr)
+logging.getLogger("mcp").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 if os.getenv("fmp_api_key"):
     print("✅ FMP API key loaded from project‑root .env", file=_sys.stderr)
 else:

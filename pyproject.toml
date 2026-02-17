@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stock-wars"
+version = "0.1.0"
+description = "An Autonomous AI Trading Agent connected to live markets."
+readme = "README.md"
+authors = [
+    {name = "Carlos Bain", email = "carlos.o.bain@gmail.com"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy<2",
+    "pandas>=2.1",
+    "pandas-market-calendars",
+    "python-dotenv",
+    "openai>=1.0",
+    "boto3",
+    "requests",
+    "rich",
+    "pyfiglet",
+    "alpaca-py",
+    "openbb",
+    "openbb-technical",
+    "mcp",
+    "anthropic",
+]
+
+[project.scripts]
+stock-wars = "custom_TradingBot.live_trade.llm_stock_manager_cli:run_interactive"
+
+[tool.setuptools.packages.find]
+include = ["custom_TradingBot*", "custom_TradingBot.live_trade*", "custom_TradingBot.data_management*"]

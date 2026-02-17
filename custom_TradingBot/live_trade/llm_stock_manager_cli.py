@@ -151,7 +151,7 @@ class PortfolioSnapshot:
 @dataclass
 class SessionConfig:
     symbols: List[str]
-    starting_capital: float
+    starting_capital: float | None
     trade_mode: TradeMode
     run_mode: RunMode
     analysis_mode: AnalysisMode = "paper"
@@ -782,8 +782,8 @@ def _prompt_analysis_portfolio_source() -> tuple[PortfolioMode, PortfolioSnapsho
         ).strip()
 
         if choice == "1":
-            # Fresh portfolio: start from session starting capital, no saved JSON.
-            return "new", None, False
+            # Fresh portfolio: start from session starting capital, BUT force reset to clear old file.
+            return "new", None, True
         if choice == "2":
             # Manual portfolio entry
             portfolio = _collect_portfolio_details()
@@ -803,7 +803,11 @@ def _review_config(cfg: SessionConfig) -> bool:
     table.add_column("Value", style="white")
 
     table.add_row("Symbols", ", ".join(cfg.symbols))
-    table.add_row("Starting capital", f"${cfg.starting_capital:,.2f}")
+    table.add_row("Symbols", ", ".join(cfg.symbols))
+    if cfg.starting_capital is not None:
+        table.add_row("Starting capital", f"${cfg.starting_capital:,.2f}")
+    else:
+        table.add_row("Starting capital", "N/A (Analysis Only)")
     table.add_row("Trading mode", cfg.trade_mode)
     table.add_row("Run mode", cfg.run_mode)
     table.add_row("Portfolio mode", cfg.portfolio_mode)
@@ -912,7 +916,7 @@ def _two_line_summary(decision: Dict[str, Any]) -> str:
 def _render_decision_summary(
     symbol: str,
     decision: Dict[str, Any],
-    starting_capital: float,
+    starting_capital: float | None,
 ) -> None:
     """Pretty-print compact portfolio + decision summary."""
     decision_str = (decision.get("decision") or "HOLD").upper()
@@ -939,7 +943,10 @@ def _render_decision_summary(
     table.add_row("Decision", f"[{decision_color}]{decision_str}[/{decision_color}]")
     table.add_row("Confidence", f"{confidence:.1%}")
     table.add_row("Amount (USD)", f"${amount_usd:,.2f}")
-    table.add_row("Starting Cash", f"${starting_capital:,.2f}")
+    if starting_capital is not None:
+        table.add_row("Starting Cash", f"${starting_capital:,.2f}")
+    else:
+        table.add_row("Starting Cash", "N/A")
 
     reasoning_snippet = _two_line_summary(decision)
     reasoning_panel = Panel(
@@ -1105,8 +1112,8 @@ def _simulate_launch(cfg: SessionConfig) -> None:
         Panel(
             f"[bold cyan]Configuration Summary:[/bold cyan]\n"
             f"• Symbols: {', '.join(cfg.symbols)}\n"
-            f"• Starting Capital: ${cfg.starting_capital:,.2f}\n"
-            f"• Trade Mode: {cfg.trade_mode}\n"
+            + (f"• Starting Capital: ${cfg.starting_capital:,.2f}\n" if cfg.starting_capital is not None else "• Starting Capital: N/A\n")
+            + f"• Trade Mode: {cfg.trade_mode}\n"
             f"• Run Mode: {cfg.run_mode}\n"
             f"• Tools: {tools_summary}\n"
             f"• Tech data range: {tech_range_str}\n"
@@ -1642,7 +1649,12 @@ def run_interactive() -> None:
 
     # Step 4: Starting Capital (only for analysis mode; Alpaca modes fetch from API)
     if analysis_mode == "analysis":
-        capital = _prompt_starting_capital()
+        # capital = _prompt_starting_capital()
+        # User requested removal of manual entry for analysis mode.
+        # We'll use a default theoretical capital so the agent has something to reason with,
+        # but the user won't be prompted.
+        capital = 10000.0 
+        console.print(f"[dim]Using default theoretical capital: ${capital:,.2f}[/dim]")
     else:
         # Alpaca modes: cash is fetched from the Alpaca account
         console.print(
