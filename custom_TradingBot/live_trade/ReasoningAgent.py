@@ -89,10 +89,10 @@ class ReasoningAgent:
         self.llm_provider = os.getenv("LLM_PROVIDER", "chutes").lower()
         
         if self.llm_provider == "openai":
-            self.model = os.getenv("OPENAI_MODEL_NAME")
+            self.model = os.getenv("OPENAI_MODEL_NAME", "gpt-4o")
             self.api_key = os.getenv("OPENAI_API_KEY")
         elif self.llm_provider == "claude":
-            self.model = os.getenv("ANTHROPIC_MODEL_NAME")
+            self.model = os.getenv("ANTHROPIC_MODEL_NAME", "claude-sonnet-4-20250514")
             self.api_key = os.getenv("ANTHROPIC_API_KEY")
 
         self.use_mcp_client = use_mcp_client and MCP_CLIENT_AVAILABLE
@@ -450,14 +450,36 @@ class ReasoningAgent:
                     )
                     has_decision = bool(decision_pattern.search(response_text))
 
-                    if has_decision:
+                    if has_decision and not tool_calls:
+                        # Pure decision response (no tool calls) — accept it.
                         if self.verbose:
                             print(f"🛑 Decision found (iteration {iteration+1}). Halting loop.")
-                        if tool_calls:
-                            if self.verbose:
-                                print(f"   ⚠️  Ignoring {len(tool_calls)} post-decision tool calls.")
-                            tool_calls = []  # Clear tool calls to prevent execution
                         break
+
+                    if has_decision and tool_calls:
+                        # LLM emitted tool calls AND a premature decision in the
+                        # same response.  Execute the tools, strip the speculative
+                        # decision, and feed the real data back so the next
+                        # iteration can make a properly informed decision.
+                        print(
+                            f"⚠️  Decision found alongside {len(tool_calls)} tool calls "
+                            f"(iteration {iteration+1}). Executing tools first for an "
+                            f"informed decision."
+                        )
+                        # Strip the premature decision block so it is not treated
+                        # as the final answer when we feed the response back.
+                        stripped_response = decision_pattern.sub("", response_text)
+                        # Also strip CONFIDENCE / AMOUNT_USD / REASONING lines
+                        # that follow the premature decision to keep the context clean
+                        for tag in ("CONFIDENCE:", "AMOUNT_USD:", "REASONING:"):
+                            stripped_response = re.sub(
+                                rf"^\s*(?:\*\*)?{re.escape(tag)}.*$",
+                                "",
+                                stripped_response,
+                                flags=re.IGNORECASE | re.MULTILINE,
+                            )
+                        response_text = stripped_response.strip()
+                        has_decision = False  # allow the loop to continue
 
                     if mcp_session and tool_calls:
                         tool_tasks = [
@@ -1258,7 +1280,57 @@ Avoid lookahead bias: do not use data from after {current_date}.
             "get_company_profile",
             "get_analyst_estimates",
             "get_company_news",
+            "get_openbb_company_news",
+            "get_openbb_world_news",
+            "get_earnings_reports",
         }
+
+        # ── Normalize ticker → symbol ──────────────────────────────────────
+        # LLMs frequently use "ticker" instead of "symbol".  All our tool
+        # signatures use "symbol", so we silently rename the key.
+        if "ticker" in arguments and "symbol" not in arguments:
+            arguments["symbol"] = arguments.pop("ticker")
+
+        # Auto-fill symbol for tools that need it
+        if tool_name in tools_default_symbol and "symbol" not in arguments:
+            arguments["symbol"] = symbol
+
+        # ── Normalize period values ─────────────────────────────────────────
+        # LLMs often send "quarterly" / "annually" but OpenBB expects
+        # "quarter" / "annual".
+        # Only tools that actually accept period/limit parameters
+        fundamental_tools_with_period = {
+            "get_income_statement", "get_balance_sheet", "get_cash_flow",
+        }
+        # Tools that only accept symbol (no period/limit) — strip those args if LLM hallucinates them
+        symbol_only_fundamental_tools = {
+            "get_earnings_reports", "get_fundamental_summary",
+        }
+        if tool_name in symbol_only_fundamental_tools:
+            arguments.pop("period", None)
+            arguments.pop("limit", None)
+        if tool_name in fundamental_tools_with_period and "period" in arguments:
+            period_map = {
+                "quarterly": "quarter",
+                "annually": "annual",
+                "ttm": "ttm",
+                "annual": "annual",
+                "quarter": "quarter",
+            }
+            raw_period = str(arguments["period"]).lower().strip()
+            arguments["period"] = period_map.get(raw_period, "annual")
+
+        # ── Clamp limit for fundamental tools ─────────────────────────────
+        # OpenBB validates limit <= 5 for fundamentals.
+        if tool_name in fundamental_tools_with_period and "limit" in arguments:
+            try:
+                lim = int(arguments["limit"])
+                if lim > 5:
+                    arguments["limit"] = 5
+                elif lim < 1:
+                    arguments["limit"] = 1
+            except (TypeError, ValueError):
+                arguments["limit"] = 5
 
         if tool_name == "get_current_price" and "current_date" not in arguments:
             arguments["current_date"] = current_date
@@ -1294,7 +1366,7 @@ Avoid lookahead bias: do not use data from after {current_date}.
                 arguments["end_date"] = end_date
                 arguments.pop("lookback_days", None)
 
-        if tool_name in ["get_company_news", "get_world_news"]:
+        if tool_name in ["get_company_news", "get_world_news", "get_openbb_company_news", "get_openbb_world_news"]:
             if "start_date" not in arguments or "end_date" not in arguments:
                 lookback_days = int(arguments.get("lookback_days", 3))
                 if lookback_days < 1:

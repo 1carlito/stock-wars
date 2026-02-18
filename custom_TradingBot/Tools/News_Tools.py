@@ -150,11 +150,12 @@ def _cached_company_news_polygon(
 ) -> Any:
     """Cached wrapper around Polygon company news API."""
     params = {
-        'tickers': symbol,
-        'startDate': start_date,
-        'endDate': end_date,
+        'ticker': symbol,                    # Polygon v2 uses 'ticker' (singular)
+        'published_utc.gte': start_date,     # date filtering via published_utc modifiers
+        'published_utc.lte': end_date,
         'limit': limit,
-        'sortBy': 'publishedDate',
+        'sort': 'published_utc',             # Polygon v2 uses 'sort' not 'sortBy'
+        'order': 'desc',
     }
     return _polygon_get(params)
 
@@ -166,13 +167,12 @@ def _cached_world_news_polygon(
     limit: int,
 ) -> Any:
     """Cached wrapper around Polygon world news API (general market news)."""
-    # For general news, we don't specify tickers
-    # We can omit tags to get broadly "top news" or use 'general' if supported
     params = {
-        'startDate': start_date,
-        'endDate': end_date,
+        'published_utc.gte': start_date,
+        'published_utc.lte': end_date,
         'limit': limit,
-        'sortBy': 'publishedDate',
+        'sort': 'published_utc',
+        'order': 'desc',
     }
     return _polygon_get(params)
 

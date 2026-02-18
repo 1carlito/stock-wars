@@ -575,7 +575,6 @@ TOOL_CATEGORIES: Dict[str, Dict[str, List[str]]] = {
         "description": "News and sentiment analysis",
         "tools": [
             "get_company_news",
-            "get_world_news",
             "get_openbb_company_news",
         ]
     }
@@ -621,7 +620,6 @@ CATEGORY_TOOL_CALLS: Dict[str, List[Dict[str, Any]]] = {
     ],
     "sentiment": [
         {"tool": "get_company_news", "params": {"limit": 5}},
-        {"tool": "get_world_news", "params": {"limit": 5}},
         {"tool": "get_openbb_company_news", "params": {"limit": 5}},
     ]
 }
