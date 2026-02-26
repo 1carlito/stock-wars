@@ -351,14 +351,24 @@ class ReasoningAgent:
                 # ------------------------------------------------------------------
                 if not current_price and mcp_session:
                     try:
-                        print(f"🔍 Pre-fetching current_price for {symbol} on {current_date}...")
-                        price_tool_call = {
-                            "name": "get_current_price",
-                            "arguments": {
-                                "symbol": symbol,
-                                "current_date": current_date,
-                            },
-                        }
+                        is_today = current_date == datetime.now().strftime("%Y-%m-%d")
+                        if getattr(self, "has_fmp_access", False) and is_today:
+                            print(f"🔍 Pre-fetching current_price (FMP live) for {symbol}...")
+                            price_tool_call = {
+                                "name": "get_fmp_real_time_quote",
+                                "arguments": {
+                                    "symbol": symbol
+                                }
+                            }
+                        else:
+                            print(f"🔍 Pre-fetching current_price for {symbol} on {current_date}...")
+                            price_tool_call = {
+                                "name": "get_current_price",
+                                "arguments": {
+                                    "symbol": symbol,
+                                    "current_date": current_date,
+                                },
+                            }
                         # We use _execute_tool_via_mcp but need to be careful not to recurse weirdly
                         # Since we are before the loop, this is safe.
                         price_result = await self._execute_tool_via_mcp(
@@ -685,14 +695,25 @@ class ReasoningAgent:
                 if execute_trade_after and TRADE_EXECUTION_AVAILABLE:
                     if not current_price and mcp_session:
                         try:
-                            print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
-                            price_tool_call = {
-                                "name": "get_current_price",
-                                "arguments": {
-                                    "symbol": symbol,
-                                    "current_date": current_date,
-                                },
-                            }
+                            is_today = current_date == datetime.now().strftime("%Y-%m-%d")
+                            if getattr(self, "has_fmp_access", False) and is_today:
+                                print(f"🔍 Fetching current_price (FMP live) for {symbol}...")
+                                price_tool_call = {
+                                    "name": "get_fmp_real_time_quote",
+                                    "arguments": {
+                                        "symbol": symbol
+                                    }
+                                }
+                            else:
+                                print(f"🔍 Fetching current_price for {symbol} on {current_date}...")
+                                price_tool_call = {
+                                    "name": "get_current_price",
+                                    "arguments": {
+                                        "symbol": symbol,
+                                        "current_date": current_date,
+                                    },
+                                }
+                                
                             price_result = await self._execute_tool_via_mcp(
                                 mcp_session, price_tool_call, symbol, current_date
                             )

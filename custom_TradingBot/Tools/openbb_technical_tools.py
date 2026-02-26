@@ -46,7 +46,16 @@ def _cached_price_history(symbol: str, start_date: str, end_date: str):
 
 def _fetch_price_data(symbol: str, start_date: str, end_date: str):
     """Helper function to fetch price data with handling for OBBject/dict."""
-    price_result = _cached_price_history(symbol, start_date, end_date)
+    # To counter yfinance's exclusivity, query an extra day from the provider
+    query_end_date = end_date
+    if end_date:
+        try:
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)
+            query_end_date = end_dt.strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+            
+    price_result = _cached_price_history(symbol, start_date, query_end_date)
 
     results = None
     if hasattr(price_result, "results"):
@@ -62,7 +71,7 @@ def _fetch_price_data(symbol: str, start_date: str, end_date: str):
                 df = df[~df.index.duplicated(keep="last")]
             df = df.sort_index()
             if end_date:
-                df = df[df.index <= end_date]
+                df = df[df.index <= end_date + " 23:59:59"]
             return df
         
         # Fallback list de-duplication
@@ -74,12 +83,13 @@ def _fetch_price_data(symbol: str, start_date: str, end_date: str):
                 if hasattr(row, "date"): date_val = getattr(row, "date")
                 elif isinstance(row, dict): date_val = row.get("date")
                 
-                if date_val in seen_dates: continue
+                date_str = str(date_val)[:10] if date_val else None
+                if date_str in seen_dates: continue
                 # Enforce strict date filtering to prevent lookahead
-                if end_date and date_val and str(date_val) > end_date:
+                if end_date and date_str and date_str > end_date:
                     continue
 
-                if date_val is not None: seen_dates.add(date_val)
+                if date_str is not None: seen_dates.add(date_str)
                 cleaned.append(row)
             return cleaned
 
@@ -625,21 +635,46 @@ def register_openbb_technical_tools(mcp):
     @mcp.tool(name="get_current_price")
     def get_current_price(symbol: str, current_date: Optional[str] = None) -> Dict[str, Any]:
         """
-        Get the closing price for a specific date.
+        Get the closing price for a specific date or live quote.
         If the market was closed on that date (weekend/holiday), returns the most recent closing price
         from the preceding 5 days.
         """
         tool_name = "get_current_price"
         try:
-            if not current_date:
-                current_date = datetime.now().strftime("%Y-%m-%d")
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            is_today = False
             
+            if not current_date:
+                current_date = today_str
+                is_today = True
+            elif current_date == today_str:
+                is_today = True
+            
+            # If the date requested is today, try to get the live quote first (since historical EOD might only have yesterday)
+            if is_today:
+                try:
+                    import yfinance as yf
+                    ticker = yf.Ticker(symbol)
+                    live_price = ticker.fast_info.get('lastPrice')
+                    if live_price is not None:
+                        return format_tool_result(
+                            tool_name, 
+                            data={
+                                "price": float(live_price), 
+                                "date": current_date, 
+                                "symbol": symbol,
+                                "note": "Real-time or delayed intraday quote used."
+                            }
+                        )
+                except Exception:
+                    pass
+
             # Fetch a small window to ensure we catch the last close if today is a weekend
             dt = datetime.strptime(current_date, "%Y-%m-%d")
             start_dt = dt - timedelta(days=5)
             start_date_str = start_dt.strftime("%Y-%m-%d")
 
-            # Note: _fetch_price_data logic handles caching
+            # Note: _fetch_price_data logic handles caching and the inclusive end_date extension internally
             try:
                 # Fetch window
                 data = _fetch_price_data(symbol, start_date_str, current_date)
@@ -656,19 +691,20 @@ def register_openbb_technical_tools(mcp):
                 price = float(last_row["close"])
                 # Try to get the date of that price
                 if hasattr(last_row, "name"): 
-                    date_found = str(last_row.name)  # index is often date
+                    date_found = str(last_row.name)[:10]  # index is often date
                 elif "date" in last_row:
-                    date_found = str(last_row["date"])
+                    date_found = str(last_row["date"])[:10]
             
             # List handling
             elif isinstance(data, list) and data:
                 item = data[-1]
                 if isinstance(item, dict):
                     price = float(item.get("close") or item.get("price") or 0.0)
-                    date_found = item.get("date")
+                    date_found = str(item.get("date"))[:10] if item.get("date") else None
                 elif hasattr(item, "close"):
                     price = float(item.close)
-                    date_found = getattr(item, "date", None)
+                    d = getattr(item, "date", None)
+                    date_found = str(d)[:10] if d else None
             
             if price is None:
                 return format_tool_result(tool_name, error=f"No price data found for {symbol} on or before {current_date}")
