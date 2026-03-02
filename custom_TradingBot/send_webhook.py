@@ -1,107 +1,119 @@
-import os
+#!/usr/bin/env python3
+"""
+send_webhook.py – Forward portfolio decisions to the Next.js frontend.
+
+Automatically finds the most recent decisions_*.json in
+  live_trade/portfolio_decisions/
+and POSTs each decision to the /api/webhook/trade endpoint.
+
+Usage
+-----
+  cd custom_TradingBot
+  python send_webhook.py
+
+Environment
+-----------
+  WEBHOOK_URL  (optional)  Override the target URL.
+               Default: http://localhost:3000/api/webhook/trade   (Demo Mode)
+               Live:    https://your-website.com/api/webhook/trade
+"""
+
 import glob
 import json
+import os
+import sys
+from datetime import datetime
+from pathlib import Path
+
 import requests
 from dotenv import load_dotenv
 
-# Load environment variables (e.g., from .env file)
-load_dotenv()
+# ── Configuration ────────────────────────────────────────────────────────────
+load_dotenv()  # picks up .env in the current (custom_TradingBot) directory
 
-# Demo Mode: When running locally, point the POST request to http://localhost:3000/api/webhook/trade.
-# Live Mode: Once the Next.js app is deployed to the internet, point the POST request to your public URL.
-# You can set WEBHOOK_URL in your .env file to override this default.
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "http://localhost:3000/api/webhook/trade")
+DEFAULT_WEBHOOK_URL = "http://localhost:3000/api/webhook/trade"
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", DEFAULT_WEBHOOK_URL)
 
-def get_latest_decision_file(decisions_dir):
-    """Finds the most recent JSON file in the given decisions directory."""
-    if not os.path.exists(decisions_dir):
-        print(f"Directory not found: {decisions_dir}")
-        return None
-        
-    # Look for decision JSON files
-    search_pattern = os.path.join(decisions_dir, "decisions_*.json")
-    files = glob.glob(search_pattern)
-    
+DECISIONS_DIR = Path(__file__).resolve().parent / "live_trade" / "portfolio_decisions"
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+def find_latest_decisions_file(directory: Path) -> Path | None:
+    """Return the most recently modified decisions_*.json file, or None."""
+    pattern = str(directory / "decisions_*.json")
+    files = glob.glob(pattern)
     if not files:
-        print(f"No decision files found in {decisions_dir}")
         return None
-        
-    # Sort files to find the latest one based on modification time
-    latest_file = max(files, key=os.path.getmtime)
-    return latest_file
+    return Path(max(files, key=os.path.getmtime))
 
-def send_to_frontend(webhook_url, symbol, trade_date, decision, reasoning, confidence, amount):
-    """Sends a single trade decision to the Next.js frontend webhook."""
-    payload = {
-        "symbol": symbol,
-        "trade_date": trade_date,
-        "decision_result": {
-            "decision": decision,
-            "reasoning": reasoning,
-            "confidence": confidence,
-            "amount_usd": amount
+
+def send_decision(payload: dict) -> None:
+    """POST a single decision payload to the webhook URL."""
+    try:
+        resp = requests.post(
+            WEBHOOK_URL,
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=15,
+        )
+        status = "✅" if resp.ok else "❌"
+        print(
+            f"  {status}  {payload['symbol']:>6s}  "
+            f"{payload['decision_result']['decision']:<5s}  "
+            f"${payload['decision_result']['amount_usd']:>10,.2f}  "
+            f"conf={payload['decision_result']['confidence']}  "
+            f"→ HTTP {resp.status_code}"
+        )
+        if not resp.ok:
+            print(f"       Response: {resp.text[:200]}")
+    except requests.RequestException as exc:
+        print(f"  ⚠️   {payload['symbol']:>6s}  request failed: {exc}")
+
+
+# ── Main ─────────────────────────────────────────────────────────────────────
+def main() -> None:
+    # 1. Find the latest decisions file
+    latest = find_latest_decisions_file(DECISIONS_DIR)
+    if latest is None:
+        print(f"No decisions_*.json files found in {DECISIONS_DIR}")
+        sys.exit(1)
+
+    print(f"📄  Latest decisions file: {latest.name}")
+    print(f"🌐  Webhook URL:           {WEBHOOK_URL}\n")
+
+    # 2. Parse JSON
+    with open(latest, "r") as f:
+        data = json.load(f)
+
+    # Global date – fall back to today if missing
+    global_date = data.get("date", datetime.now().strftime("%Y-%m-%d"))
+    decisions = data.get("decisions", [])
+
+    if not decisions:
+        print("No decisions found in the file.")
+        sys.exit(0)
+
+    print(f"📅  Date: {global_date}")
+    print(f"📊  Sending {len(decisions)} decision(s)...\n")
+
+    # 3. Send each decision
+    success_count = 0
+    for entry in decisions:
+        payload = {
+            "symbol": entry.get("symbol", "UNKNOWN"),
+            "trade_date": global_date,
+            "decision_result": {
+                "decision": entry.get("decision", "HOLD"),
+                "reasoning": entry.get("reasoning", ""),
+                "confidence": entry.get("confidence", 0.0),
+                "amount_usd": entry.get("amount_usd", 0.0),
+            }
         }
-    }
-    
-    print(f"Sending {decision} decision for {symbol} to {webhook_url}...")
-    try:
-        response = requests.post(webhook_url, json=payload, timeout=10)
-        # Check if the request was successful
-        if response.status_code in (200, 201):
-            print(f" -> Successfully sent. Status: {response.status_code}")
-        else:
-            print(f" -> Failed to send. Status: {response.status_code}, Response: {response.text}")
-    except requests.exceptions.RequestException as e:
-        print(f" -> Request failed: {e}")
+        send_decision(payload)
+        success_count += 1
 
-def process_latest_decisions():
-    # Setup path to portfolio_decisions
-    # Adjust this path if this script is moving around
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    decisions_dir = os.path.join(base_dir, "live_trade", "portfolio_decisions")
-    
-    latest_file = get_latest_decision_file(decisions_dir)
-    if not latest_file:
-        return
-        
-    print(f"Processing latest decision file: {latest_file}")
-    
-    try:
-        with open(latest_file, "r") as f:
-            data = json.load(f)
-            
-        # Get the global Date or fallback
-        trade_date = data.get("date", "2026-02-26")
-        decisions = data.get("decisions", [])
-        
-        if not decisions:
-            print("No decisions array found in the JSON file.")
-            return
-            
-        print(f"Found {len(decisions)} decisions to send.")
-        for d in decisions:
-            # Extract fields as per the required payload structure
-            symbol = d.get("symbol", "UNKNOWN")
-            decision = d.get("decision", "HOLD")
-            reasoning = d.get("reasoning", "")
-            confidence = d.get("confidence", 0.0)
-            amount = d.get("amount_usd", 0.0)
-            
-            # Send the payload
-            send_to_frontend(
-                webhook_url=WEBHOOK_URL,
-                symbol=symbol,
-                trade_date=trade_date,
-                decision=decision,
-                reasoning=reasoning,
-                confidence=confidence,
-                amount=amount
-            )
-            
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON from decision file: {e}")
-    except Exception as e:
-        print(f"Unexpected error processing decision file: {e}")
+    print(f"\n✅  Done — {success_count}/{len(decisions)} decisions dispatched.")
+
 
 if __name__ == "__main__":
-    process_latest_decisions()
+    main()
