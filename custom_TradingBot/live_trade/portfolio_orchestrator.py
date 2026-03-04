@@ -424,13 +424,17 @@ class PortfolioOrchestrator:
 
 
 
+            state_dict = self.portfolio_state.to_dict() if hasattr(self.portfolio_state, 'to_dict') else self.portfolio_state
+            last_prices = state_dict.get("last_prices", {})
+            current_price = float(last_prices[symbol]) if symbol in last_prices and last_prices[symbol] and last_prices[symbol] > 0 else None
+
             # Make decision without executing trade yet
             result = await agent._make_decision_async(
                 symbol=symbol,
                 current_date=trade_date,
-                portfolio_state=self.portfolio_state.to_dict() if hasattr(self.portfolio_state, 'to_dict') else self.portfolio_state,
+                portfolio_state=state_dict,
                 execute_trade_after=False,
-                current_price=None,
+                current_price=current_price,
                 max_tool_iterations=5,
                 notes=self.notes,
                 selected_categories=self.selected_categories,

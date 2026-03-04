@@ -24,6 +24,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
+import re
 
 import requests
 from dotenv import load_dotenv
@@ -45,6 +46,32 @@ def find_latest_decisions_file(directory: Path) -> Path | None:
     if not files:
         return None
     return Path(max(files, key=os.path.getmtime))
+
+
+def extract_portfolio_context(reasoning: str) -> str:
+    """Extract ONLY the 'Portfolio Context' section from the full reasoning text."""
+    lower_reasoning = reasoning.lower()
+    start_idx = lower_reasoning.find("portfolio context")
+    
+    if start_idx != -1:
+        colon_idx = reasoning.find(':', start_idx)
+        content_start = colon_idx + 1 if colon_idx != -1 else start_idx + 17
+        
+        end_idx = lower_reasoning.find("\noverall", content_start)
+        if end_idx == -1:
+            end_idx = lower_reasoning.find("overall,", content_start)
+        if end_idx == -1:
+            end_idx = lower_reasoning.find("overall ", content_start)
+        if end_idx == -1:
+            end_idx = len(reasoning)
+            
+        context = reasoning[content_start:end_idx].strip()
+        context = re.sub(r'^[\s*-]*', '', context).strip()
+        
+        if context:
+            return context
+             
+    return reasoning
 
 
 def send_decision(payload: dict) -> None:
@@ -99,12 +126,15 @@ def main() -> None:
     # 3. Send each decision
     success_count = 0
     for entry in decisions:
+        raw_reasoning = entry.get("reasoning", "")
+        formatted_reasoning = extract_portfolio_context(raw_reasoning)
+
         payload = {
             "symbol": entry.get("symbol", "UNKNOWN"),
             "trade_date": global_date,
             "decision_result": {
                 "decision": entry.get("decision", "HOLD"),
-                "reasoning": entry.get("reasoning", ""),
+                "reasoning": formatted_reasoning,
                 "confidence": entry.get("confidence", 0.0),
                 "amount_usd": entry.get("amount_usd", 0.0),
             }

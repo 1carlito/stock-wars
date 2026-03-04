@@ -299,7 +299,7 @@ def _waterfall_allocation(
     """
     Waterfall allocation: Process decisions sequentially, updating cash after each trade.
     Enforces 30% cap for BUY positions and 25% cap for SHORT positions.
-    Blocks new SHORT positions when cash < 25% of initial value.
+    Blocks new SHORT positions when cash < 10% of initial value.
 
     Args:
         decisions_list: List of trade decisions (each with symbol, action, amount_usd, etc.)
@@ -314,8 +314,8 @@ def _waterfall_allocation(
     max_short_per_stock_pct = portfolio_state.get('max_short_per_stock_pct', 25)
     short_cap_pct = min(0.25, (max_short_per_stock_pct or 25) / 100.0)
 
-    # Calculate 25% of initial value threshold
-    cash_threshold = initial_value * 0.25
+    # Calculate 10% of initial value threshold
+    cash_threshold = initial_value * 0.10
 
     # Separate decisions by action type for priority processing
     close_decisions = [d for d in decisions_list if d.get('action', '').upper() in ('CLOSE', 'COVER', 'SELL')]
@@ -343,7 +343,7 @@ def _waterfall_allocation(
         # Block all SHORT decisions when cash is below threshold
         for decision in short_decisions:
             decision['amount_usd'] = 0
-            decision['reasoning'] = f"{decision.get('reasoning', '')} (blocked: cash ${available_cash:,.2f} < 25% of initial ${cash_threshold:,.2f})"
+            decision['reasoning'] = f"{decision.get('reasoning', '')} (blocked: cash ${available_cash:,.2f} < 10% of initial ${cash_threshold:,.2f})"
             decision['action'] = 'NEUTRAL'
         final_decisions.extend(short_decisions)
     else:
@@ -577,6 +577,17 @@ def _maybe_execute_with_alpaca(
     # SELL / CLOSE: let Alpaca work out the size by closing the position
     if decision in {"SELL", "CLOSE"}:
         try:
+            # First, cancel any open orders for this symbol to free up held quantity
+            try:
+                from alpaca.trading.requests import GetOrdersRequest
+                from alpaca.trading.enums import QueryOrderStatus
+                open_orders = client.get_orders(filter=GetOrdersRequest(status=QueryOrderStatus.OPEN, symbols=[symbol]))
+                for open_order in open_orders:
+                    client.cancel_order_by_id(open_order.id)
+                    _logger.info(f"   🧹 Canceled open order {open_order.id} for {symbol} to free up shares.")
+            except Exception as cancel_exc:
+                _logger.warning(f"   ⚠️ Could not check/cancel open orders for {symbol}: {cancel_exc}")
+
             order = client.close_position(symbol)
             _logger.info(f"✅ Alpaca close position submitted for {symbol}: id={order.id}")
         except Exception as exc:  # noqa: BLE001
