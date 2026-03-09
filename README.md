@@ -3,7 +3,7 @@
 
 ## 🚀 Stock Wars
 
-
+https://stockwars.live/
 
 
 <img width="1157" height="849" alt="Screenshot 2026-01-28 at 15 04 01" src="https://github.com/user-attachments/assets/02cfaefb-0471-4549-8912-5ebc37750680" />
